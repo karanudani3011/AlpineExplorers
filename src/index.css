@@ -131,3 +131,98 @@ button, a {
   text-rendering: optimizeLegibility;
 }
 
+/* ── Services Mega Menu & Service Pages ── */
+
+/* Smooth mega menu transitions */
+.mega-menu-enter {
+  opacity: 0;
+  transform: translateY(-8px) scale(0.97);
+}
+.mega-menu-enter-active {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+/* Service page section reveal */
+.service-section-reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.service-section-reveal.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Card hover lift with shadow */
+.service-card-hover {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.service-card-hover:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 50px rgba(0,26,77,0.12), 0 8px 20px rgba(0,26,77,0.06);
+}
+
+/* Itinerary timeline line */
+.itinerary-timeline {
+  position: relative;
+}
+.itinerary-timeline::before {
+  content: '';
+  position: absolute;
+  left: 15px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(to bottom, #c59b27, rgba(197,155,39,0.2));
+}
+
+/* Smooth accordion content */
+.accordion-content {
+  overflow: hidden;
+  transition: max-height 0.3s ease, opacity 0.25s ease;
+}
+
+/* Button subtle hover transition */
+.btn-premium {
+  transition: all 0.25s ease;
+}
+.btn-premium:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.btn-premium:active {
+  transform: translateY(0);
+}
+
+/* Image zoom on card hover */
+.img-zoom-container {
+  overflow: hidden;
+}
+.img-zoom-container img {
+  transition: transform 0.7s ease;
+}
+.img-zoom-container:hover img {
+  transform: scale(1.08);
+}
+
+/* Active nav indicator for services */
+.nav-services-active {
+  color: #001a4d;
+  font-weight: 700;
+}
+
+/* Mobile services accordion */
+.mobile-services-accordion {
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+/* Focus visible styles for accessibility */
+a:focus-visible, button:focus-visible {
+  outline: 2px solid #c59b27;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+

@@ -3,7 +3,8 @@ import { AuthProvider } from './contexts/AuthContext'
 import Landing from './pages/Landing'
 import Home from './pages/Home'
 import Services from './pages/Services'
-import TourDetails from './pages/TourDetails'
+import ServicePage from './components/ServicePage'
+import TourDetailsPage from './components/TourDetailsPage'
 import Blog from './pages/Blog'
 import TravelMood from './pages/TravelMood'
 import About from './pages/About'
@@ -34,7 +35,8 @@ function App() {
           <Route path="/" element={<Landing />} />
           <Route path="/home" element={<Home />} />
           <Route path="/services" element={<Services />} />
-          <Route path="/tour/:id" element={<TourDetails />} />
+          <Route path="/services/:slug" element={<ServicePage />} />
+          <Route path="/tour/:id" element={<TourDetailsPage />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/travel-mood" element={<TravelMood />} />
           <Route path="/about" element={<About />} />
