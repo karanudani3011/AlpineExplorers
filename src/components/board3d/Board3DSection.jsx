@@ -249,7 +249,7 @@ export default function Board3DSection({ onCategorySelect, onContactClick }) {
                     <div className="mt-4">
                       <button
                         onClick={() => {
-                          const el = document.getElementById('trending-tours')
+                          const el = document.getElementById('popular-destinations')
                           if (el) el.scrollIntoView({ behavior: 'smooth' })
                         }}
                         className="px-5 py-2 rounded-full bg-white/95 hover:bg-white text-[#0f213d] font-bold text-xs sm:text-sm shadow-lg hover:shadow-xl transition transform hover:scale-105 inline-flex items-center gap-2"
