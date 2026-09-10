@@ -36,6 +36,7 @@ export default function Navbar() {
   const navLinks = [
     { name: 'Home', path: '/home' },
     { name: 'Services', path: '/services', hasMega: true },
+    { name: 'Upcoming Events', path: '/upcoming-events' },
     { name: 'Blog', path: '/blog' },
     { name: 'Find Your Travel Mood', path: '/travel-mood' },
     { name: 'About Us', path: '/about' },

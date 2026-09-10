@@ -3,13 +3,11 @@ import { motion } from 'framer-motion'
 import { Link, useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
-import TourCard from '../components/TourCard'
 import DestinationCard from '../components/DestinationCard'
 import ExperienceCard from '../components/ExperienceCard'
 import Board3DSection from '../components/board3d/Board3DSection'
 import InquiryModal from '../components/InquiryModal'
 import { destinations, experiences, testimonials } from '../data/data'
-import { getCatalog } from '../services/catalog'
 import { MapPin, Calendar, Compass, Shield, Award, Heart, Sparkles, ArrowRight, Star, ChevronLeft, ChevronRight, CheckCircle2, MessageSquare, Search } from 'lucide-react'
 
 export default function Home() {
@@ -18,26 +16,11 @@ export default function Home() {
   const [travelType, setTravelType] = useState('all')
   const [activeFilter, setActiveFilter] = useState('All')
   const [inquiryOpen, setInquiryOpen] = useState(false)
-  const [catalogTours, setCatalogTours] = useState([])
   const scrollContainerRef = useRef(null)
 
   useEffect(() => {
     window.scrollTo(0, 0)
-    getCatalog().then(setCatalogTours).catch(() => setCatalogTours([]))
   }, [])
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.12, delayChildren: 0.2 },
-    },
-  }
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 25 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } },
-  }
 
   const features = [
     {
@@ -66,17 +49,9 @@ export default function Home() {
     },
   ]
 
-  // Filter tours based on search or category
-  const filteredTours = catalogTours.filter((tour) => {
-    const matchesWhere = where === '' || tour.location.toLowerCase().includes(where.toLowerCase()) || tour.title.toLowerCase().includes(where.toLowerCase())
-    const matchesType = travelType === 'all' || travelType === '' || tour.serviceCategory.toLowerCase().includes(travelType.toLowerCase()) || tour.category.toLowerCase().includes(travelType.toLowerCase())
-    const matchesTab = activeFilter === 'All' || tour.serviceCategory === activeFilter
-    return matchesWhere && matchesType && matchesTab
-  })
-
   const handleCategorySelect = (filterKey) => {
     setActiveFilter(filterKey)
-    const section = document.getElementById('trending-tours')
+    const section = document.getElementById('popular-destinations')
     if (section) {
       section.scrollIntoView({ behavior: 'smooth' })
     }
@@ -84,7 +59,7 @@ export default function Home() {
 
   const handleSearchSubmit = (e) => {
     e.preventDefault()
-    const section = document.getElementById('trending-tours')
+    const section = document.getElementById('popular-destinations')
     if (section) {
       section.scrollIntoView({ behavior: 'smooth' })
     }
@@ -183,7 +158,7 @@ export default function Home() {
       {/* ========================================================================= */}
       {/* 3. POPULAR DESTINATIONS (WARM CREAM PALETTE WITH HORIZONTAL SCROLL)        */}
       {/* ========================================================================= */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      <section id="popular-destinations" className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
           <div>
             <span className="text-xs font-bold text-[#8b6528] uppercase tracking-widest block mb-1">
@@ -227,73 +202,6 @@ export default function Home() {
               <DestinationCard destination={dest} index={index} />
             </div>
           ))}
-        </div>
-      </section>
-
-      {/* ========================================================================= */}
-      {/* 4. TRENDING TOURS (WARM GOLD/NAVY STYLING WITH LIVE CATEGORY FILTERING)   */}
-      {/* ========================================================================= */}
-      <section id="trending-tours" className="py-20 px-4 sm:px-6 lg:px-8 bg-white border-y border-[#ede2d2]">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
-            <div>
-              <span className="text-xs font-bold text-[#8b6528] uppercase tracking-widest block mb-1">
-                Handpicked Expeditions
-              </span>
-              <h2 className="font-vintage text-3xl sm:text-4xl md:text-5xl font-extrabold text-[#0e1f38]">
-                Trending Tours
-              </h2>
-              <p className="text-gray-600 text-sm sm:text-base mt-2 max-w-xl">
-                Browse our top-rated guided tours with live booking and instant WhatsApp concierge assistance.
-              </p>
-            </div>
-
-            {/* Category Filter Tabs */}
-            <div className="flex flex-wrap gap-2">
-              {['All', ...Array.from(new Set(catalogTours.map((t) => t.serviceCategory)))].map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveFilter(tab)}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition ${
-                    activeFilter === tab
-                      ? 'bg-[#0e1f38] text-[#ffd778] shadow-md'
-                      : 'bg-[#faf6ef] text-[#554332] hover:bg-[#ede3d2]'
-                  }`}
-                >
-                  {tab}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Tour Cards Grid */}
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-          >
-            {filteredTours.length === 0 ? (
-              <div className="col-span-full text-center py-16 text-gray-500">
-                <Compass size={48} className="mx-auto text-amber-500 mb-3" />
-                <h4 className="text-xl font-bold text-gray-800">No tours match your current filter</h4>
-                <p className="text-sm text-gray-500 mt-1">Try resetting the destination or travel type filters above.</p>
-                <button
-                  onClick={() => { setWhere(''); setTravelType('all'); setActiveFilter('All'); }}
-                  className="mt-4 px-5 py-2 bg-[#0e1f38] text-white rounded-xl text-xs font-semibold"
-                >
-                  Reset Filters
-                </button>
-              </div>
-            ) : (
-              filteredTours.map((tour) => (
-                <motion.div key={tour.id} variants={itemVariants}>
-                  <TourCard tour={tour} />
-                </motion.div>
-              ))
-            )}
-          </motion.div>
         </div>
       </section>
 

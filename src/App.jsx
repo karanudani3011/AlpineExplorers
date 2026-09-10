@@ -6,6 +6,7 @@ import Services from './pages/Services'
 import ServicePage from './components/ServicePage'
 import TourDetailsPage from './components/TourDetailsPage'
 import Blog from './pages/Blog'
+import UpcomingEvents from './pages/UpcomingEvents'
 import TravelMood from './pages/TravelMood'
 import About from './pages/About'
 import Contact from './pages/Contact'
@@ -37,6 +38,7 @@ function App() {
           <Route path="/services" element={<Services />} />
           <Route path="/services/:slug" element={<ServicePage />} />
           <Route path="/tour/:id" element={<TourDetailsPage />} />
+          <Route path="/upcoming-events" element={<UpcomingEvents />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/travel-mood" element={<TravelMood />} />
           <Route path="/about" element={<About />} />
