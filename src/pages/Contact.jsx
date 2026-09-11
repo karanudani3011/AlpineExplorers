@@ -335,7 +335,7 @@ function TreeIcon({ tone = 0.4 }) {
 const DEFAULT_CONTACT = {
   phone: '+91 99798 83339',
   whatsapp: '+91 99798 83339',
-  email: 'info@alpineexplorers.com',
+  email: 'alpine_explorers@yahoo.co.in',
   address: 'B-309, The One World, Near Ayodhya Chowk, 150 Feet Ring Road, Rajkot - 360 006, Gujarat, India.',
   map_link: 'https://www.google.com/maps/search/?api=1&query=Ayodhya+Chowk+Rajkot',
   business_hours: 'Mon – Sat · 10:00 AM to 7:00 PM',
@@ -412,7 +412,7 @@ export default function Contact() {
       icon: Phone, label: 'Phone Numbers', title: 'Phone Numbers', lines: ['+91 99798 83339', '+91 281 2589090'], sub: 'Mon – Sat · 10 AM to 7 PM', href: null, links: true,
     },
     {
-      icon: Mail, label: 'Email Support', title: 'Email Support', lines: ['info@alpineexplorers.com', 'booking@alpineexplorers.com'], sub: "We'll reply within a day", href: null, mails: true,
+      icon: Mail, label: 'Email Support', title: 'Email Support', lines: ['alpine_explorers@yahoo.co.in'], sub: "We'll reply within a day", href: null, mails: true,
     },
   ]
 
@@ -781,8 +781,8 @@ export default function Contact() {
                     <Phone size={16} style={{ color: GOLD }} /> +91 99798 83339
                   </a>
                   <span className="hidden sm:inline text-sm" style={{ color: 'rgba(58,42,24,0.4)' }}>|</span>
-                  <a href="mailto:info@alpineexplorers.com" className="inline-flex items-center gap-2 text-sm font-bold" style={{ color: NAVY, ...font.body }}>
-                    <Mail size={16} style={{ color: GOLD }} /> info@alpineexplorers.com
+                  <a href="mailto:alpine_explorers@yahoo.co.in" className="inline-flex items-center gap-2 text-sm font-bold" style={{ color: NAVY, ...font.body }}>
+                    <Mail size={16} style={{ color: GOLD }} /> alpine_explorers@yahoo.co.in
                   </a>
                 </motion.div>
 
