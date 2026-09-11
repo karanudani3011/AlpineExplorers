@@ -17,10 +17,11 @@ async function request(path, { method = 'GET', body, form } = {}) {
     headers['Content-Type'] = 'application/json'
     payload = JSON.stringify(body)
   }
-  const res = await fetch(`${BASE}${path}`, { method, headers, body: payload })
+  const url = path.startsWith('/api') ? path : `${BASE}${path}`
+  const res = await fetch(url, { method, headers, body: payload })
   const data = await res.json().catch(() => ({}))
   if (!res.ok) {
-    const err = new Error(data.error || 'Request failed')
+    const err = new Error(data.error || `Request failed (${res.status})`)
     err.status = res.status
     throw err
   }

@@ -15,7 +15,7 @@ export function InternationalPage() {
   return (
     <CrudPage config={{
       title: 'International Tours', subtitle: 'Manage international destinations & packages', icon: Globe2, itemName: 'Package',
-      endpoint: '/api/international', resourceKey: 'international',
+      endpoint: '/international', resourceKey: 'international',
       emptyHint: 'No international packages yet',
       columns: [
         { key: 'image', label: 'Image', render: (r) => <Thumb src={r.image} alt={r.destination} /> },
@@ -51,7 +51,7 @@ export function DomesticPage() {
   return (
     <CrudPage config={{
       title: 'Domestic Tours', subtitle: 'Manage India travel packages', icon: MapIcon, itemName: 'Package',
-      endpoint: '/api/domestic', resourceKey: 'domestic',
+      endpoint: '/domestic', resourceKey: 'domestic',
       emptyHint: 'No domestic packages yet',
       columns: [
         { key: 'image', label: 'Image', render: (r) => <Thumb src={r.image} alt={r.destination} /> },
@@ -85,7 +85,7 @@ export function AdventurePage() {
   return (
     <CrudPage config={{
       title: 'Adventure', subtitle: 'Treks, expeditions & adventure camps', icon: Mountain, itemName: 'Adventure Package',
-      endpoint: '/api/adventure', resourceKey: 'adventure',
+      endpoint: '/adventure', resourceKey: 'adventure',
       emptyHint: 'No adventure packages yet',
       columns: [
         { key: 'image', label: 'Image', render: (r) => <Thumb src={r.image} alt={r.title} /> },
@@ -115,7 +115,7 @@ export function CampsPage() {
   return (
     <CrudPage config={{
       title: 'Camps & Nature', subtitle: 'Wildlife, marine & family camping packages', icon: Tent, itemName: 'Camp',
-      endpoint: '/api/camps', resourceKey: 'camping',
+      endpoint: '/camps', resourceKey: 'camping',
       emptyHint: 'No camping packages yet',
       columns: [
         { key: 'image', label: 'Image', render: (r) => <Thumb src={r.image} alt={r.title} /> },
@@ -148,7 +148,7 @@ export function ServicesPage() {
   return (
     <CrudPage config={{
       title: 'Services', subtitle: 'Special travel & tour services', icon: Plane, itemName: 'Service',
-      endpoint: '/api/services', resourceKey: 'services',
+      endpoint: '/services', resourceKey: 'services',
       emptyHint: 'No services yet',
       columns: [
         { key: 'icon', label: 'Icon', render: (r) => <span className="text-lg">{r.icon === 'custom' ? '✦' : r.icon}</span> },
@@ -170,7 +170,7 @@ export function BlogPage() {
   return (
     <CrudPage config={{
       title: 'Blog', subtitle: 'Write, publish & manage blog posts', icon: PenLine, itemName: 'Post',
-      endpoint: '/api/blogs', resourceKey: 'blogs', saveMessage: 'Blog saved',
+      endpoint: '/blogs', resourceKey: 'blogs', saveMessage: 'Blog saved',
       statusNext: (s) => (s === 'published' ? 'draft' : 'published'),
       columns: [
         { key: 'cover_image', label: 'Cover', render: (r) => <Thumb src={r.cover_image} alt={r.title} /> },

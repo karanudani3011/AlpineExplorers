@@ -16,6 +16,8 @@ import BookingForm from './components/BookingForm'
 
 import AdminLayout from './components/admin/AdminLayout'
 import ProtectedRoute from './components/admin/ProtectedRoute'
+import ComingSoon from './components/admin/ComingSoon'
+import { CalendarDays, MapPinned } from 'lucide-react'
 import Login from './pages/admin/Login'
 import Dashboard from './pages/admin/Dashboard'
 import { InternationalPage, DomesticPage, AdventurePage, CampsPage, ServicesPage, BlogPage } from './pages/admin/ContentPages'
@@ -61,6 +63,8 @@ function App() {
             <Route path="camps" element={<CampsPage />} />
             <Route path="services" element={<ServicesPage />} />
             <Route path="blog" element={<BlogPage />} />
+            <Route path="events" element={<ComingSoon icon={CalendarDays} title="Upcoming Events" subtitle="Manage events, excursions & meetups" message="Upcoming events are currently defined in the public site code (src/pages/UpcomingEvents.jsx). A manager that lets you publish, edit and unpublish events directly from here is on the roadmap." note="Existing functionality is untouched — nothing is broken or removed." />} />
+            <Route path="travel-mood" element={<ComingSoon icon={MapPinned} title="Find Your Travel Mood" subtitle="Manage travel moods & recommendations" message="Travel moods, destinations, budgets and recommendations are currently defined in the public site code (src/pages/TravelMood.jsx). A manager for these is on the roadmap." note="Existing functionality is untouched — nothing is broken or removed." />} />
             <Route path="media" element={<MediaLibrary />} />
             <Route path="homepage" element={<ProtectedRoute roles={['super_admin', 'admin']}><HomepageAdmin /></ProtectedRoute>} />
             <Route path="about" element={<ProtectedRoute roles={['super_admin', 'admin']}><AboutAdmin /></ProtectedRoute>} />

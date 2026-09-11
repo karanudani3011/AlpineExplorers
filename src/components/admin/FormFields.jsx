@@ -151,6 +151,15 @@ export function ListEditor({ value = [], onChange, placeholder = 'Add item…' }
     const v = ref.current?.value?.trim()
     if (v) { onChange([...value, v]); ref.current.value = '' }
   }
+  const displayItem = (v) => {
+    if (typeof v === 'string') return v
+    if (v && typeof v === 'object') {
+      const { name, location, text } = v
+      if (name || location || text) return [name, location, text].filter(Boolean).join(' — ')
+      try { return JSON.stringify(v) } catch { return '[object]' }
+    }
+    return String(v)
+  }
   return (
     <div>
       <div className="flex gap-2">
@@ -163,7 +172,7 @@ export function ListEditor({ value = [], onChange, placeholder = 'Add item…' }
           {value.map((v, i) => (
             <li key={i} className="flex items-center justify-between px-3 py-1.5 rounded-lg text-[12px]"
               style={{ background: 'rgba(0,26,77,0.04)' }}>
-              <span style={{ color: NAVY }}>{v}</span>
+              <span style={{ color: NAVY }}>{displayItem(v)}</span>
               <button type="button" onClick={() => onChange(value.filter((_, x) => x !== i))} className="opacity-50 hover:opacity-100"><X size={13} /></button>
             </li>
           ))}

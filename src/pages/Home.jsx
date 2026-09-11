@@ -5,6 +5,8 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { serviceTours } from '../data/servicesData'
 import { testimonials } from '../data/data'
+import TourImageSlider from '../components/TourImageSlider'
+import { tourImages } from '../data/tourImages'
 import { ArrowRight, ArrowUpRight, MapPin, Calendar, Clock, Compass, Award, Heart, Sparkles, Quote } from 'lucide-react'
 
 const NAVY = '#001a4d'
@@ -397,12 +399,7 @@ export default function Home() {
                   style={{ boxShadow: '0 10px 28px rgba(60,40,20,0.12)' }}
                 >
                   <Link to={`/tour/${tour.id}`} className="block relative h-52 overflow-hidden flex-shrink-0">
-                    <img
-                      src={tour.image}
-                      alt={tour.title}
-                      className="w-full h-full object-cover transition-transform duration-[800ms] group-hover:scale-110"
-                      loading="lazy"
-                    />
+                    <TourImageSlider images={tourImages[tour.id] || [tour.image]} alt={tour.title} />
                     <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,26,77,0.45) 0%, rgba(0,26,77,0.05) 60%, transparent 100%)' }} />
                     <span className="absolute top-3 left-3 text-[9px] font-bold uppercase tracking-[0.18em] px-3 py-1 rounded-full"
                       style={{ backgroundColor: 'rgba(212,175,55,0.95)', color: NAVY }}>

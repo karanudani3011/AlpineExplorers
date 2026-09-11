@@ -5,6 +5,8 @@ import { Star, MapPin, Calendar, Clock, ArrowRight, Heart } from 'lucide-react'
 import InquireButton from './InquireButton'
 import BookNowButton from './BookNowButton'
 import BookingModal from './BookingModal'
+import TourImageSlider from './TourImageSlider'
+import { tourImages } from '../data/tourImages'
 
 const NAVY = '#001a4d'
 const GOLD = '#c59b27'
@@ -38,12 +40,7 @@ export default function ServiceTourCard({ tour }) {
       >
         {/* Image Container */}
         <div className="relative overflow-hidden h-56 sm:h-64 w-full flex-shrink-0">
-          <img
-            src={tour.image}
-            alt={tour.title}
-            className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
-            loading="lazy"
-          />
+          <TourImageSlider images={tourImages[tour.id] || [tour.image]} alt={tour.title} />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/15 to-transparent" />
 
           {/* Badges */}

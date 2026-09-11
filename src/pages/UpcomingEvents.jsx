@@ -6,6 +6,8 @@ import Footer from '../components/Footer'
 import InquireButton from '../components/InquireButton'
 import BookNowButton from '../components/BookNowButton'
 import BookingModal from '../components/BookingModal'
+import TourImageSlider from '../components/TourImageSlider'
+import { eventImages } from '../data/eventImages'
 import { Calendar, Clock, MapPin, ArrowRight, Compass } from 'lucide-react'
 
 const NAVY = '#001a4d'
@@ -213,11 +215,7 @@ export default function UpcomingEvents() {
                 style={{ backgroundColor: CREAM, boxShadow: '0 10px 26px rgba(60,40,20,0.12), 0 2px 6px rgba(60,40,20,0.05)', border: '1px solid rgba(180,160,130,0.28)' }}
               >
                 <div className="relative h-52 overflow-hidden">
-                  <img
-                    src={ev.image}
-                    alt={ev.title}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
+                  <TourImageSlider images={eventImages[ev.id] || [ev.image]} alt={ev.title} />
                   <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,26,77,0.55) 0%, rgba(0,26,77,0.05) 60%, transparent 100%)' }} />
                   <div className="absolute top-3 left-3">
                     <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest" style={{ backgroundColor: 'rgba(212,175,55,0.92)', color: NAVY, ...font.vintage }}>

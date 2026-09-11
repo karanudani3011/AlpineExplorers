@@ -1,31 +1,74 @@
 import { useState } from 'react'
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
-  LayoutDashboard, Globe2, Map as MapIcon, Mountain, Tent, Plane, PenLine,
-  Image as ImageIcon, Home, Info, Inbox, Users, Settings, LogOut, Menu, X, Activity,
+  Compass, Globe2, Map as MapIcon, Mountain, Tent, Plane, PenLine,
+  Home, Info, Mail, Users, Settings, LogOut, Menu, X, CalendarDays, MapPinned, ChevronDown,
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { BG, NAVY, GOLD, NAVY_DARK } from './admin-ui'
 
 const NAV = [
-  { to: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard, exact: true, roles: ['super_admin', 'admin', 'editor'] },
-  { to: '/admin/international', label: 'International Tours', icon: Globe2, roles: ['super_admin', 'admin', 'editor'] },
-  { to: '/admin/domestic', label: 'Domestic Tours', icon: MapIcon, roles: ['super_admin', 'admin', 'editor'] },
-  { to: '/admin/adventure', label: 'Adventure', icon: Mountain, roles: ['super_admin', 'admin', 'editor'] },
-  { to: '/admin/camps', label: 'Camps & Nature', icon: Tent, roles: ['super_admin', 'admin', 'editor'] },
-  { to: '/admin/services', label: 'Services', icon: Plane, roles: ['super_admin', 'admin', 'editor'] },
+  { to: '/admin/homepage', label: 'Home', icon: Home, end: true, roles: ['super_admin', 'admin'] },
+  {
+    type: 'group', label: 'Services', icon: Compass, roles: ['super_admin', 'admin', 'editor'],
+    children: [
+      { to: '/admin/international', label: 'International', icon: Globe2 },
+      { to: '/admin/domestic', label: 'Domestic', icon: MapIcon },
+      { to: '/admin/adventure', label: 'Adventure Tours & Camps', icon: Mountain },
+      { to: '/admin/camps', label: 'Camps & Nature', icon: Tent },
+      { to: '/admin/services', label: 'Special Services', icon: Plane },
+    ],
+  },
+  { to: '/admin/events', label: 'Upcoming Events', icon: CalendarDays, roles: ['super_admin', 'admin', 'editor'] },
   { to: '/admin/blog', label: 'Blog', icon: PenLine, roles: ['super_admin', 'admin', 'editor'] },
-  { to: '/admin/media', label: 'Media', icon: ImageIcon, roles: ['super_admin', 'admin', 'editor'] },
-  { to: '/admin/homepage', label: 'Homepage', icon: Home, roles: ['super_admin', 'admin'] },
+  { to: '/admin/travel-mood', label: 'Find Your Travel Mood', icon: MapPinned, roles: ['super_admin', 'admin', 'editor'] },
   { to: '/admin/about', label: 'About Us', icon: Info, roles: ['super_admin', 'admin'] },
-  { to: '/admin/inquiries', label: 'Inquiries', icon: Inbox, roles: ['super_admin', 'admin', 'editor'] },
-  { to: '/admin/activity', label: 'Activity Logs', icon: Activity, roles: ['super_admin'] },
-  { to: '/admin/users', label: 'Users', icon: Users, roles: ['super_admin'] },
-  { to: '/admin/settings', label: 'Settings', icon: Settings, roles: ['super_admin'] },
+  { to: '/admin/inquiries', label: 'Contact Us', icon: Mail, roles: ['super_admin', 'admin', 'editor'] },
 ]
+
+const BOTTOM_NAV = [
+  { to: '/admin/settings', label: 'Settings', icon: Settings, roles: ['super_admin'] },
+  { to: '/admin/users', label: 'Super Administrator', icon: Users, roles: ['super_admin'] },
+]
+
+const linkClass = ({ isActive }) =>
+  `flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-colors ${isActive ? 'text-white' : 'text-white/70 hover:text-white hover:bg-white/5'}`
+
+const linkStyle = ({ isActive }) => ({
+  fontFamily: "'Inter', sans-serif",
+  background: isActive ? 'linear-gradient(90deg, rgba(197,155,39,0.25), transparent)' : 'transparent',
+})
+
+function GroupItem({ group, onNavigate }) {
+  const location = useLocation()
+  const [open, setOpen] = useState(false)
+  const active = group.children.some((c) => location.pathname.startsWith(c.to))
+  const isOpen = open || active
+  return (
+    <div>
+      <button type="button" onClick={() => setOpen(!open)}
+        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-colors ${active ? 'text-white' : 'text-white/70 hover:text-white hover:bg-white/5'}`}
+        style={{ fontFamily: "'Inter', sans-serif", background: active ? 'linear-gradient(90deg, rgba(197,155,39,0.25), transparent)' : 'transparent' }}>
+        <group.icon size={17} style={{ color: GOLD }} className="shrink-0" />
+        <span className="flex-1 text-left">{group.label}</span>
+        <ChevronDown size={15} className={`shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} style={{ color: GOLD }} />
+      </button>
+      {isOpen && (
+        <div className="mt-1 ml-3 pl-4 border-l space-y-1" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
+          {group.children.map((c) => (
+            <NavLink key={c.to} to={c.to} end={!!c.exact} onClick={onNavigate} className={linkClass} style={linkStyle}>
+              <c.icon size={15} style={{ color: GOLD }} className="shrink-0" /> {c.label}
+            </NavLink>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
 
 function SidebarContent({ onNavigate, user, onLogout }) {
   const items = NAV.filter((n) => user && n.roles.includes(user.role))
+  const bottomItems = BOTTOM_NAV.filter((n) => user && n.roles.includes(user.role))
   return (
     <div className="h-full flex flex-col" style={{ background: NAVY_DARK }}>
       <div className="px-5 py-6">
@@ -38,16 +81,21 @@ function SidebarContent({ onNavigate, user, onLogout }) {
         </div>
       </div>
       <nav className="flex-1 px-3 pb-4 space-y-1 overflow-y-auto">
-        {items.map((n) => (
-          <NavLink key={n.to} to={n.to} end={!!n.exact} onClick={onNavigate}
-            className={({ isActive }) => `flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-colors ${isActive ? 'text-white' : 'text-white/70 hover:text-white hover:bg-white/5'}`}
-            style={({ isActive }) => ({ fontFamily: "'Inter'", background: isActive ? `linear-gradient(90deg, rgba(197,155,39,0.25), transparent)` : 'transparent' })}>
-            <n.icon size={17} style={{ color: GOLD }} /> {n.label}
-          </NavLink>
-        ))}
+        {items.map((n) => n.type === 'group'
+          ? <GroupItem key={n.label} group={n} onNavigate={onNavigate} />
+          : (
+            <NavLink key={n.to} to={n.to} end={!!n.exact} onClick={onNavigate} className={linkClass} style={linkStyle}>
+              <n.icon size={17} style={{ color: GOLD }} /> {n.label}
+            </NavLink>
+          ))}
       </nav>
       <div className="px-4 py-4 border-t border-white/10">
-        <div className="flex items-center gap-2 mb-3 px-1">
+        {bottomItems.map((n) => (
+          <NavLink key={n.to} to={n.to} end={!!n.exact} onClick={onNavigate} className={linkClass} style={linkStyle}>
+            <n.icon size={16} style={{ color: GOLD }} /> {n.label}
+          </NavLink>
+        ))}
+        <div className="flex items-center gap-2 mb-3 px-1 mt-3">
           <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-white text-[10px] font-bold uppercase">{user?.full_name?.[0]}</div>
           <div className="min-w-0">
             <div className="text-white text-xs font-bold truncate">{user?.full_name}</div>

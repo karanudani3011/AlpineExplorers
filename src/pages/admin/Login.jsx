@@ -19,7 +19,7 @@ export default function Login() {
     setLoading(true)
     try {
       await login(form.username, form.password)
-      navigate('/admin/dashboard', { replace: true })
+      navigate('/admin/homepage', { replace: true })
     } catch (err) {
       setError(err.message || 'Login failed')
     } finally {

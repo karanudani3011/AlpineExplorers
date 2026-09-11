@@ -3,6 +3,8 @@ import { motion } from 'framer-motion'
 import { Link, useNavigate } from 'react-router-dom'
 import { Star, MapPin, Calendar, Clock, ArrowRight, MessageSquare, ShieldCheck, Heart } from 'lucide-react'
 import InquiryModal from './InquiryModal'
+import TourImageSlider from './TourImageSlider'
+import { tourImages } from '../data/tourImages'
 
 export default function TourCard({ tour }) {
   const [inquiryOpen, setInquiryOpen] = useState(false)
@@ -20,12 +22,7 @@ export default function TourCard({ tour }) {
       >
         {/* Image Container */}
         <div className="relative overflow-hidden h-64 sm:h-72 w-full flex-shrink-0">
-          <motion.img
-            src={tour.image}
-            alt={tour.title}
-            className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
-            loading="lazy"
-          />
+          <TourImageSlider images={tourImages[tour.id] || [tour.image]} alt={tour.title} />
 
           {/* Gradient Shadow Overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
