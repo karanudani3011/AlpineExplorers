@@ -122,14 +122,16 @@ export default function TourCard({ tour }) {
                 </div>
               </div>
 
-              <button
-                onClick={() => setInquiryOpen(true)}
+              <a
+                href={`https://wa.me/919979883339?text=${encodeURIComponent(`Hello Alpine Explorers! I'm interested in the "${tour.title}" tour.`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="px-2.5 py-1.5 rounded-lg border border-emerald-500 text-emerald-700 hover:bg-emerald-50 text-xs font-bold flex items-center gap-1 transition"
                 title="Inquire on WhatsApp"
               >
                 <MessageSquare size={13} />
                 <span>Inquire</span>
-              </button>
+              </a>
             </div>
 
             {/* View Details & Book Now Buttons */}

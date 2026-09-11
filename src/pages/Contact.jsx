@@ -695,8 +695,8 @@ export default function Contact() {
                 <h3 className="text-xl font-bold mb-2 mt-1" style={{ ...font.vintage, color: NAVY }}>Talk to Our Experts</h3>
                 <p className="text-[13px] mb-5" style={{ color: BROWN, ...font.body }}>Talk directly with our travel experts</p>
                 <div className="flex-1" />
-                <a href="tel:+9199798 83339" className="text-xl font-bold mb-4 break-all" style={{ color: '#1e3a5f', ...font.vintage }}>{c.phone}</a>
-                <motion.a href="tel:+9199798 83339" whileHover={{ y: -2 }} whileTap={{ scale: 0.97 }}
+                <a href="tel:+919979883339" className="text-xl font-bold mb-4 break-all" style={{ color: '#1e3a5f', ...font.vintage }}>{c.phone}</a>
+                <motion.a href="tel:+919979883339" whileHover={{ y: -2 }} whileTap={{ scale: 0.97 }}
                   className="group inline-flex items-center gap-2 px-6 py-3 rounded-full text-xs uppercase font-bold tracking-widest mb-5"
                   style={{ backgroundColor: NAVY, color: '#fff', ...font.vintage }}>
                   Call Now <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" style={{ color: GOLD2 }} />
@@ -715,6 +715,7 @@ export default function Contact() {
                 <h3 className="text-xl font-bold mb-2 mt-1" style={{ ...font.vintage, color: NAVY }}>Quick Chat</h3>
                 <p className="text-[13px] mb-5" style={{ color: BROWN, ...font.body }}>Quick assistance for your travel plans</p>
                 <div className="flex-1" />
+                <span className="text-[15px] font-bold mb-1 break-all" style={{ color: '#1e3a5f', ...font.body }}>{c.whatsapp}</span>
                 <span className="text-[13px] mb-4" style={{ color: 'rgba(58,42,24,0.7)', ...font.body }}>
                   Typically responds in a few minutes
                 </span>
@@ -735,10 +736,9 @@ export default function Contact() {
                 </div>
                 <span className="mt-8 text-lg" style={{ ...font.script, color: GOLD }}>EMAIL US</span>
                 <h3 className="text-xl font-bold mb-2 mt-1" style={{ ...font.vintage, color: NAVY }}>Write To Us</h3>
-                <p className="text-[13px] mb-5" style={{ color: BROWN, ...font.body }}>Send your travel requirements</p>
                 <div className="flex-1" />
-                <a href="mailto:booking@alpineexplorers.com" className="text-sm font-bold mb-4 leading-relaxed break-all" style={{ color: '#1e3a5f', ...font.body }}>booking@alpineexplorers.com</a>
-                <motion.a href="mailto:booking@alpineexplorers.com" whileHover={{ y: -2 }} whileTap={{ scale: 0.97 }}
+                <a href="mailto:alpine_explorers@yahoo.co.in" className="text-sm font-bold mb-4 leading-relaxed break-all" style={{ color: '#1e3a5f', ...font.body }}>alpine_explorers@yahoo.co.in</a>
+                <motion.a href="mailto:alpine_explorers@yahoo.co.in" whileHover={{ y: -2 }} whileTap={{ scale: 0.97 }}
                   className="group inline-flex items-center gap-2 px-6 py-3 rounded-full text-xs uppercase font-bold tracking-widest mb-5"
                   style={{ backgroundColor: GOLD, color: NAVY, ...font.vintage, boxShadow: '0 8px 22px rgba(197,155,39,0.35)' }}>
                   Email Us <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />

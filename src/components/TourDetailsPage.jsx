@@ -429,7 +429,7 @@ export default function TourDetailsPage() {
                 </Link>
 
                 <a
-                  href={`https://wa.me/1800257463?text=${encodeURIComponent(whatsappMessage)}`}
+                  href={`https://wa.me/919979883339?text=${encodeURIComponent(whatsappMessage)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full py-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold rounded-xl transition flex items-center justify-center gap-2 text-sm"
