@@ -333,8 +333,8 @@ function TreeIcon({ tone = 0.4 }) {
 /* ────────────────────────── Page ────────────────────────── */
 
 const DEFAULT_CONTACT = {
-  phone: '+91 98252 13245',
-  whatsapp: '+91 98252 13245',
+  phone: '+91 99798 83339',
+  whatsapp: '+91 99798 83339',
   email: 'info@alpineexplorers.com',
   address: 'B-309, The One World, Near Ayodhya Chowk, 150 Feet Ring Road, Rajkot - 360 006, Gujarat, India.',
   map_link: 'https://www.google.com/maps/search/?api=1&query=Ayodhya+Chowk+Rajkot',
@@ -409,7 +409,7 @@ export default function Contact() {
       icon: MapPin, label: 'Head Office Address', title: 'Head Office Address', lines: ['B-309, The One World,', 'Near Ayodhya Chowk, 150 Feet Ring Road,', 'Rajkot - 360 006, Gujarat, India.'], sub: 'Visit us in person', href: c.map_link, hrefLabel: 'View on Map',
     },
     {
-      icon: Phone, label: 'Phone Numbers', title: 'Phone Numbers', lines: ['+91 98252 13245', '+91 281 2589090'], sub: 'Mon – Sat · 10 AM to 7 PM', href: null, links: true,
+      icon: Phone, label: 'Phone Numbers', title: 'Phone Numbers', lines: ['+91 99798 83339', '+91 281 2589090'], sub: 'Mon – Sat · 10 AM to 7 PM', href: null, links: true,
     },
     {
       icon: Mail, label: 'Email Support', title: 'Email Support', lines: ['info@alpineexplorers.com', 'booking@alpineexplorers.com'], sub: "We'll reply within a day", href: null, mails: true,
@@ -502,7 +502,7 @@ export default function Contact() {
                   </motion.a>
                   <a href="tel:+919825213245" className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-xs tracking-widest uppercase font-bold bg-white/90 backdrop-blur-sm"
                     style={{ color: NAVY, ...font.vintage, boxShadow: '0 8px 22px rgba(0,0,0,0.22)' }}>
-                    <Phone size={14} style={{ color: GOLD }} /> +91 98252 13245
+                    <Phone size={14} style={{ color: GOLD }} /> +91 99798 83339
                   </a>
                 </div>
               </div>
@@ -695,8 +695,8 @@ export default function Contact() {
                 <h3 className="text-xl font-bold mb-2 mt-1" style={{ ...font.vintage, color: NAVY }}>Talk to Our Experts</h3>
                 <p className="text-[13px] mb-5" style={{ color: BROWN, ...font.body }}>Talk directly with our travel experts</p>
                 <div className="flex-1" />
-                <a href="tel:+919825213245" className="text-xl font-bold mb-4 break-all" style={{ color: '#1e3a5f', ...font.vintage }}>{c.phone}</a>
-                <motion.a href="tel:+919825213245" whileHover={{ y: -2 }} whileTap={{ scale: 0.97 }}
+                <a href="tel:+9199798 83339" className="text-xl font-bold mb-4 break-all" style={{ color: '#1e3a5f', ...font.vintage }}>{c.phone}</a>
+                <motion.a href="tel:+9199798 83339" whileHover={{ y: -2 }} whileTap={{ scale: 0.97 }}
                   className="group inline-flex items-center gap-2 px-6 py-3 rounded-full text-xs uppercase font-bold tracking-widest mb-5"
                   style={{ backgroundColor: NAVY, color: '#fff', ...font.vintage }}>
                   Call Now <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" style={{ color: GOLD2 }} />
@@ -778,7 +778,7 @@ export default function Contact() {
 
                 <motion.div variants={item} className="flex flex-wrap gap-4 mb-8">
                   <a href="tel:+919825213245" className="inline-flex items-center gap-2 text-sm font-bold" style={{ color: NAVY, ...font.body }}>
-                    <Phone size={16} style={{ color: GOLD }} /> +91 98252 13245
+                    <Phone size={16} style={{ color: GOLD }} /> +91 99798 83339
                   </a>
                   <span className="hidden sm:inline text-sm" style={{ color: 'rgba(58,42,24,0.4)' }}>|</span>
                   <a href="mailto:info@alpineexplorers.com" className="inline-flex items-center gap-2 text-sm font-bold" style={{ color: NAVY, ...font.body }}>
