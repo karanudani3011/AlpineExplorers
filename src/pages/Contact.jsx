@@ -500,7 +500,7 @@ export default function Contact() {
                   >
                     Start Your Journey <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
                   </motion.a>
-                  <a href="tel:+919825213245" className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-xs tracking-widest uppercase font-bold bg-white/90 backdrop-blur-sm"
+                  <a href="tel:+919979883339" className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-xs tracking-widest uppercase font-bold bg-white/90 backdrop-blur-sm"
                     style={{ color: NAVY, ...font.vintage, boxShadow: '0 8px 22px rgba(0,0,0,0.22)' }}>
                     <Phone size={14} style={{ color: GOLD }} /> +91 99798 83339
                   </a>
@@ -777,7 +777,7 @@ export default function Contact() {
                 </motion.div>
 
                 <motion.div variants={item} className="flex flex-wrap gap-4 mb-8">
-                  <a href="tel:+919825213245" className="inline-flex items-center gap-2 text-sm font-bold" style={{ color: NAVY, ...font.body }}>
+                  <a href="tel:+919979883339" className="inline-flex items-center gap-2 text-sm font-bold" style={{ color: NAVY, ...font.body }}>
                     <Phone size={16} style={{ color: GOLD }} /> +91 99798 83339
                   </a>
                   <span className="hidden sm:inline text-sm" style={{ color: 'rgba(58,42,24,0.4)' }}>|</span>

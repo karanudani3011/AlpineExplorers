@@ -226,7 +226,7 @@ export default function TermsConditions() {
               </P>
               <UL>
                 <LI>Email: <a href="mailto:booking@alpineexplorers.com" className="font-semibold underline decoration-dotted underline-offset-2" style={{ color: NAVY }}>booking@alpineexplorers.com</a></LI>
-                <LI>Phone: <a href="tel:+919825213245" className="font-semibold underline decoration-dotted underline-offset-2" style={{ color: NAVY }}>+91 98252 13245</a></LI>
+                <LI>Phone: <a href="tel:+919979883339" className="font-semibold underline decoration-dotted underline-offset-2" style={{ color: NAVY }}>+91 99798 83339</a></LI>
                 <LI>Office: B-309, The One World, Near Ayodhya Chowk, 150 Feet Ring Road, Rajkot - 360 006, Gujarat, India.</LI>
               </UL>
             </LegalSection>

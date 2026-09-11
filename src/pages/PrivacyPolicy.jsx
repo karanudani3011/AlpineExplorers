@@ -209,7 +209,7 @@ export default function PrivacyPolicy() {
               </P>
               <UL>
                 <LI>Email us at <a href="mailto:info@alpineexplorers.com" className="font-semibold underline decoration-dotted underline-offset-2" style={{ color: NAVY }}>info@alpineexplorers.com</a></LI>
-                <LI>Call us at <a href="tel:+919825213245" className="font-semibold underline decoration-dotted underline-offset-2" style={{ color: NAVY }}>+91 98252 13245</a></LI>
+                <LI>Call us at <a href="tel:+919979883339" className="font-semibold underline decoration-dotted underline-offset-2" style={{ color: NAVY }}>+91 99798 83339</a></LI>
                 <LI>Visit our head office in Rajkot – we're happy to help.</LI>
               </UL>
             </LegalSection>

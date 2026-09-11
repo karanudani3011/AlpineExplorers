@@ -175,7 +175,7 @@ async function main() {
 
   /* ── Contact Settings ── */
   db.prepare(`INSERT INTO contact_settings (id, company_name, phone, whatsapp, email, address, map_link, instagram, facebook, youtube, business_hours) VALUES (1,?,?,?,?,?,?,?,?,?,?)`).run(
-    'Alpine Explorers', '+91 98252 13245', '+91 98252 13245', 'info@alpineexplorers.com',
+    'Alpine Explorers', '+91 99798 83339', '+91 99798 83339', 'info@alpineexplorers.com',
     'B-309, The One World, Near Ayodhya Chowk, 150 Feet Ring Road, Rajkot - 360 006, Gujarat, India.',
     'https://www.google.com/maps/search/?api=1&query=Ayodhya+Chowk+Rajkot',
     'https://instagram.com', 'https://facebook.com', 'https://youtube.com',
