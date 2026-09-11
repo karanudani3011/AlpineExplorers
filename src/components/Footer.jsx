@@ -250,7 +250,7 @@ export default function Footer() {
                 </span>
                 <div>
                   <a href="tel:+919825213245" className="block font-semibold hover:text-[#f7eccf] transition" style={{ color: CREAM }}>
-                    +91 98252 13245
+                    +91 99798 83339
                   </a>
                   <a href="tel:+912812589090" className="block font-semibold hover:text-[#f7eccf] transition" style={{ color: CREAM }}>
                     +91 281 2589090
