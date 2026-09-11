@@ -1,9 +1,12 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
-import { Calendar, Clock, MapPin, ArrowRight, Compass, Ticket } from 'lucide-react'
+import InquireButton from '../components/InquireButton'
+import BookNowButton from '../components/BookNowButton'
+import BookingModal from '../components/BookingModal'
+import { Calendar, Clock, MapPin, ArrowRight, Compass } from 'lucide-react'
 
 const NAVY = '#001a4d'
 const NAVY_MID = '#0d3a80'
@@ -104,6 +107,19 @@ export default function UpcomingEvents() {
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [])
+
+  const [selectedItem, setSelectedItem] = useState(null)
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false)
+
+  const openBooking = (item) => {
+    setSelectedItem(item)
+    setIsBookingModalOpen(true)
+  }
+
+  const closeBooking = () => {
+    setIsBookingModalOpen(false)
+    setSelectedItem(null)
+  }
 
   return (
     <div className="min-h-screen relative"
@@ -240,17 +256,24 @@ export default function UpcomingEvents() {
                     {ev.description}
                   </p>
 
-                  <div className="flex items-center justify-between pt-3" style={{ borderTop: '1px dashed rgba(180,160,130,0.5)' }}>
+                  <div className="flex items-center justify-between gap-3 pt-3 flex-wrap" style={{ borderTop: '1px dashed rgba(180,160,130,0.5)' }}>
                     <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: GOLD }}>{ev.tag}</span>
-                    <Link
-                      to="/contact"
-                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold transition"
-                      style={{ backgroundColor: NAVY, color: CREAM }}
-                    >
-                      <Ticket size={13} />
-                      Reserve Seat
-                      <ArrowRight size={13} className="transition-transform duration-300 group-hover:translate-x-1" />
-                    </Link>
+                    <div className="flex items-center gap-2 flex-wrap justify-end">
+                      <InquireButton
+                        item={ev}
+                        className="group/iq px-3 py-2 rounded-lg text-xs font-bold border"
+                        style={{ backgroundColor: '#ffffff', borderColor: 'rgba(197,155,39,0.6)', color: NAVY }}
+                        hoverStyle={{ backgroundColor: 'rgba(212,175,55,0.18)', borderColor: GOLD }}
+                      />
+                      <BookNowButton
+                        item={ev}
+                        onOpen={openBooking}
+                        showArrow
+                        className="group px-3 py-2 rounded-lg text-xs font-bold"
+                        style={{ backgroundColor: NAVY, color: CREAM }}
+                        hoverStyle={{ backgroundColor: NAVY_MID }}
+                      />
+                    </div>
                   </div>
                 </div>
               </motion.article>
@@ -286,6 +309,12 @@ export default function UpcomingEvents() {
       </section>
 
       <Footer />
+
+      <BookingModal
+        item={selectedItem}
+        isOpen={isBookingModalOpen}
+        onClose={closeBooking}
+      />
     </div>
   )
 }

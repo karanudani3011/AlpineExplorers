@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
-import { Star, MapPin, Calendar, Clock, ArrowRight, MessageSquare, Heart } from 'lucide-react'
-import InquiryModal from './InquiryModal'
+import { Star, MapPin, Calendar, Clock, ArrowRight, Heart } from 'lucide-react'
+import InquireButton from './InquireButton'
+import BookNowButton from './BookNowButton'
+import BookingModal from './BookingModal'
 
 const NAVY = '#001a4d'
 const GOLD = '#c59b27'
@@ -17,8 +19,8 @@ function formatINR(amount) {
 }
 
 export default function ServiceTourCard({ tour }) {
-  const [inquiryOpen, setInquiryOpen] = useState(false)
   const [isLiked, setIsLiked] = useState(false)
+  const [bookOpen, setBookOpen] = useState(false)
 
   const discount = tour.originalPrice > tour.price
     ? Math.round(((tour.originalPrice - tour.price) / tour.originalPrice) * 100)
@@ -142,16 +144,13 @@ export default function ServiceTourCard({ tour }) {
                   )}
                 </div>
               </div>
-              <a
-                href={`https://wa.me/919979883339?text=${encodeURIComponent(`Hello Alpine Explorers! I'm interested in the "${tour.title}" tour.`)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-2 py-1.5 rounded-lg border border-emerald-500 text-emerald-700 hover:bg-emerald-50 text-[10px] font-bold flex items-center gap-1 transition"
+              <InquireButton
+                item={tour}
+                className="px-2 py-1.5 rounded-lg border text-[10px] font-bold"
+                style={{ backgroundColor: 'transparent', borderColor: '#10b981', color: '#047857' }}
+                hoverStyle={{ backgroundColor: '#ecfdf5' }}
                 title="Inquire on WhatsApp"
-              >
-                <MessageSquare size={11} />
-                <span>Inquire</span>
-              </a>
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-2">
@@ -162,23 +161,19 @@ export default function ServiceTourCard({ tour }) {
                 <span>View Details</span>
                 <ArrowRight size={12} className="group-hover/btn:translate-x-0.5 transition-transform" />
               </Link>
-              <Link
-                to={`/booking/${tour.id}`}
-                className="w-full py-2.5 text-white font-bold rounded-xl text-xs text-center shadow-md transition"
+              <BookNowButton
+                item={tour}
+                onOpen={() => setBookOpen(true)}
+                className="w-full py-2.5 justify-center text-white font-bold rounded-xl text-xs text-center shadow-md"
                 style={{ backgroundColor: NAVY }}
-              >
-                Book Now
-              </Link>
+                hoverStyle={{ backgroundColor: '#0d3a80' }}
+              />
             </div>
           </div>
         </div>
       </motion.div>
 
-      <InquiryModal
-        isOpen={inquiryOpen}
-        onClose={() => setInquiryOpen(false)}
-        tour={tour}
-      />
+      <BookingModal item={tour} isOpen={bookOpen} onClose={() => setBookOpen(false)} />
     </>
   )
 }
