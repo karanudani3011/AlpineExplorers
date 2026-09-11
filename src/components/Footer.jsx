@@ -77,7 +77,7 @@ const socials = [
   { name: 'Instagram', icon: Instagram, href: 'https://instagram.com', placeholder: true },
   { name: 'Facebook', icon: Facebook, href: 'https://facebook.com', placeholder: true },
   { name: 'YouTube', icon: Youtube, href: 'https://youtube.com', placeholder: true },
-  { name: 'WhatsApp', icon: MessageCircle, href: 'https://wa.me/919825213245', placeholder: false },
+  
 ]
 
 const quickLinks = [
@@ -263,18 +263,16 @@ export default function Footer() {
                   <Mail size={14} style={{ color: GOLD2 }} />
                 </span>
                 <div>
-                  <a href="mailto:info@alpineexplorers.com" className="block font-semibold hover:text-[#f7eccf] transition" style={{ color: CREAM }}>
-                    info@alpineexplorers.com
-                  </a>
-                  <a href="mailto:booking@alpineexplorers.com" className="block font-semibold hover:text-[#f7eccf] transition" style={{ color: CREAM }}>
-                    booking@alpineexplorers.com
+                 
+                  <a href="mailto:alpine_explorers@yahoo.co.in" className="block font-semibold hover:text-[#f7eccf] transition" style={{ color: CREAM }}>
+                    alpine_explorers@yahoo.co.in
                   </a>
                 </div>
               </li>
             </ul>
 
             <motion.a
-              href="https://wa.me/919825213245"
+              href="https://wa.me/919979883339"
               target="_blank"
               rel="noopener noreferrer"
               whileHover={{ y: -2 }}

@@ -163,7 +163,7 @@ export default function Navbar() {
 
             {/* Right Action Icons & Badges */}
             <div className="hidden md:flex items-center space-x-3">
-              <button
+              {/* <button
                 onClick={() => setInquiryOpen(true)}
                 className="px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition"
                 style={{ border: '1px solid rgba(197,155,39,0.6)', color: NAVY, backgroundColor: 'rgba(212,175,55,0.12)' }}
@@ -173,7 +173,7 @@ export default function Navbar() {
               >
                 <MessageSquare size={14} style={{ color: GOLD }} />
                 <span>Inquire</span>
-              </button>
+              </button> */}
 
               <button
                 onClick={() => setSearchOpen(true)}
