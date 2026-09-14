@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
   Compass, Globe2, Map as MapIcon, Mountain, Tent, Plane, PenLine,
-  Home, Info, Mail, Users, Settings, LogOut, Menu, X, CalendarDays, MapPinned, ChevronDown,
+  Home, Info, Mail, Users, Settings, LogOut, Menu, X, CalendarDays, MapPinned, ChevronDown, FileText,
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { BG, NAVY, GOLD, NAVY_DARK } from './admin-ui'
@@ -19,6 +19,7 @@ const NAV = [
       { to: '/admin/services', label: 'Special Services', icon: Plane },
     ],
   },
+  { to: '/admin/bookings', label: 'Bookings / Applications', icon: FileText, roles: ['super_admin', 'admin', 'editor'] },
   { to: '/admin/events', label: 'Upcoming Events', icon: CalendarDays, roles: ['super_admin', 'admin', 'editor'] },
   { to: '/admin/blog', label: 'Blog', icon: PenLine, roles: ['super_admin', 'admin', 'editor'] },
   { to: '/admin/travel-mood', label: 'Find Your Travel Mood', icon: MapPinned, roles: ['super_admin', 'admin', 'editor'] },

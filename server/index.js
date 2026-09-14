@@ -10,6 +10,8 @@ import usersRouter from './routes/users.js'
 import blogsRouter from './routes/blogs.js'
 import mediaRouter from './routes/media.js'
 import inquiriesRouter from './routes/inquiries.js'
+import applicationsRouter from './routes/applications.js'
+import bookingsRouter from './routes/bookings.js'
 import siteRouter from './routes/site.js'
 import { crudAdminRouter, CONTENT_CONFIGS } from './routes/content.js'
 import { uploadError } from './middleware.js'
@@ -49,6 +51,8 @@ app.use('/api/users', usersRouter)
 app.use('/api/blogs', blogsRouter)
 app.use('/api/media', mediaRouter)
 app.use('/api/inquiries', inquiriesRouter)
+app.use('/api/applications', applicationsRouter)
+app.use('/api/bookings', bookingsRouter)
 app.use('/api', siteRouter)
 
 app.use('/api', uploadError)

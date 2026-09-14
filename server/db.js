@@ -160,6 +160,93 @@ CREATE TABLE IF NOT EXISTS inquiries (
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+CREATE TABLE IF NOT EXISTS applications (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  package_name TEXT NOT NULL,
+  destination TEXT,
+  travelers INTEGER NOT NULL DEFAULT 1,
+  price_per_person REAL,
+  total REAL,
+  data TEXT NOT NULL DEFAULT '{}',
+  status TEXT NOT NULL DEFAULT 'new' CHECK(status IN ('new','contacted','in_progress','converted','closed')),
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS bookings (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  booking_id TEXT NOT NULL UNIQUE,
+  tour_id TEXT,
+  tour_name TEXT NOT NULL,
+  tour_category TEXT,
+  location TEXT,
+  duration TEXT,
+  travel_date TEXT,
+  booking_date TEXT NOT NULL DEFAULT (datetime('now')),
+  price_per_person REAL,
+  number_of_travelers INTEGER NOT NULL DEFAULT 1,
+  total_amount REAL,
+  booking_contact_name TEXT,
+  booking_contact_email TEXT,
+  booking_contact_phone TEXT,
+  status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending','confirmed','cancelled','completed')),
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS travelers (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  booking_id INTEGER NOT NULL REFERENCES bookings(id) ON DELETE CASCADE,
+  traveler_number INTEGER NOT NULL,
+  course_name TEXT,
+  full_name TEXT NOT NULL,
+  date_of_birth TEXT,
+  age INTEGER,
+  sex TEXT,
+  blood_group TEXT,
+  address TEXT,
+  contact_number TEXT,
+  education TEXT,
+  school_college TEXT,
+  school_college_address TEXT,
+  school_college_phone TEXT,
+  hobbies TEXT,
+  photo_url TEXT,
+  adventure_experience TEXT,
+  adventure_details TEXT,
+  participant_type TEXT NOT NULL DEFAULT 'Adult',
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS declarations (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  traveler_id INTEGER NOT NULL REFERENCES travelers(id) ON DELETE CASCADE,
+  accepted INTEGER NOT NULL DEFAULT 0,
+  place TEXT,
+  date TEXT,
+  signature_url TEXT,
+  accepted_at TEXT
+);
+
+CREATE TABLE IF NOT EXISTS risk_certificates (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  traveler_id INTEGER NOT NULL REFERENCES travelers(id) ON DELETE CASCADE,
+  participant_name TEXT,
+  course_name TEXT,
+  accepted INTEGER NOT NULL DEFAULT 0,
+  place TEXT,
+  date TEXT,
+  signature_url TEXT,
+  accepted_at TEXT
+);
+
+CREATE TABLE IF NOT EXISTS guardians (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  traveler_id INTEGER NOT NULL REFERENCES travelers(id) ON DELETE CASCADE,
+  guardian_name TEXT,
+  guardian_contact TEXT,
+  guardian_signature_url TEXT
+);
+
 CREATE TABLE IF NOT EXISTS homepage (
   id INTEGER PRIMARY KEY CHECK(id = 1),
   hero_title TEXT,
@@ -241,4 +328,189 @@ export function rows(sql, ...params) {
 
 export function run(sql, ...params) {
   return db.prepare(sql).run(...params)
+}
+
+export function getBookingById(id) {
+  return db.prepare('SELECT * FROM bookings WHERE id = ?').get(id)
+}
+
+export function getBookingByBookingId(bookingId) {
+  return db.prepare('SELECT * FROM bookings WHERE booking_id = ?').get(bookingId)
+}
+
+export function getBookings({ status, search, tour, travelDate, bookingDate, minTravelers, maxTravelers, limit, offset }) {
+  let sql = 'SELECT * FROM bookings WHERE 1=1'
+  const params = []
+  if (status) { sql += ' AND status = ?'; params.push(status) }
+  if (search) {
+    sql += ' AND (booking_id LIKE ? OR tour_name LIKE ? OR booking_contact_name LIKE ? OR booking_contact_email LIKE ? OR booking_contact_phone LIKE ? OR id IN (SELECT booking_id FROM travelers WHERE full_name LIKE ? OR contact_number LIKE ?))'
+    params.push(`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`)
+  }
+  if (tour) { sql += ' AND tour_name LIKE ?'; params.push(`%${tour}%`) }
+  if (travelDate) { sql += ' AND travel_date = ?'; params.push(travelDate) }
+  if (bookingDate) { sql += ' AND date(booking_date) = date(?)'; params.push(bookingDate) }
+  if (minTravelers) { sql += ' AND number_of_travelers >= ?'; params.push(minTravelers) }
+  if (maxTravelers) { sql += ' AND number_of_travelers <= ?'; params.push(maxTravelers) }
+  sql += ' ORDER BY id DESC'
+  if (limit) { sql += ' LIMIT ?'; params.push(limit) }
+  if (offset) { sql += ' OFFSET ?'; params.push(offset) }
+  return db.prepare(sql).all(...params)
+}
+
+export function getBookingsCount({ status, search, tour, travelDate, bookingDate, minTravelers, maxTravelers }) {
+  let sql = 'SELECT COUNT(*) as count FROM bookings WHERE 1=1'
+  const params = []
+  if (status) { sql += ' AND status = ?'; params.push(status) }
+  if (search) {
+    sql += ' AND (booking_id LIKE ? OR tour_name LIKE ? OR booking_contact_name LIKE ? OR booking_contact_email LIKE ? OR booking_contact_phone LIKE ? OR id IN (SELECT booking_id FROM travelers WHERE full_name LIKE ? OR contact_number LIKE ?))'
+    params.push(`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`)
+  }
+  if (tour) { sql += ' AND tour_name LIKE ?'; params.push(`%${tour}%`) }
+  if (travelDate) { sql += ' AND travel_date = ?'; params.push(travelDate) }
+  if (bookingDate) { sql += ' AND date(booking_date) = date(?)'; params.push(bookingDate) }
+  if (minTravelers) { sql += ' AND number_of_travelers >= ?'; params.push(minTravelers) }
+  if (maxTravelers) { sql += ' AND number_of_travelers <= ?'; params.push(maxTravelers) }
+  return db.prepare(sql).get(...params).count
+}
+
+export function getTravelersByBookingId(bookingId) {
+  return db.prepare('SELECT * FROM travelers WHERE booking_id = ? ORDER BY traveler_number').all(bookingId)
+}
+
+export function getTravelerById(id) {
+  return db.prepare('SELECT * FROM travelers WHERE id = ?').get(id)
+}
+
+export function getDeclarationByTravelerId(travelerId) {
+  return db.prepare('SELECT * FROM declarations WHERE traveler_id = ?').get(travelerId)
+}
+
+export function getRiskCertificateByTravelerId(travelerId) {
+  return db.prepare('SELECT * FROM risk_certificates WHERE traveler_id = ?').get(travelerId)
+}
+
+export function getGuardianByTravelerId(travelerId) {
+  return db.prepare('SELECT * FROM guardians WHERE traveler_id = ?').get(travelerId)
+}
+
+export function createBooking(data) {
+  const info = db.prepare(`
+    INSERT INTO bookings (booking_id, tour_id, tour_name, tour_category, location, duration, travel_date, booking_date, price_per_person, number_of_travelers, total_amount, booking_contact_name, booking_contact_email, booking_contact_phone, status)
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+  `).run(
+    data.booking_id,
+    data.tour_id,
+    data.tour_name,
+    data.tour_category,
+    data.location,
+    data.duration,
+    data.travel_date,
+    data.booking_date || new Date().toISOString(),
+    data.price_per_person,
+    data.number_of_travelers,
+    data.total_amount,
+    data.booking_contact_name,
+    data.booking_contact_email,
+    data.booking_contact_phone,
+    data.status || 'pending'
+  )
+  return info.lastInsertRowid
+}
+
+export function createTraveler(data) {
+  const info = db.prepare(`
+    INSERT INTO travelers (booking_id, traveler_number, course_name, full_name, date_of_birth, age, sex, blood_group, address, contact_number, education, school_college, school_college_address, school_college_phone, hobbies, photo_url, adventure_experience, adventure_details, participant_type)
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+  `).run(
+    data.booking_id,
+    data.traveler_number,
+    data.course_name,
+    data.full_name,
+    data.date_of_birth,
+    data.age,
+    data.sex,
+    data.blood_group,
+    data.address,
+    data.contact_number,
+    data.education,
+    data.school_college,
+    data.school_college_address,
+    data.school_college_phone,
+    data.hobbies,
+    data.photo_url,
+    data.adventure_experience,
+    data.adventure_details,
+    data.participant_type
+  )
+  return info.lastInsertRowid
+}
+
+export function createDeclaration(data) {
+  const info = db.prepare(`
+    INSERT INTO declarations (traveler_id, accepted, place, date, signature_url, accepted_at)
+    VALUES (?,?,?,?,?,?)
+  `).run(
+    data.traveler_id,
+    data.accepted ? 1 : 0,
+    data.place,
+    data.date,
+    data.signature_url,
+    data.accepted_at
+  )
+  return info.lastInsertRowid
+}
+
+export function createRiskCertificate(data) {
+  const info = db.prepare(`
+    INSERT INTO risk_certificates (traveler_id, participant_name, course_name, accepted, place, date, signature_url, accepted_at)
+    VALUES (?,?,?,?,?,?,?,?)
+  `).run(
+    data.traveler_id,
+    data.participant_name,
+    data.course_name,
+    data.accepted ? 1 : 0,
+    data.place,
+    data.date,
+    data.signature_url,
+    data.accepted_at
+  )
+  return info.lastInsertRowid
+}
+
+export function createGuardian(data) {
+  const info = db.prepare(`
+    INSERT INTO guardians (traveler_id, guardian_name, guardian_contact, guardian_signature_url)
+    VALUES (?,?,?,?)
+  `).run(
+    data.traveler_id,
+    data.guardian_name,
+    data.guardian_contact,
+    data.guardian_signature_url
+  )
+  return info.lastInsertRowid
+}
+
+export function updateBookingStatus(id, status) {
+  return db.prepare('UPDATE bookings SET status = ?, updated_at = datetime(\'now\') WHERE id = ?').run(status, id)
+}
+
+export function getBookingStats() {
+  const totalBookings = db.prepare('SELECT COUNT(*) as count FROM bookings').get().count
+  const totalTravelers = db.prepare('SELECT COUNT(*) as count FROM travelers').get().count
+  const pendingApplications = db.prepare('SELECT COUNT(*) as count FROM bookings WHERE status = ?').get('pending').count
+  const confirmedBookings = db.prepare('SELECT COUNT(*) as count FROM bookings WHERE status = ?').get('confirmed').count
+  return { totalBookings, totalTravelers, pendingApplications, confirmedBookings }
+}
+
+export function getAllBookingsForExport() {
+  return db.prepare('SELECT * FROM bookings ORDER BY id DESC').all()
+}
+
+export function getAllTravelersForExport() {
+  return db.prepare(`
+    SELECT t.*, b.booking_id AS booking_code, b.tour_name, b.travel_date, b.booking_date
+    FROM travelers t
+    JOIN bookings b ON t.booking_id = b.id
+    ORDER BY b.id DESC, t.traveler_number
+  `).all()
 }

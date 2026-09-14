@@ -5,9 +5,10 @@ export const NAVY_DARK = '#0d1b3e'
 export const GOLD = '#c59b27'
 export const GOLD2 = '#d4af37'
 export const CREAM = '#faf5ea'
+export const BROWN = '#3a2a18'
 export const BG = '#f5ecd8'
 
-const font = { vintage: "'Cinzel', serif", body: "'Inter', sans-serif" }
+export const font = { vintage: "'Cinzel', serif", body: "'Inter', sans-serif" }
 
 export function cls(...parts) { return parts.filter(Boolean).join(' ') }
 

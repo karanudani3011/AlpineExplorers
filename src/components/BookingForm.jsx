@@ -2,12 +2,12 @@ import { useParams, Link } from 'react-router-dom'
 import { useEffect } from 'react'
 import Navbar from './Navbar'
 import Footer from './Footer'
-import TourApplicationForm from './TourApplicationForm'
+import MultiTravelerBooking from './MultiTravelerBooking'
 import { serviceTours, serviceCategories } from '../data/servicesData'
-import { ArrowRight, CheckCircle2, X } from 'lucide-react'
+import { ArrowLeft, Mountain } from 'lucide-react'
 
-const RED = '#b3211f'
 const NAVY = '#001a4d'
+const GOLD = '#c59b27'
 
 function findTourById(id) {
   for (const category of Object.keys(serviceTours)) {
@@ -22,58 +22,67 @@ function findTourById(id) {
 
 export default function BookingForm() {
   const { id } = useParams()
-  const { tour } = findTourById(id)
+  const { tour, category } = findTourById(id)
 
   useEffect(() => { window.scrollTo(0, 0) }, [id])
 
   if (!tour) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-white">
+      <div className="min-h-screen flex flex-col" style={{ backgroundColor: '#f8f9fa' }}>
         <Navbar />
-        <div className="text-center py-32 px-4">
-          <CheckCircle2 size={40} className="mx-auto mb-4" style={{ color: NAVY }} />
-          <h1 className="text-2xl font-bold mb-4" style={{ fontFamily: "'Times New Roman', Times, serif", color: NAVY }}>
+        <div className="flex-1 flex flex-col items-center justify-center text-center py-32 px-4">
+          <Mountain size={48} className="mb-4" style={{ color: NAVY, opacity: 0.3 }} />
+          <h1
+            className="text-2xl font-bold mb-3"
+            style={{ color: NAVY, fontFamily: 'Cinzel, serif' }}
+          >
             Tour Not Found
           </h1>
+          <p className="text-gray-500 text-sm mb-6">
+            The tour you're looking for doesn't exist or has been removed.
+          </p>
           <Link
             to="/services"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-sm text-white font-bold text-sm"
-            style={{ backgroundColor: RED, fontFamily: "'Times New Roman', Times, serif" }}
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-white font-bold text-sm"
+            style={{ backgroundColor: NAVY }}
           >
-            Browse Tours <ArrowRight size={15} />
+            <ArrowLeft size={15} /> Browse Tours
           </Link>
         </div>
+        <Footer />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f5f5] flex flex-col">
+    <div className="min-h-screen flex flex-col" style={{ backgroundColor: '#f8f9fa' }}>
       <Navbar />
-      <main className="w-full max-w-4xl mx-auto px-2 sm:px-4 py-8 flex-1">
-        <div className="mb-5 px-1 flex items-center justify-between gap-3">
+
+      <main className="flex-1 w-full max-w-4xl mx-auto px-4 sm:px-6 py-8">
+        {/* Page Header */}
+        <div className="mb-6 flex items-center justify-between gap-4">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold" style={{ fontFamily: "'Times New Roman', Times, serif", color: NAVY }}>
-              Tour Application
+            <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
+              <Link to={`/tour/${tour.id}`} className="hover:underline" style={{ color: NAVY }}>
+                ← Back to Tour
+              </Link>
+            </div>
+            <h1
+              className="text-xl sm:text-2xl font-bold"
+              style={{ color: NAVY, fontFamily: 'Cinzel, serif' }}
+            >
+              Book Your Adventure
             </h1>
-            <p className="text-[13px]" style={{ fontFamily: "'Times New Roman', Times, serif", color: '#555' }}>
-              {tour.title} — complete the form below to apply for the course.
+            <p className="text-sm text-gray-500 mt-0.5">
+              {tour.title} — Complete the application form below to secure your spot.
             </p>
           </div>
-          <Link
-            to={`/tour/${tour.id}`}
-            aria-label="Close form"
-            title="Close form"
-            className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center border transition hover:text-white"
-            style={{ borderColor: RED, color: RED }}
-            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = RED }}
-            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}
-          >
-            <X size={16} />
-          </Link>
         </div>
-        <TourApplicationForm courseName={tour.title} />
+
+        {/* Multi-Traveler Booking Wizard */}
+        <MultiTravelerBooking tour={tour} />
       </main>
+
       <Footer />
     </div>
   )

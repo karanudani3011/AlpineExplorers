@@ -28,6 +28,8 @@ import Inquiries from './pages/admin/Inquiries'
 import UsersAdmin from './pages/admin/UsersAdmin'
 import SettingsAdmin from './pages/admin/SettingsAdmin'
 import ActivityLogs from './pages/admin/ActivityLogs'
+import Bookings from './pages/admin/Bookings'
+import BookingDetail from './pages/admin/BookingDetail'
 
 function App() {
   return (
@@ -68,6 +70,8 @@ function App() {
             <Route path="media" element={<MediaLibrary />} />
             <Route path="homepage" element={<ProtectedRoute roles={['super_admin', 'admin']}><HomepageAdmin /></ProtectedRoute>} />
             <Route path="about" element={<ProtectedRoute roles={['super_admin', 'admin']}><AboutAdmin /></ProtectedRoute>} />
+            <Route path="bookings" element={<Bookings />} />
+            <Route path="bookings/:id" element={<BookingDetail />} />
             <Route path="inquiries" element={<Inquiries />} />
             <Route path="activity" element={<ProtectedRoute roles={['super_admin']}><ActivityLogs /></ProtectedRoute>} />
             <Route path="users" element={<ProtectedRoute roles={['super_admin']}><UsersAdmin /></ProtectedRoute>} />
