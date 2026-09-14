@@ -6,6 +6,7 @@ import { db, logActivity, getBookings, getBookingsCount, getBookingById, getBook
 import { authRequired } from '../middleware.js'
 import { generateBookingPdf, generateIndividualTravelerPdf, generateAllBookingsPdf } from '../utils/pdfGenerator.js'
 import { generateBookingExcel, generateIndividualTravelerExcel, generateAllBookingsExcel } from '../utils/excelGenerator.js'
+import { syncBookingToSupabase, supabaseRequest } from '../utils/supabase.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const uploadsDir = path.join(__dirname, '..', '..', 'uploads')
@@ -150,6 +151,26 @@ router.post('/', async (req, res) => {
   }
 
   logActivity({ user_name: 'customer', action: 'Booking created', module: 'Bookings', details: `Booking ${booking_id} with ${travelers.length} traveler(s)` })
+
+  // Sync booking and primary traveler data to Supabase (inquiries + feedback)
+  try {
+    await syncBookingToSupabase({
+      booking_id,
+      tour_name,
+      tour_category,
+      location,
+      duration,
+      travel_date,
+      number_of_travelers: travelers.length,
+      total_amount,
+      booking_contact_name: contactName,
+      booking_contact_email: contactEmail,
+      booking_contact_phone: contactPhone,
+    }, travelers)
+  } catch (err) {
+    console.error('Failed to sync booking to Supabase:', err)
+  }
+
   res.status(201).json({ message: 'Booking created successfully', bookingId: booking_id, id: Number(bookingId) })
 })
 
@@ -159,7 +180,42 @@ router.get('/stats', (req, res) => {
   res.json(getBookingStats())
 })
 
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
+  // Sync from Supabase bookings table to local cache if present
+  try {
+    const supBookings = await supabaseRequest('bookings', {
+      method: 'GET',
+      query: 'order=created_at.desc&limit=50'
+    })
+    if (Array.isArray(supBookings)) {
+      for (const sb of supBookings) {
+        if (!sb.booking_reference) continue
+        const exists = db.prepare('SELECT id FROM bookings WHERE booking_id = ?').get(sb.booking_reference)
+        if (!exists) {
+          createBooking({
+            booking_id: sb.booking_reference,
+            tour_id: sb.tour_id || '',
+            tour_name: sb.tour_name,
+            tour_category: 'Adventure',
+            location: sb.tour_location || '',
+            duration: sb.duration || '',
+            travel_date: sb.tour_date || '',
+            booking_date: sb.created_at || new Date().toISOString(),
+            price_per_person: sb.price_per_person || null,
+            number_of_travelers: sb.total_travelers || 1,
+            total_amount: sb.total_amount || null,
+            booking_contact_name: sb.customer_name,
+            booking_contact_email: sb.customer_email,
+            booking_contact_phone: sb.customer_phone,
+            status: sb.status || 'pending'
+          })
+        }
+      }
+    }
+  } catch (err) {
+    // Ignored if table not created yet
+  }
+
   const { status, search, tour, travelDate, bookingDate, minTravelers, maxTravelers, page = 1, limit = 20 } = req.query
   const offset = (Number(page) - 1) * Number(limit)
   
@@ -245,7 +301,7 @@ router.get('/traveler/:travelerId', (req, res) => {
   res.json({ traveler, declaration, risk_certificate, guardian, booking })
 })
 
-router.patch('/:id/status', (req, res) => {
+router.patch('/:id/status', async (req, res) => {
   const statuses = ['pending', 'confirmed', 'cancelled', 'completed']
   const status = req.body.status
   if (!statuses.includes(status)) return res.status(400).json({ error: 'Invalid status' })
@@ -254,8 +310,42 @@ router.patch('/:id/status', (req, res) => {
   if (!existing) return res.status(404).json({ error: 'Not found' })
   
   updateBookingStatus(req.params.id, status)
+  
+  // Sync status to Supabase bookings table
+  try {
+    const bookingRef = existing.booking_id || req.params.id
+    await supabaseRequest('bookings', {
+      method: 'PATCH',
+      body: { status, updated_at: new Date().toISOString() },
+      query: `booking_reference=eq.${encodeURIComponent(bookingRef)}`
+    })
+  } catch (supErr) {
+    console.warn('[Supabase status patch warning]:', supErr.message)
+  }
+
   logActivity({ user_name: req.user.username, action: 'Booking status updated', module: 'Bookings', details: `#${req.params.id} -> ${status}` })
   res.json({ message: 'Status updated', status })
+})
+
+router.delete('/:id', async (req, res) => {
+  const existing = getBookingById(req.params.id)
+  if (!existing) return res.status(404).json({ error: 'Not found' })
+
+  // Delete from Supabase bookings table
+  try {
+    const bookingRef = existing.booking_id || req.params.id
+    await supabaseRequest('bookings', {
+      method: 'DELETE',
+      query: `booking_reference=eq.${encodeURIComponent(bookingRef)}`
+    })
+  } catch (supErr) {
+    console.warn('[Supabase booking delete warning]:', supErr.message)
+  }
+
+  // Delete from SQLite
+  db.prepare('DELETE FROM bookings WHERE id = ?').run(req.params.id)
+  logActivity({ user_name: req.user.username, action: 'Booking deleted', module: 'Bookings', details: `Booking #${req.params.id} (${existing.booking_id})` })
+  res.json({ message: 'Booking deleted successfully' })
 })
 
 // PDF Downloads

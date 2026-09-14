@@ -1,5 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
+import { SupabaseAuthProvider } from './contexts/SupabaseAuthContext'
+import AuthModal from './components/auth/AuthModal'
+import RequireAuth from './components/RequireAuth'
 import Landing from './pages/Landing'
 import Home from './pages/Home'
 import Services from './pages/Services'
@@ -13,6 +16,7 @@ import Contact from './pages/Contact'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import TermsConditions from './pages/TermsConditions'
 import BookingForm from './components/BookingForm'
+import MyBookings from './pages/MyBookings'
 
 import AdminLayout from './components/admin/AdminLayout'
 import ProtectedRoute from './components/admin/ProtectedRoute'
@@ -33,23 +37,34 @@ import BookingDetail from './pages/admin/BookingDetail'
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <Routes>
-          {/* ── Public website ── */}
-          <Route path="/" element={<Landing />} />
-          <Route path="/home" element={<Home />} />
-          <Route path="/services" element={<Services />} />
-          <Route path="/services/:slug" element={<ServicePage />} />
-          <Route path="/tour/:id" element={<TourDetailsPage />} />
-          <Route path="/upcoming-events" element={<UpcomingEvents />} />
-          <Route path="/blog" element={<Blog />} />
-          <Route path="/travel-mood" element={<TravelMood />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-          <Route path="/terms" element={<TermsConditions />} />
-          <Route path="/booking/:id" element={<BookingForm />} />
+    <SupabaseAuthProvider>
+      <AuthProvider>
+        <Router>
+          <AuthModal />
+          <Routes>
+            {/* ── Public website ── */}
+            <Route path="/" element={<Landing />} />
+            <Route path="/home" element={<Home />} />
+            <Route path="/services" element={<Services />} />
+            <Route path="/services/:slug" element={<ServicePage />} />
+            <Route path="/tour/:id" element={<TourDetailsPage />} />
+            <Route path="/upcoming-events" element={<UpcomingEvents />} />
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/travel-mood" element={<TravelMood />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<TermsConditions />} />
+            <Route path="/booking/:id" element={
+              <RequireAuth>
+                <BookingForm />
+              </RequireAuth>
+            } />
+            <Route path="/my-bookings" element={
+              <RequireAuth>
+                <MyBookings />
+              </RequireAuth>
+            } />
 
           {/* ── Admin ── */}
           <Route path="/admin/login" element={<Login />} />
@@ -79,7 +94,8 @@ function App() {
           </Route>
         </Routes>
       </Router>
-    </AuthProvider>
+      </AuthProvider>
+    </SupabaseAuthProvider>
   )
 }
 

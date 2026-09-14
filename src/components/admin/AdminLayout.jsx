@@ -90,7 +90,7 @@ function SidebarContent({ onNavigate, user, onLogout }) {
             </NavLink>
           ))}
       </nav>
-      <div className="px-4 py-4 border-t border-white/10">
+      <div className="px-4 py-4 pb-safe border-t border-white/10">
         {bottomItems.map((n) => (
           <NavLink key={n.to} to={n.to} end={!!n.exact} onClick={onNavigate} className={linkClass} style={linkStyle}>
             <n.icon size={16} style={{ color: GOLD }} /> {n.label}
@@ -142,10 +142,10 @@ export default function AdminLayout() {
           <span className="w-8 h-8 rounded-full flex items-center justify-center text-[10px]" style={{ background: `linear-gradient(135deg,${GOLD},#e6c75c)`, color: NAVY }}>AE</span>
           Alpine Explorers
         </div>
-        <button onClick={() => setMobileOpen(true)} className="p-2 rounded-lg bg-black/5"><Menu size={20} color={NAVY} /></button>
+        <button onClick={() => setMobileOpen(true)} className="touch-target rounded-lg bg-black/5"><Menu size={20} color={NAVY} /></button>
       </header>
 
-      <main className="flex-1 lg:ml-64 px-4 sm:px-6 lg:px-8 pt-20 lg:pt-8 pb-12">
+      <main className="flex-1 lg:ml-64 px-3 sm:px-6 lg:px-8 pt-20 lg:pt-8 pb-12 min-w-0 overflow-x-hidden">
         <Outlet />
       </main>
     </div>

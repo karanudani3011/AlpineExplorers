@@ -176,12 +176,16 @@ export default function Bookings() {
         title="BOOKINGS & APPLICATIONS"
         subtitle="Manage customer bookings, traveler applications and risk certificates."
         actions={
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Btn variant="ghostGold" onClick={() => generatePdf(null, 'all')} disabled={pdfGenerating === 'all' || excelGenerating === 'all'}>
-              {pdfGenerating === 'all' ? <><Loader2 size={14} className="animate-spin" /> Generating PDF...</> : <><Download size={14} /> DOWNLOAD ALL PDF</>}
+              {pdfGenerating === 'all'
+                ? <><Loader2 size={14} className="animate-spin" /><span className="hidden sm:inline"> Generating…</span></>
+                : <><Download size={14} /><span className="hidden sm:inline"> PDF All</span><span className="sm:hidden">PDF</span></>}
             </Btn>
             <Btn variant="ghostGold" onClick={() => generateExcel(null, 'all')} disabled={pdfGenerating === 'all' || excelGenerating === 'all'}>
-              {excelGenerating === 'all' ? <><Loader2 size={14} className="animate-spin" /> Generating Excel...</> : <><FileSpreadsheet size={14} /> DOWNLOAD ALL EXCEL</>}
+              {excelGenerating === 'all'
+                ? <><Loader2 size={14} className="animate-spin" /><span className="hidden sm:inline"> Generating…</span></>
+                : <><FileSpreadsheet size={14} /><span className="hidden sm:inline"> Excel All</span><span className="sm:hidden">XLS</span></>}
             </Btn>
           </div>
         }
@@ -326,71 +330,122 @@ export default function Bookings() {
             <EmptyState title="NO BOOKINGS YET" subtitle="No application bookings have been received." />
           )
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full" style={{ fontFamily: font.body }}>
-              <thead>
-                <tr className="text-left" style={{ borderBottom: '1px solid rgba(180,160,130,0.15)' }}>
-                  <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: 'rgba(0,26,77,0.5)', fontFamily: font.body }}>BOOKING ID</th>
-                  <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: 'rgba(0,26,77,0.5)', fontFamily: font.body }}>TOUR</th>
-                  <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: 'rgba(0,26,77,0.5)', fontFamily: font.body }}>BOOKING DATE</th>
-                  <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: 'rgba(0,26,77,0.5)', fontFamily: font.body }}>TRAVEL DATE</th>
-                  <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: 'rgba(0,26,77,0.5)', fontFamily: font.body }}>TRAVELERS</th>
-                  <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: 'rgba(0,26,77,0.5)', fontFamily: font.body }}>TOTAL AMOUNT</th>
-                  <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: 'rgba(0,26,77,0.5)', fontFamily: font.body }}>STATUS</th>
-                  <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: 'rgba(0,26,77,0.5)', fontFamily: font.body }}>ACTIONS</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y" style={{ borderColor: 'rgba(180,160,130,0.1)' }}>
-                {bookings.map((booking) => (
-                  <tr key={booking.id} className="hover:bg-black/[0.02] transition-colors">
-                    <td className="px-5 py-4 font-bold text-[13px]" style={{ color: NAVY, fontFamily: 'Cinzel, serif' }}>{booking.booking_id}</td>
-                    <td className="px-5 py-4 text-sm max-w-xs truncate" style={{ color: NAVY }}>{booking.tour_name}</td>
-                    <td className="px-5 py-4 text-sm" style={{ color: 'rgba(58,42,24,0.7)' }}>{formatDate(booking.booking_date)}</td>
-                    <td className="px-5 py-4 text-sm" style={{ color: 'rgba(58,42,24,0.7)' }}>{formatDate(booking.travel_date)}</td>
-                    <td className="px-5 py-4 text-sm font-semibold" style={{ color: NAVY }}>{booking.number_of_travelers} Traveler{booking.number_of_travelers > 1 ? 's' : ''}</td>
-                    <td className="px-5 py-4 text-sm font-bold" style={{ color: GOLD }}>{formatCurrency(booking.total_amount)}</td>
-                    <td className="px-5 py-4">{getStatusBadge(booking.status)}</td>
-                    <td className="px-5 py-4">
-                      <div className="flex items-center gap-2">
-                        <NavLink
-                          to={`/admin/bookings/${booking.id}`}
-                          className="p-2 rounded-xl transition"
-                          style={{ background: 'rgba(0,26,77,0.08)', color: NAVY }}
-                          onMouseEnter={(e) => { e.currentTarget.style.background = GOLD; e.currentTarget.style.color = NAVY }}
-                          onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(0,26,77,0.08)'; e.currentTarget.style.color = NAVY }}
-                          title="View"
-                        >
-                          <Eye size={15} />
-                        </NavLink>
-                        <button
-                          onClick={() => generatePdf(booking.id)}
-                          disabled={pdfGenerating === booking.id || excelGenerating === booking.id}
-                          className="p-2 rounded-xl transition"
-                          style={{ background: 'rgba(197,155,39,0.12)', color: NAVY }}
-                          onMouseEnter={(e) => { if (pdfGenerating !== booking.id) { e.currentTarget.style.background = GOLD; e.currentTarget.style.color = NAVY }}}
-                          onMouseLeave={(e) => { if (pdfGenerating !== booking.id) { e.currentTarget.style.background = 'rgba(197,155,39,0.12)'; e.currentTarget.style.color = NAVY }}}
-                          title={pdfGenerating === booking.id ? "Generating PDF..." : "Download PDF"}
-                        >
-                          {pdfGenerating === booking.id ? <Loader2 size={14} className="animate-spin" /> : <FileText size={15} />}
-                        </button>
-                        <button
-                          onClick={() => generateExcel(booking.id)}
-                          disabled={excelGenerating === booking.id || pdfGenerating === booking.id}
-                          className="p-2 rounded-xl transition"
-                          style={{ background: 'rgba(22,163,74,0.12)', color: '#166534' }}
-                          onMouseEnter={(e) => { if (excelGenerating !== booking.id) { e.currentTarget.style.background = '#16a34a'; e.currentTarget.style.color = '#fff' }}}
-                          onMouseLeave={(e) => { if (excelGenerating !== booking.id) { e.currentTarget.style.background = 'rgba(22,163,74,0.12)'; e.currentTarget.style.color = '#166534' }}}
-                          title={excelGenerating === booking.id ? "Generating Excel..." : "Download Excel"}
-                        >
-                          {excelGenerating === booking.id ? <Loader2 size={14} className="animate-spin" /> : <FileSpreadsheet size={15} />}
-                        </button>
-                      </div>
-                    </td>
+          <>
+            {/* ── Mobile card list (< md) ── */}
+            <div className="md:hidden divide-y" style={{ borderColor: 'rgba(180,160,130,0.1)' }}>
+              {bookings.map((booking) => (
+                <div key={booking.id} className="p-4">
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <div className="min-w-0">
+                      <p className="font-bold text-[13px] truncate" style={{ color: NAVY, fontFamily: 'Cinzel, serif' }}>{booking.booking_id}</p>
+                      <p className="text-sm font-medium mt-0.5 line-clamp-1" style={{ color: NAVY }}>{booking.tour_name}</p>
+                    </div>
+                    <div className="flex-shrink-0">{getStatusBadge(booking.status)}</div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 text-xs mb-3" style={{ color: 'rgba(58,42,24,0.7)', fontFamily: font.body }}>
+                    <span><b>Booked:</b> {formatDate(booking.booking_date)}</span>
+                    <span><b>Travel:</b> {formatDate(booking.travel_date)}</span>
+                    <span><b>Travelers:</b> {booking.number_of_travelers}</span>
+                    <span style={{ color: GOLD }}><b>Amount:</b> {formatCurrency(booking.total_amount)}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <NavLink
+                      to={`/admin/bookings/${booking.id}`}
+                      className="flex-1 py-2 text-center rounded-xl text-xs font-bold transition"
+                      style={{ background: 'rgba(0,26,77,0.08)', color: NAVY }}
+                    >
+                      View Details
+                    </NavLink>
+                    <button
+                      onClick={() => generatePdf(booking.id)}
+                      disabled={pdfGenerating === booking.id || excelGenerating === booking.id}
+                      className="p-2.5 rounded-xl transition"
+                      style={{ background: 'rgba(197,155,39,0.12)', color: NAVY, minWidth: 44, minHeight: 44 }}
+                      title={pdfGenerating === booking.id ? 'Generating PDF…' : 'Download PDF'}
+                    >
+                      {pdfGenerating === booking.id ? <Loader2 size={14} className="animate-spin" /> : <FileText size={15} />}
+                    </button>
+                    <button
+                      onClick={() => generateExcel(booking.id)}
+                      disabled={excelGenerating === booking.id || pdfGenerating === booking.id}
+                      className="p-2.5 rounded-xl transition"
+                      style={{ background: 'rgba(22,163,74,0.12)', color: '#166534', minWidth: 44, minHeight: 44 }}
+                      title={excelGenerating === booking.id ? 'Generating Excel…' : 'Download Excel'}
+                    >
+                      {excelGenerating === booking.id ? <Loader2 size={14} className="animate-spin" /> : <FileSpreadsheet size={15} />}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* ── Desktop table (md+) ── */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full" style={{ fontFamily: font.body }}>
+                <thead>
+                  <tr className="text-left" style={{ borderBottom: '1px solid rgba(180,160,130,0.15)' }}>
+                    <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: 'rgba(0,26,77,0.5)', fontFamily: font.body }}>BOOKING ID</th>
+                    <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: 'rgba(0,26,77,0.5)', fontFamily: font.body }}>TOUR</th>
+                    <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: 'rgba(0,26,77,0.5)', fontFamily: font.body }}>BOOKING DATE</th>
+                    <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: 'rgba(0,26,77,0.5)', fontFamily: font.body }}>TRAVEL DATE</th>
+                    <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: 'rgba(0,26,77,0.5)', fontFamily: font.body }}>TRAVELERS</th>
+                    <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: 'rgba(0,26,77,0.5)', fontFamily: font.body }}>TOTAL AMOUNT</th>
+                    <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: 'rgba(0,26,77,0.5)', fontFamily: font.body }}>STATUS</th>
+                    <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: 'rgba(0,26,77,0.5)', fontFamily: font.body }}>ACTIONS</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y" style={{ borderColor: 'rgba(180,160,130,0.1)' }}>
+                  {bookings.map((booking) => (
+                    <tr key={booking.id} className="hover:bg-black/[0.02] transition-colors">
+                      <td className="px-5 py-4 font-bold text-[13px]" style={{ color: NAVY, fontFamily: 'Cinzel, serif' }}>{booking.booking_id}</td>
+                      <td className="px-5 py-4 text-sm max-w-xs truncate" style={{ color: NAVY }}>{booking.tour_name}</td>
+                      <td className="px-5 py-4 text-sm" style={{ color: 'rgba(58,42,24,0.7)' }}>{formatDate(booking.booking_date)}</td>
+                      <td className="px-5 py-4 text-sm" style={{ color: 'rgba(58,42,24,0.7)' }}>{formatDate(booking.travel_date)}</td>
+                      <td className="px-5 py-4 text-sm font-semibold" style={{ color: NAVY }}>{booking.number_of_travelers} Traveler{booking.number_of_travelers > 1 ? 's' : ''}</td>
+                      <td className="px-5 py-4 text-sm font-bold" style={{ color: GOLD }}>{formatCurrency(booking.total_amount)}</td>
+                      <td className="px-5 py-4">{getStatusBadge(booking.status)}</td>
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-2">
+                          <NavLink
+                            to={`/admin/bookings/${booking.id}`}
+                            className="p-2 rounded-xl transition"
+                            style={{ background: 'rgba(0,26,77,0.08)', color: NAVY }}
+                            onMouseEnter={(e) => { e.currentTarget.style.background = GOLD; e.currentTarget.style.color = NAVY }}
+                            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(0,26,77,0.08)'; e.currentTarget.style.color = NAVY }}
+                            title="View"
+                          >
+                            <Eye size={15} />
+                          </NavLink>
+                          <button
+                            onClick={() => generatePdf(booking.id)}
+                            disabled={pdfGenerating === booking.id || excelGenerating === booking.id}
+                            className="p-2 rounded-xl transition"
+                            style={{ background: 'rgba(197,155,39,0.12)', color: NAVY }}
+                            onMouseEnter={(e) => { if (pdfGenerating !== booking.id) { e.currentTarget.style.background = GOLD; e.currentTarget.style.color = NAVY }}}
+                            onMouseLeave={(e) => { if (pdfGenerating !== booking.id) { e.currentTarget.style.background = 'rgba(197,155,39,0.12)'; e.currentTarget.style.color = NAVY }}}
+                            title={pdfGenerating === booking.id ? "Generating PDF..." : "Download PDF"}
+                          >
+                            {pdfGenerating === booking.id ? <Loader2 size={14} className="animate-spin" /> : <FileText size={15} />}
+                          </button>
+                          <button
+                            onClick={() => generateExcel(booking.id)}
+                            disabled={excelGenerating === booking.id || pdfGenerating === booking.id}
+                            className="p-2 rounded-xl transition"
+                            style={{ background: 'rgba(22,163,74,0.12)', color: '#166534' }}
+                            onMouseEnter={(e) => { if (excelGenerating !== booking.id) { e.currentTarget.style.background = '#16a34a'; e.currentTarget.style.color = '#fff' }}}
+                            onMouseLeave={(e) => { if (excelGenerating !== booking.id) { e.currentTarget.style.background = 'rgba(22,163,74,0.12)'; e.currentTarget.style.color = '#166534' }}}
+                            title={excelGenerating === booking.id ? "Generating Excel..." : "Download Excel"}
+                          >
+                            {excelGenerating === booking.id ? <Loader2 size={14} className="animate-spin" /> : <FileSpreadsheet size={15} />}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
         
         {!loading && bookings.length > 0 && total > limit && (

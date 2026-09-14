@@ -77,9 +77,6 @@ export default function Login() {
               style={{ fontFamily: 'Cinzel', background: `linear-gradient(90deg, ${GOLD}, #e0c05a)`, color: NAVY, boxShadow: '0 10px 26px rgba(197,155,39,0.4)' }}>
               {loading ? 'Signing in…' : 'Sign In'}
             </button>
-            <div className="mt-4 text-center text-[11px]" style={{ color: 'rgba(58,42,24,0.6)', fontFamily: 'Inter' }}>
-              Demo: <b>admin</b> / <b>admin123</b>
-            </div>
           </form>
         </div>
       </div>

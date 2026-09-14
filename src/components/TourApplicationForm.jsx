@@ -179,7 +179,7 @@ export default function TourApplicationForm({ courseName = '' }) {
     setF((prev) => ({ ...prev, [key]: v }))
   }
 
-  const submit = (e) => {
+  const submit = async (e) => {
     e.preventDefault()
     const er = {}
     if (!f.name.trim()) er.name = 'NAME is required'
@@ -187,6 +187,54 @@ export default function TourApplicationForm({ courseName = '' }) {
     if (!f.sex) er.sex = 'Please select SEX'
     setErrors(er)
     if (Object.keys(er).length > 0) return
+
+    // Save to backend and Supabase
+    try {
+      const bookingId = `APP-${Date.now()}`
+      await fetch('/api/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          booking_id: bookingId,
+          tour_name: f.course || courseName || 'Tour Application',
+          number_of_travelers: 1,
+          booking_contact_name: f.name,
+          booking_contact_phone: f.contact,
+          travelers: [{
+            courseName: f.course || courseName,
+            fullName: f.name,
+            dob: f.dob,
+            age: f.age,
+            sex: f.sex,
+            bloodGroup: f.bloodGroup,
+            address: f.address,
+            contact: f.contact,
+            education: f.education,
+            school: f.school,
+            schoolAddress: f.schoolAddress,
+            schoolPhone: f.schoolPhone,
+            hobbies: f.hobbies,
+            photo: photo || null,
+            experienceYesNo: f.experience || 'No',
+            experienceDetails: f.details,
+            signature: sigApplicant || null,
+            guardianSignature: sigGuardian || null,
+            sigPlace: f.place,
+            sigDate: f.date,
+            riskParticipantName: f.riskName || f.name,
+            riskCourseName: f.riskCourse || f.course || courseName,
+            riskPlace: f.riskPlace || f.place,
+            riskDate: f.riskDate || f.date,
+            riskSignature: sigApplicant || null,
+            riskAccepted: true,
+            declarationAccepted: true,
+          }]
+        })
+      })
+    } catch (err) {
+      console.error('Error submitting application form:', err)
+    }
+
     setSubmitted(true)
     window.setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 60)
   }

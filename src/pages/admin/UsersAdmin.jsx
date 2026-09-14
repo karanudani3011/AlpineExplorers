@@ -70,54 +70,97 @@ export default function UsersAdmin() {
 
       <Card className="!p-0">
         {loading ? <Spinner /> : items.length === 0 ? <EmptyState title="No users yet" /> : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left" style={fonts}>
-              <thead>
-                <tr>
-                  {['User', 'Username', 'Email', 'Role', 'Status', 'Created', 'Actions'].map((h) => (
-                    <th key={h} className="py-3 px-4 text-[10px] uppercase tracking-wider font-bold whitespace-nowrap" style={{ color: 'rgba(0,26,77,0.55)', borderBottom: '2px solid rgba(197,155,39,0.4)' }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((u) => (
-                  <tr key={u.id} className="hover:bg-black/[0.02]">
-                    <td className="py-3 px-4 text-[12.5px]">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold text-white" style={{ background: `linear-gradient(135deg, ${u.role === 'super_admin' ? '#8b2518' : '#001a4d'}, ${GOLD})` }}>
-                          {u.full_name?.[0]}
-                        </div>
-                        <span className="font-semibold" style={{ color: NAVY }}>{u.full_name}</span>
+          <>
+            {/* Mobile card list (< md) */}
+            <div className="md:hidden divide-y" style={{ borderColor: 'rgba(180,160,130,0.15)' }}>
+              {items.map((u) => (
+                <div key={u.id} className="p-4">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-[11px] font-bold text-white flex-shrink-0"
+                      style={{ background: `linear-gradient(135deg, ${u.role === 'super_admin' ? '#8b2518' : '#001a4d'}, ${GOLD})` }}>
+                      {u.full_name?.[0]}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="font-semibold text-[13px] truncate" style={{ color: NAVY }}>{u.full_name}</span>
                         {u.id === me?.id && <span className="text-[9px] px-1.5 py-0.5 rounded bg-black/5" style={{ color: 'rgba(0,26,77,0.5)' }}>you</span>}
                       </div>
-                    </td>
-                    <td className="py-3 px-4 text-[12.5px]">{u.username}</td>
-                    <td className="py-3 px-4 text-[12.5px]">{u.email}</td>
-                    <td className="py-3 px-4">
-                      <button onClick={() => me?.role === 'super_admin' && u.id !== me.id && setRoleFor(u)} title="Change role" style={{ border: 'none', background: 'none', padding: 0 }}>
+                      <p className="text-[11px] truncate" style={{ color: 'rgba(0,26,77,0.5)' }}>{u.email}</p>
+                      <p className="text-[10px]" style={{ color: 'rgba(0,26,77,0.4)' }}>@{u.username}</p>
+                    </div>
+                    <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+                      <button onClick={() => me?.role === 'super_admin' && u.id !== me.id && setRoleFor(u)} style={{ border: 'none', background: 'none', padding: 0 }}>
                         <Badge tone={u.role}>{u.role}</Badge>
                       </button>
-                    </td>
-                    <td className="py-3 px-4">
                       <button onClick={() => toggleStatus(u)} disabled={u.id === me.id} style={{ border: 'none', background: 'none', padding: 0 }}>
                         <Badge tone={u.status === 'active' ? 'published' : 'inactive'}>{u.status}</Badge>
                       </button>
-                    </td>
-                    <td className="py-3 px-4 text-[12px]" style={{ color: 'rgba(0,26,77,0.5)' }}>{u.created_at?.slice(0, 10)}</td>
-                    <td className="py-3 px-4">
-                      <div className="flex gap-1">
-                        <button onClick={() => openEdit(u)} title="Edit" className="p-1.5 rounded-lg hover:bg-black/5" style={{ border: 'none', background: 'none' }}><Edit size={14} /></button>
-                        <button onClick={() => setResetFor(u)} title="Reset password" className="p-1.5 rounded-lg hover:bg-black/5" style={{ border: 'none', background: 'none' }}><KeyRound size={14} color={GOLD} /></button>
-                        {u.id !== me.id && (
-                          <button onClick={() => remove(u)} title="Delete" className="p-1.5 rounded-lg hover:bg-red-500/10" style={{ border: 'none', background: 'none' }}><Trash2 size={14} color="#8b2518" /></button>
-                        )}
-                      </div>
-                    </td>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between pt-2 border-t" style={{ borderColor: 'rgba(180,160,130,0.15)' }}>
+                    <span className="text-[11px]" style={{ color: 'rgba(0,26,77,0.4)' }}>Joined: {u.created_at?.slice(0, 10)}</span>
+                    <div className="flex gap-1">
+                      <button onClick={() => openEdit(u)} title="Edit" style={{ border: 'none', background: 'none', padding: '10px', minWidth: 44, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Edit size={15} /></button>
+                      <button onClick={() => setResetFor(u)} title="Reset password" style={{ border: 'none', background: 'none', padding: '10px', minWidth: 44, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><KeyRound size={15} color={GOLD} /></button>
+                      {u.id !== me.id && (
+                        <button onClick={() => remove(u)} title="Delete" style={{ border: 'none', background: 'none', padding: '10px', minWidth: 44, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Trash2 size={15} color="#8b2518" /></button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop table (md+) */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left" style={fonts}>
+                <thead>
+                  <tr>
+                    {['User', 'Username', 'Email', 'Role', 'Status', 'Created', 'Actions'].map((h) => (
+                      <th key={h} className="py-3 px-4 text-[10px] uppercase tracking-wider font-bold whitespace-nowrap" style={{ color: 'rgba(0,26,77,0.55)', borderBottom: '2px solid rgba(197,155,39,0.4)' }}>{h}</th>
+                    ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {items.map((u) => (
+                    <tr key={u.id} className="hover:bg-black/[0.02]">
+                      <td className="py-3 px-4 text-[12.5px]">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold text-white" style={{ background: `linear-gradient(135deg, ${u.role === 'super_admin' ? '#8b2518' : '#001a4d'}, ${GOLD})` }}>
+                            {u.full_name?.[0]}
+                          </div>
+                          <span className="font-semibold" style={{ color: NAVY }}>{u.full_name}</span>
+                          {u.id === me?.id && <span className="text-[9px] px-1.5 py-0.5 rounded bg-black/5" style={{ color: 'rgba(0,26,77,0.5)' }}>you</span>}
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 text-[12.5px]">{u.username}</td>
+                      <td className="py-3 px-4 text-[12.5px]">{u.email}</td>
+                      <td className="py-3 px-4">
+                        <button onClick={() => me?.role === 'super_admin' && u.id !== me.id && setRoleFor(u)} title="Change role" style={{ border: 'none', background: 'none', padding: 0 }}>
+                          <Badge tone={u.role}>{u.role}</Badge>
+                        </button>
+                      </td>
+                      <td className="py-3 px-4">
+                        <button onClick={() => toggleStatus(u)} disabled={u.id === me.id} style={{ border: 'none', background: 'none', padding: 0 }}>
+                          <Badge tone={u.status === 'active' ? 'published' : 'inactive'}>{u.status}</Badge>
+                        </button>
+                      </td>
+                      <td className="py-3 px-4 text-[12px]" style={{ color: 'rgba(0,26,77,0.5)' }}>{u.created_at?.slice(0, 10)}</td>
+                      <td className="py-3 px-4">
+                        <div className="flex gap-1">
+                          <button onClick={() => openEdit(u)} title="Edit" className="p-1.5 rounded-lg hover:bg-black/5" style={{ border: 'none', background: 'none' }}><Edit size={14} /></button>
+                          <button onClick={() => setResetFor(u)} title="Reset password" className="p-1.5 rounded-lg hover:bg-black/5" style={{ border: 'none', background: 'none' }}><KeyRound size={14} color={GOLD} /></button>
+                          {u.id !== me.id && (
+                            <button onClick={() => remove(u)} title="Delete" className="p-1.5 rounded-lg hover:bg-red-500/10" style={{ border: 'none', background: 'none' }}><Trash2 size={14} color="#8b2518" /></button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </Card>
 

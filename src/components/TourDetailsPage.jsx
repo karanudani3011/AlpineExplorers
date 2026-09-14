@@ -1,10 +1,11 @@
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Navbar from './Navbar'
 import Footer from './Footer'
 import InquiryModal from './InquiryModal'
 import { serviceTours, serviceCategories } from '../data/servicesData'
+import { useSupabaseAuth } from '../contexts/SupabaseAuthContext'
 import {
   Star, MapPin, Calendar, Clock, Users, CheckCircle, X,
   ChevronDown, ChevronUp, ChevronRight, Share2, Heart, MessageSquare,
@@ -53,6 +54,24 @@ export default function TourDetailsPage() {
   const [copiedToast, setCopiedToast] = useState(false)
 
   const { tour, category } = findTourById(id)
+
+  // Auth-aware Book Now
+  const navigate = useNavigate()
+  const { user, openAuthModal } = useSupabaseAuth()
+
+  const handleBookNow = (e) => {
+    e.preventDefault()
+    if (!tour) return
+    if (user) {
+      navigate(`/booking/${tour.id}`)
+    } else {
+      openAuthModal({
+        message: 'Login or create an account to continue with your booking.',
+        targetTour: tour,
+        onSuccess: () => navigate(`/booking/${tour.id}`),
+      })
+    }
+  }
 
   useEffect(() => { window.scrollTo(0, 0) }, [id])
 
@@ -419,14 +438,15 @@ export default function TourDetailsPage() {
 
               {/* Action Buttons */}
               <div className="space-y-2.5">
-                <Link
-                  to={`/booking/${tour.id}`}
-                  className="w-full py-3.5 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition flex items-center justify-center gap-2 text-sm"
+                <button
+                  type="button"
+                  onClick={handleBookNow}
+                  className="w-full py-3.5 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition flex items-center justify-center gap-2 text-sm cursor-pointer"
                   style={{ background: `linear-gradient(135deg, ${NAVY}, ${NAVY_MID})` }}
                 >
                   <span>Book Now</span>
                   <ArrowRight size={15} />
-                </Link>
+                </button>
 
                 <a
                   href={`https://wa.me/919979883339?text=${encodeURIComponent(whatsappMessage)}`}

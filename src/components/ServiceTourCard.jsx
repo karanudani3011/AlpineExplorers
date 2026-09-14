@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Star, MapPin, Calendar, Clock, ArrowRight, Heart } from 'lucide-react'
 import InquireButton from './InquireButton'
 import BookNowButton from './BookNowButton'
 import BookingModal from './BookingModal'
 import TourImageSlider from './TourImageSlider'
 import { tourImages } from '../data/tourImages'
+import { useSupabaseAuth } from '../contexts/SupabaseAuthContext'
 
 const NAVY = '#001a4d'
 const GOLD = '#c59b27'
@@ -23,6 +24,20 @@ function formatINR(amount) {
 export default function ServiceTourCard({ tour }) {
   const [isLiked, setIsLiked] = useState(false)
   const [bookOpen, setBookOpen] = useState(false)
+  const navigate = useNavigate()
+  const { user, openAuthModal } = useSupabaseAuth()
+
+  const handleBookNow = () => {
+    if (user) {
+      navigate(`/booking/${tour.id}`)
+    } else {
+      openAuthModal({
+        message: 'Login or create an account to continue with your booking.',
+        targetTour: tour,
+        onSuccess: () => navigate(`/booking/${tour.id}`),
+      })
+    }
+  }
 
   const discount = tour.originalPrice > tour.price
     ? Math.round(((tour.originalPrice - tour.price) / tour.originalPrice) * 100)
@@ -160,7 +175,7 @@ export default function ServiceTourCard({ tour }) {
               </Link>
               <BookNowButton
                 item={tour}
-                onOpen={() => setBookOpen(true)}
+                onOpen={handleBookNow}
                 className="w-full py-2.5 justify-center text-white font-bold rounded-xl text-xs text-center shadow-md"
                 style={{ backgroundColor: NAVY }}
                 hoverStyle={{ backgroundColor: '#0d3a80' }}

@@ -3,7 +3,8 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import {
   ArrowLeft, FileText, Download, Eye, FileSpreadsheet, ChevronDown,
   Loader2, MapPin, Calendar, Users, CreditCard, AlertCircle,
-  CheckCircle2, User, Phone, Mail, Camera, PenTool, Shield, Heart
+  CheckCircle2, User, Phone, Mail, Camera, PenTool, Shield, Heart,
+  Trash2, Check, Ban, Clock
 } from 'lucide-react'
 import { api } from '../../services/api'
 import { useToasts } from '../../components/admin/useToasts'
@@ -24,6 +25,8 @@ export default function BookingDetail() {
   const [pdfGenerating, setPdfGenerating] = useState(false)
   const [excelGenerating, setExcelGenerating] = useState(false)
   const [selectedTraveler, setSelectedTraveler] = useState(null)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   const loadBooking = async () => {
     setLoading(true)
@@ -53,6 +56,20 @@ export default function BookingDetail() {
       addToast(e.message, 'error')
     } finally {
       setUpdatingStatus(false)
+    }
+  }
+
+  const handleDeleteBooking = async () => {
+    setDeleting(true)
+    try {
+      await api.del(`/bookings/${id}`)
+      addToast('Booking deleted successfully')
+      setShowDeleteModal(false)
+      navigate('/admin/bookings')
+    } catch (e) {
+      addToast(e.message || 'Failed to delete booking', 'error')
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -166,16 +183,58 @@ export default function BookingDetail() {
         title={`Booking ${booking.booking_id}`}
         subtitle={`${booking.tour_name} · ${booking.number_of_travelers} Traveler${booking.number_of_travelers > 1 ? 's' : ''}`}
         actions={
-          <div className="flex gap-2">
-            <Link to="/admin/bookings" className="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition">
+          <div className="flex flex-wrap items-center gap-2">
+            <Link to="/admin/bookings" className="flex items-center gap-1.5 px-3 sm:px-4 py-2 min-h-[44px] rounded-full text-xs font-bold uppercase tracking-wider transition" style={{ border: '1px solid rgba(0,26,77,0.2)', color: NAVY }}>
               <ArrowLeft size={14} /> Back
             </Link>
+            {booking.status !== 'confirmed' && (
+              <button
+                type="button"
+                onClick={() => handleStatusChange('confirmed')}
+                disabled={updatingStatus}
+                className="flex items-center gap-1.5 px-3 sm:px-4 py-2 min-h-[44px] rounded-full text-xs font-bold uppercase tracking-wider transition text-white"
+                style={{ backgroundColor: '#16a34a' }}
+              >
+                <Check size={14} /> Confirm Booking
+              </button>
+            )}
+            {booking.status !== 'completed' && (
+              <button
+                type="button"
+                onClick={() => handleStatusChange('completed')}
+                disabled={updatingStatus}
+                className="flex items-center gap-1.5 px-3 sm:px-4 py-2 min-h-[44px] rounded-full text-xs font-bold uppercase tracking-wider transition text-white"
+                style={{ backgroundColor: '#0284c7' }}
+              >
+                <Clock size={14} /> Mark Completed
+              </button>
+            )}
+            {booking.status !== 'cancelled' && (
+              <button
+                type="button"
+                onClick={() => handleStatusChange('cancelled')}
+                disabled={updatingStatus}
+                className="flex items-center gap-1.5 px-3 sm:px-4 py-2 min-h-[44px] rounded-full text-xs font-bold uppercase tracking-wider transition text-white"
+                style={{ backgroundColor: '#ea580c' }}
+              >
+                <Ban size={14} /> Cancel Booking
+              </button>
+            )}
             <Btn variant="ghostGold" onClick={generatePdf} disabled={pdfGenerating || excelGenerating}>
-              {pdfGenerating ? <><Loader2 size={14} className="animate-spin" /> Generating PDF...</> : <><Download size={14} /> Download Complete PDF</>}
+              {pdfGenerating ? <><Loader2 size={14} className="animate-spin" /> <span className="hidden sm:inline">Generating PDF...</span><span className="sm:hidden">PDF...</span></> : <><Download size={14} /> <span className="hidden sm:inline">Download Complete PDF</span><span className="sm:hidden">PDF</span></>}
             </Btn>
             <Btn variant="ghostGold" onClick={generateExcel} disabled={pdfGenerating || excelGenerating}>
-              {excelGenerating ? <><Loader2 size={14} className="animate-spin" /> Generating Excel...</> : <><FileSpreadsheet size={14} /> Download Complete Excel</>}
+              {excelGenerating ? <><Loader2 size={14} className="animate-spin" /> <span className="hidden sm:inline">Generating Excel...</span><span className="sm:hidden">Excel...</span></> : <><FileSpreadsheet size={14} /> <span className="hidden sm:inline">Download Complete Excel</span><span className="sm:hidden">Excel</span></>}
             </Btn>
+            <button
+              type="button"
+              onClick={() => setShowDeleteModal(true)}
+              className="flex items-center gap-1.5 px-3 sm:px-4 py-2 min-h-[44px] rounded-full text-xs font-bold uppercase tracking-wider transition border text-red-600 hover:bg-red-50"
+              style={{ borderColor: 'rgba(220,38,38,0.3)' }}
+              title="Delete Booking"
+            >
+              <Trash2 size={14} /> Delete
+            </button>
           </div>
         }
       />
@@ -261,6 +320,49 @@ export default function BookingDetail() {
         />
       )}
 
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ backgroundColor: 'rgba(3, 9, 20, 0.65)', backdropFilter: 'blur(4px)' }}
+        >
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl border" style={{ borderColor: 'rgba(220,38,38,0.3)' }}>
+            <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 bg-red-100 text-red-600">
+              <Trash2 size={24} />
+            </div>
+            <h3 className="text-lg font-bold text-center text-gray-900 mb-2">
+              Delete Booking
+            </h3>
+            <p className="text-xs text-center text-gray-600 mb-6">
+              Are you sure you want to delete this booking?
+              <br />
+              <strong className="text-gray-900">{booking.booking_id} — {booking.tour_name}</strong>
+              <br />
+              This action cannot be undone.
+            </p>
+            <div className="flex items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => setShowDeleteModal(false)}
+                disabled={deleting}
+                className="px-5 py-2.5 rounded-xl text-xs font-bold border transition text-gray-700 hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteBooking}
+                disabled={deleting}
+                className="px-5 py-2.5 rounded-xl text-xs font-bold text-white transition flex items-center gap-1.5 bg-red-600 hover:bg-red-700 disabled:opacity-50"
+              >
+                {deleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                {deleting ? 'Deleting...' : 'Yes, Delete Booking'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <ToastHost />
     </div>
   )
@@ -316,13 +418,13 @@ function TravelerCard({ traveler, index, booking, onView, onDownloadPdf, onDownl
             {traveler.full_name && <p className="text-xs mt-0.5" style={{ color: 'rgba(250,245,234,0.75)' }}>{traveler.full_name}</p>}
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <button onClick={onView} className="p-2 rounded-xl transition text-white hover:bg-white/10" title="View Application"><Eye size={15} /></button>
-          <button onClick={handleDownloadPdf} disabled={pdfLoading} className="p-2 rounded-xl transition text-white hover:bg-white/10" title="Download PDF">
-            {pdfLoading ? <Loader2 size={14} className="animate-spin" /> : <FileText size={15} />}
+        <div className="flex items-center gap-1 sm:gap-2">
+          <button onClick={onView} className="w-10 h-10 rounded-xl transition text-white hover:bg-white/10 flex items-center justify-center flex-shrink-0" title="View Application"><Eye size={16} /></button>
+          <button onClick={handleDownloadPdf} disabled={pdfLoading} className="w-10 h-10 rounded-xl transition text-white hover:bg-white/10 flex items-center justify-center flex-shrink-0" title="Download PDF">
+            {pdfLoading ? <Loader2 size={14} className="animate-spin" /> : <FileText size={16} />}
           </button>
-          <button onClick={handleDownloadExcel} disabled={excelLoading} className="p-2 rounded-xl transition text-white hover:bg-white/10" title="Download Excel">
-            {excelLoading ? <Loader2 size={14} className="animate-spin" /> : <FileSpreadsheet size={15} />}
+          <button onClick={handleDownloadExcel} disabled={excelLoading} className="w-10 h-10 rounded-xl transition text-white hover:bg-white/10 flex items-center justify-center flex-shrink-0" title="Download Excel">
+            {excelLoading ? <Loader2 size={14} className="animate-spin" /> : <FileSpreadsheet size={16} />}
           </button>
         </div>
       </div>

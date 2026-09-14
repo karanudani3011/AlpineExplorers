@@ -1,11 +1,12 @@
 import { useState, useRef, useCallback } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Menu, X, Search, User, Compass, MessageSquare, ChevronDown, Globe, Map, Mountain, Tent, Users, Backpack } from 'lucide-react'
+import { Menu, X, Search, User, Compass, MessageSquare, ChevronDown, Globe, Map, Mountain, Tent, Users, Backpack, Ticket } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import SearchModal from './SearchModal'
 import UserProfileModal from './UserProfileModal'
 import InquiryModal from './InquiryModal'
 import ServicesMegaMenu from './ServicesMegaMenu'
+import { useSupabaseAuth } from '../contexts/SupabaseAuthContext'
 
 const NAVY = '#001a4d'
 const NAVY_MID = '#0d3a80'
@@ -23,6 +24,7 @@ const serviceSubLinks = [
 ]
 
 export default function Navbar() {
+  const { user } = useSupabaseAuth()
   const [isOpen, setIsOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
@@ -73,16 +75,16 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             {/* Logo */}
-            <Link to="/home" className="flex items-center space-x-3 group">
-              <div className="w-11 h-11 rounded-xl flex items-center justify-center group-hover:scale-105 transition"
+            <Link to="/home" className="flex items-center space-x-2 sm:space-x-3 group">
+              <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center group-hover:scale-105 transition flex-shrink-0"
                 style={{ background: 'linear-gradient(135deg, #001a4d, #0d3a80)', boxShadow: '0 6px 16px rgba(0,26,77,0.3)' }}>
-                <Compass size={24} style={{ color: GOLD2 }} className="group-hover:rotate-45 transition duration-500" />
+                <Compass size={20} style={{ color: GOLD2 }} className="group-hover:rotate-45 transition duration-500" />
               </div>
               <div>
-                <span className="font-vintage font-bold text-xl tracking-wider block leading-tight" style={{ color: NAVY, fontFamily: 'Cinzel, serif' }}>
+                <span className="font-vintage font-bold text-base sm:text-xl tracking-wider block leading-tight" style={{ color: NAVY, fontFamily: 'Cinzel, serif' }}>
                   Alpine Explorers
                 </span>
-                <span className="text-[10px] uppercase tracking-widest font-semibold block" style={{ color: GOLD }}>
+                <span className="hidden sm:block text-[10px] uppercase tracking-widest font-semibold" style={{ color: GOLD }}>
                   Travel & Tourism
                 </span>
               </div>
@@ -189,14 +191,21 @@ export default function Navbar() {
 
               <button
                 onClick={() => setProfileOpen(true)}
-                className="p-2.5 rounded-xl transition"
+                className="p-2.5 rounded-xl transition relative"
                 style={{ color: BROWN }}
                 onMouseEnter={(e) => { e.currentTarget.style.color = NAVY; e.currentTarget.style.backgroundColor = 'rgba(197,155,39,0.12)' }}
                 onMouseLeave={(e) => { e.currentTarget.style.color = BROWN; e.currentTarget.style.backgroundColor = 'transparent' }}
                 aria-label="User Profile"
-                title="User profile & saved tours"
+                title={user ? `Logged in as ${user.email}` : "User profile & saved tours"}
               >
                 <User size={19} />
+                {user && (
+                  <span
+                    className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full ring-2 ring-white"
+                    style={{ backgroundColor: GOLD }}
+                    title="Active session"
+                  />
+                )}
               </button>
             </div>
 
@@ -211,7 +220,7 @@ export default function Navbar() {
                 <Search size={20} />
               </button>
               <button
-                className="p-2 focus:outline-none"
+                className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center focus:outline-none"
                 onClick={() => setIsOpen(!isOpen)}
                 aria-label="Toggle Menu"
               >
@@ -236,7 +245,7 @@ export default function Navbar() {
                       <div key={link.path}>
                         <button
                           onClick={() => setMobileServicesOpen(!mobileServicesOpen)}
-                          className={`w-full flex items-center justify-between py-2.5 px-4 rounded-xl text-sm font-medium transition ${
+                          className={`w-full flex items-center justify-between py-3 px-4 rounded-xl text-sm font-medium transition ${
                             isServicesActive ? 'font-bold' : ''
                           }`}
                           style={{
@@ -321,21 +330,33 @@ export default function Navbar() {
                   )
                 })}
 
-                <div className="pt-3 grid grid-cols-2 gap-2 px-2">
-                  <button
-                    onClick={() => { setIsOpen(false); setInquiryOpen(true); }}
-                    className="w-full py-2 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5"
-                    style={{ backgroundColor: GOLD, color: NAVY, fontFamily: 'Cinzel, serif' }}
-                  >
-                    <MessageSquare size={14} /> WhatsApp
-                  </button>
-                  <button
-                    onClick={() => { setIsOpen(false); setProfileOpen(true); }}
-                    className="w-full py-2 rounded-xl text-xs font-bold uppercase tracking-wider text-white flex items-center justify-center gap-1.5"
-                    style={{ backgroundColor: NAVY, fontFamily: 'Cinzel, serif' }}
-                  >
-                    <User size={14} /> My Profile
-                  </button>
+                <div className="pt-3 flex flex-col gap-2 px-2">
+                  {user && (
+                    <Link
+                      to="/my-bookings"
+                      onClick={() => setIsOpen(false)}
+                      className="w-full py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition text-white"
+                      style={{ backgroundColor: NAVY, border: '1px solid rgba(212,175,55,0.4)', fontFamily: 'Cinzel, serif' }}
+                    >
+                      <Ticket size={14} style={{ color: GOLD2 }} /> My Bookings
+                    </Link>
+                  )}
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => { setIsOpen(false); setInquiryOpen(true); }}
+                      className="w-full py-2 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5"
+                      style={{ backgroundColor: GOLD, color: NAVY, fontFamily: 'Cinzel, serif' }}
+                    >
+                      <MessageSquare size={14} /> WhatsApp
+                    </button>
+                    <button
+                      onClick={() => { setIsOpen(false); setProfileOpen(true); }}
+                      className="w-full py-2 rounded-xl text-xs font-bold uppercase tracking-wider text-white flex items-center justify-center gap-1.5"
+                      style={{ backgroundColor: NAVY, fontFamily: 'Cinzel, serif' }}
+                    >
+                      <User size={14} /> {user ? 'My Profile' : 'Login / Profile'}
+                    </button>
+                  </div>
                 </div>
               </motion.div>
             )}

@@ -5,11 +5,26 @@ import { Star, MapPin, Calendar, Clock, ArrowRight, MessageSquare, ShieldCheck, 
 import InquiryModal from './InquiryModal'
 import TourImageSlider from './TourImageSlider'
 import { tourImages } from '../data/tourImages'
+import { useSupabaseAuth } from '../contexts/SupabaseAuthContext'
 
 export default function TourCard({ tour }) {
   const [inquiryOpen, setInquiryOpen] = useState(false)
   const [isLiked, setIsLiked] = useState(false)
   const navigate = useNavigate()
+  const { user, openAuthModal } = useSupabaseAuth()
+
+  const handleBookNow = (e) => {
+    e.preventDefault()
+    if (user) {
+      navigate(`/booking/${tour.id}`)
+    } else {
+      openAuthModal({
+        message: 'Login or create an account to continue with your booking.',
+        targetTour: tour,
+        onSuccess: () => navigate(`/booking/${tour.id}`),
+      })
+    }
+  }
 
   const discount = tour.discount ?? (tour.originalPrice > tour.price ? Math.round(((tour.originalPrice - tour.price) / tour.originalPrice) * 100) : 0)
 
@@ -140,12 +155,13 @@ export default function TourCard({ tour }) {
                 <span>View Details</span>
                 <ArrowRight size={13} className="group-hover/btn:translate-x-0.5 transition-transform" />
               </Link>
-              <Link
-                to={`/booking/${tour.id}`}
-                className="w-full py-2.5 bg-[#001a4d] hover:bg-[#0d3a80] text-white font-bold rounded-xl text-xs text-center shadow-md transition"
+              <button
+                type="button"
+                onClick={handleBookNow}
+                className="w-full py-2.5 bg-[#001a4d] hover:bg-[#0d3a80] text-white font-bold rounded-xl text-xs text-center shadow-md transition cursor-pointer"
               >
                 Book Now
-              </Link>
+              </button>
             </div>
           </div>
         </div>

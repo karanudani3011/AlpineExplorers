@@ -177,7 +177,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 26 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.35, duration: 0.8 }}
-            className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-white uppercase leading-[1.05] tracking-wide mb-5"
+            className="text-[1.75rem] sm:text-6xl lg:text-7xl font-extrabold text-white uppercase leading-[1.05] tracking-wide mb-5"
             style={font.vintage}
           >
             Go somewhere
@@ -201,11 +201,11 @@ export default function Home() {
             initial={{ opacity: 0, y: 22 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.65, duration: 0.8 }}
-            className="flex flex-col sm:flex-row gap-4"
+            className="flex flex-col sm:flex-row gap-3 sm:gap-4"
           >
             <Link
               to="/services"
-              className="group inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl text-sm font-bold uppercase tracking-widest text-[#001a4d] transition hover:-translate-y-0.5"
+              className="group inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl text-sm font-bold uppercase tracking-widest text-[#001a4d] transition hover:-translate-y-0.5"
               style={{ backgroundColor: GOLD, fontFamily: 'Cinzel, serif' }}
             >
               Explore Tours
@@ -213,7 +213,7 @@ export default function Home() {
             </Link>
             <Link
               to="/contact"
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl text-sm font-bold uppercase tracking-widest text-white transition hover:-translate-y-0.5"
+              className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl text-sm font-bold uppercase tracking-widest text-white transition hover:-translate-y-0.5"
               style={{ border: '1px solid rgba(212,175,55,0.7)', backgroundColor: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(6px)', fontFamily: 'Cinzel, serif' }}
             >
               Plan My Trip
@@ -627,7 +627,7 @@ export default function Home() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.7, delay: 0.1 }}
-            className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white uppercase leading-tight mb-5"
+            className="text-2xl sm:text-5xl lg:text-6xl font-extrabold text-white uppercase leading-tight mb-5"
             style={font.vintage}
           >
             Where Will You Go Next?

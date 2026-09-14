@@ -39,15 +39,17 @@ export default function Inquiries() {
     <div>
       <PageHeader icon={Inbox} title="Inquiries" subtitle="Leads submitted through the website contact & inquiry forms" />
 
-      <div className="flex flex-wrap gap-2 mb-4">
-        {['', ...STATUSES].map((s) => (
-          <button key={s || 'all'} onClick={() => setFilter(s)}
-            className="px-3.5 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wide transition-colors"
-            style={{ background: filter === s ? GOLD : 'rgba(0,26,77,0.05)', color: filter === s ? '#fff' : NAVY, border: '1px solid rgba(0,26,77,0.1)' }}>
-            {s || 'All'}
-          </button>
-        ))}
-        <div className="flex-1 min-w-[180px] relative max-w-xs ml-auto">
+      <div className="mb-4 space-y-2">
+        <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+          {['', ...STATUSES].map((s) => (
+            <button key={s || 'all'} onClick={() => setFilter(s)}
+              className="flex-shrink-0 px-3.5 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wide transition-colors"
+              style={{ background: filter === s ? GOLD : 'rgba(0,26,77,0.05)', color: filter === s ? '#fff' : NAVY, border: '1px solid rgba(0,26,77,0.1)' }}>
+              {s || 'All'}
+            </button>
+          ))}
+        </div>
+        <div className="relative w-full sm:max-w-xs">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 opacity-40" />
           <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load()}
             placeholder="Search…" style={{ ...fonts, padding: '8px 12px 8px 34px', borderRadius: 10, border: '1px solid rgba(0,26,77,0.15)', width: '100%', fontSize: 13, outline: 'none' }} />
@@ -92,7 +94,7 @@ export default function Inquiries() {
               <h3 className="font-bold" style={{ fontFamily: 'Cinzel', color: NAVY }}>Inquiry #{viewing.id}</h3>
               <button onClick={() => setViewing(null)} className="w-8 h-8 rounded-full hover:bg-black/5">✕</button>
             </div>
-            <div className="grid grid-cols-2 gap-3 text-[13px] mb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[13px] mb-4">
               <View label="Name" value={viewing.name} />
               <View label="Email" value={viewing.email} />
               <View label="Phone" value={viewing.phone} />

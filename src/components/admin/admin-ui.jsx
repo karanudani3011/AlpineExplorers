@@ -21,7 +21,7 @@ export function Btn({ children, onClick, variant = 'primary', className = '', ty
     ghostGold: { background: 'rgba(197,155,39,0.12)', border: '1px solid rgba(197,155,39,0.4)', color: NAVY },
   }
   return (
-    <button type={type} disabled={disabled} onClick={onClick} className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all hover:opacity-85 disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
+    <button type={type} disabled={disabled} onClick={onClick} className={`inline-flex items-center gap-2 px-4 py-2 min-h-[44px] rounded-full text-xs font-bold uppercase tracking-wider transition-all hover:opacity-85 disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
       style={{ ...fonts_btn, ...styles[variant], fontFamily: font.body }}>
       {children}
     </button>
@@ -32,7 +32,7 @@ export const fonts_btn = { fontFamily: font.body }
 
 export function PageHeader({ icon: Icon, title, subtitle, actions }) {
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 flex-wrap">
       <div className="flex items-center gap-3">
         <div className="w-11 h-11 rounded-xl flex items-center justify-center"
           style={{ background: 'linear-gradient(135deg,rgba(197,155,39,0.2),rgba(212,175,55,0.1))', border: '1px solid rgba(197,155,39,0.35)' }}>
@@ -43,7 +43,7 @@ export function PageHeader({ icon: Icon, title, subtitle, actions }) {
           {subtitle && <p className="text-xs" style={{ color: 'rgba(58,42,24,0.6)', fontFamily: font.body }}>{subtitle}</p>}
         </div>
       </div>
-      {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
+      {actions && <div className="flex flex-wrap gap-2 w-full sm:w-auto">{actions}</div>}
     </div>
   )
 }
@@ -113,15 +113,15 @@ export function Spinner() {
 export function Modal({ open, onClose, title, children, width = 640 }) {
   if (!open) return null
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4" style={{ background: 'rgba(13,27,62,0.55)', backdropFilter: 'blur(2px)' }}>
-      <div className="relative rounded-2xl bg-white w-full my-8 shadow-2xl" style={{ maxWidth: width }}>
-        <div className="flex items-center justify-between px-6 py-4 border-b sticky top-0 bg-white rounded-t-2xl" style={{ borderColor: 'rgba(180,160,130,0.25)' }}>
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-2 sm:p-4" style={{ background: 'rgba(13,27,62,0.55)', backdropFilter: 'blur(2px)' }}>
+      <div className="relative rounded-2xl bg-white w-full my-4 sm:my-8 shadow-2xl" style={{ maxWidth: width }}>
+        <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b sticky top-0 bg-white rounded-t-2xl" style={{ borderColor: 'rgba(180,160,130,0.25)' }}>
           <h3 className="font-bold" style={{ fontFamily: font.vintage, color: NAVY }}>{title}</h3>
-          <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/5">
+          <button onClick={onClose} className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-black/5 flex-shrink-0">
             <X size={16} />
           </button>
         </div>
-        <div className="px-6 py-5">{children}</div>
+        <div className="px-4 sm:px-6 py-5">{children}</div>
       </div>
     </div>
   )
@@ -135,8 +135,8 @@ export function FieldLabel({ children, required }) {
 
 export function inputStyle() {
   return {
-    width: '100%', padding: '10px 12px', borderRadius: 10, border: '1px solid rgba(0,26,77,0.18)',
-    fontFamily: font.body, fontSize: 13, background: '#fff', color: '#1a1a1a', outline: 'none',
+    width: '100%', padding: '12px', borderRadius: 10, border: '1px solid rgba(0,26,77,0.18)',
+    fontFamily: font.body, fontSize: 16, background: '#fff', color: '#1a1a1a', outline: 'none',
   }
 }
 

@@ -1,10 +1,11 @@
 import { Router } from 'express'
 import { db, logActivity } from '../db.js'
 import { authRequired } from '../middleware.js'
+import { syncInquiryToSupabase } from '../utils/supabase.js'
 
 const router = Router()
 
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
   const { package_name, destination, travelers, price_per_person, total, data } = req.body || {}
   if (!package_name || !Array.isArray(data?.travelers) || data.travelers.length === 0) {
     return res.status(400).json({ error: 'An application requires a package and at least one traveler' })
@@ -19,7 +20,28 @@ router.post('/', (req, res) => {
     Number.isFinite(Number(total)) ? Number(total) : null,
     JSON.stringify(data)
   )
-  res.status(201).json({ message: 'Application submitted successfully', id: Number(info.lastInsertRowid) })
+
+  const localId = Number(info.lastInsertRowid)
+  const primary = data.travelers[0] || {}
+
+  // Sync to Supabase inquiries & feedback tables
+  try {
+    await syncInquiryToSupabase({
+      supabase_id: `APP-${localId}-${Date.now()}`,
+      name: primary.fullName || primary.name || 'Traveler Application',
+      email: primary.email || 'applicant@alpineexplorers.com',
+      phone: primary.contact || primary.phone || '',
+      destination: destination || null,
+      package_name: package_name || null,
+      travelers: data.travelers.length,
+      message: `Tour Application for ${package_name} (${data.travelers.length} traveler(s)). Total: ₹${total || 0}`,
+      status: 'new',
+    })
+  } catch (err) {
+    console.error('Failed to sync application to Supabase:', err)
+  }
+
+  res.status(201).json({ message: 'Application submitted successfully', id: localId })
 })
 
 router.use(authRequired)

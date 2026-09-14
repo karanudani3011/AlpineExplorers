@@ -178,7 +178,7 @@ export default function Footer() {
                       aria-label={s.name}
                       className="flex items-center justify-center rounded-full"
                       style={{
-                        width: 38, height: 38,
+                        width: 44, height: 44,
                         backgroundColor: 'rgba(250,245,234,0.06)',
                         border: '1px solid rgba(212,175,55,0.35)',
                         color: CREAM,
@@ -186,7 +186,7 @@ export default function Footer() {
                       onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = GOLD; e.currentTarget.style.color = NAVY }}
                       onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(250,245,234,0.06)'; e.currentTarget.style.color = CREAM }}
                     >
-                      <Icon size={17} />
+                      <Icon size={18} />
                     </motion.a>
                   )
                 })}

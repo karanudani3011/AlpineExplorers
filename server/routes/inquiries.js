@@ -1,17 +1,41 @@
 import { Router } from 'express'
 import { db, logActivity } from '../db.js'
 import { authRequired } from '../middleware.js'
+import { syncInquiryToSupabase, supabaseRequest } from '../utils/supabase.js'
 
 const router = Router()
 
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
   const { name, email, phone, destination, package_name, travel_date, travelers, message } = req.body || {}
   if (!name || !email) return res.status(400).json({ error: 'Name and email are required' })
+
+  // 1. Save to local SQLite database so admin side always sees it immediately
   const info = db.prepare(
     'INSERT INTO inquiries (name, email, phone, destination, package_name, travel_date, travelers, message, status) VALUES (?,?,?,?,?,?,?,?,?)'
   ).run(String(name), String(email), phone || null, destination || null, package_name || null,
     travel_date || null, travelers ? Number(travelers) : null, message || null, 'new')
-  res.status(201).json({ message: 'Inquiry submitted successfully', id: Number(info.lastInsertRowid) })
+
+  const localId = Number(info.lastInsertRowid)
+
+  // 2. Sync to Supabase inquiries and feedback tables
+  try {
+    await syncInquiryToSupabase({
+      supabase_id: `INQ-${localId}-${Date.now()}`,
+      name,
+      email,
+      phone,
+      destination,
+      package_name,
+      travel_date,
+      travelers,
+      message,
+      status: 'new',
+    })
+  } catch (err) {
+    console.error('Failed to sync inquiry to Supabase:', err)
+  }
+
+  res.status(201).json({ message: 'Inquiry submitted successfully', id: localId })
 })
 
 router.use(authRequired)

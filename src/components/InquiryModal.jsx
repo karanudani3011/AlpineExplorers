@@ -71,7 +71,21 @@ export default function InquiryModal({ isOpen, onClose, tour = null }) {
   const encodedWhatsAppUrl = `https://wa.me/1800257463?text=${encodeURIComponent(whatsappMessage)}`
 
   const handleSendWhatsApp = () => {
-    // Also save to admin inquiry list
+    // Save to admin & Supabase via /api/inquiries
+    fetch('/api/inquiries', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: formData.fullName || 'Valued Guest',
+        phone: formData.phone || '',
+        email: formData.phone ? `${formData.phone.replace(/\D/g, '')}@whatsapp.guest` : 'whatsapp.guest@alpineexplorers.com',
+        package_name: formData.tourName,
+        travel_date: formData.travelDate,
+        travelers: formData.travelers,
+        message: formData.inquiryMessage,
+      })
+    }).catch(err => console.error('Error syncing WhatsApp inquiry:', err))
+
     const newInquiry = {
       id: `INQ-${Math.floor(1000 + Math.random() * 9000)}`,
       name: formData.fullName || 'Valued Guest',
@@ -89,6 +103,21 @@ export default function InquiryModal({ isOpen, onClose, tour = null }) {
 
   const handleLocalSubmit = (e) => {
     e.preventDefault()
+    // Save to admin & Supabase via /api/inquiries
+    fetch('/api/inquiries', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: formData.fullName || 'Valued Guest',
+        phone: formData.phone || '',
+        email: formData.phone ? `${formData.phone.replace(/\D/g, '')}@desk.guest` : 'desk.guest@alpineexplorers.com',
+        package_name: formData.tourName,
+        travel_date: formData.travelDate,
+        travelers: formData.travelers,
+        message: formData.inquiryMessage,
+      })
+    }).catch(err => console.error('Error syncing desk inquiry:', err))
+
     const newInquiry = {
       id: `INQ-${Math.floor(1000 + Math.random() * 9000)}`,
       name: formData.fullName || 'Valued Guest',
@@ -105,27 +134,27 @@ export default function InquiryModal({ isOpen, onClose, tour = null }) {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md" style={{ backgroundColor: 'rgba(3,9,20,0.75)' }}>
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 backdrop-blur-md" style={{ backgroundColor: 'rgba(3,9,20,0.75)' }}>
         <motion.div
           initial={{ opacity: 0, scale: 0.92, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.92, y: 20 }}
           transition={{ duration: 0.3, ease: 'easeOut' }}
-          className="rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden border flex flex-col max-h-[90vh]"
+          className="rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden border flex flex-col max-h-[92vh]"
           style={{ backgroundColor: CREAM, borderColor: 'rgba(212,175,55,0.4)' }}
         >
           {/* Header */}
-          <div className="p-6 text-white relative" style={{ background: 'linear-gradient(135deg, #001a4d, #0d3a80 60%, #123a6e)' }}>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'rgba(212,175,55,0.2)', border: '1px solid rgba(212,175,55,0.55)', color: GOLD2 }}>
-                  <MessageSquare size={22} />
+          <div className="p-4 sm:p-6 text-white relative" style={{ background: 'linear-gradient(135deg, #001a4d, #0d3a80 60%, #123a6e)' }}>
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2.5 sm:gap-3">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(212,175,55,0.2)', border: '1px solid rgba(212,175,55,0.55)', color: GOLD2 }}>
+                  <MessageSquare size={20} />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold font-display tracking-wide">
+                  <h3 className="text-lg sm:text-xl font-bold font-display tracking-wide">
                     {activeTab === 'inquire' ? 'Inquire via WhatsApp' : 'Admin Inquiry Management'}
                   </h3>
-                  <p className="text-xs" style={{ color: 'rgba(250,245,234,0.85)' }}>
+                  <p className="text-[11px] sm:text-xs" style={{ color: 'rgba(250,245,234,0.85)' }}>
                     {activeTab === 'inquire'
                       ? 'Instant responses within minutes from our Alpine Concierge'
                       : 'Live incoming traveler inquiries and reservation queue'}
@@ -134,7 +163,7 @@ export default function InquiryModal({ isOpen, onClose, tour = null }) {
               </div>
               <button
                 onClick={onClose}
-                className="w-8 h-8 rounded-full flex items-center justify-center transition"
+                className="w-9 h-9 rounded-full flex items-center justify-center transition flex-shrink-0 touch-target"
                 style={{ backgroundColor: 'rgba(255,255,255,0.12)' }}
                 onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = GOLD; e.currentTarget.style.color = NAVY }}
                 onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.12)'; e.currentTarget.style.color = '#fff' }}
@@ -144,10 +173,10 @@ export default function InquiryModal({ isOpen, onClose, tour = null }) {
             </div>
 
             {/* Tab switchers */}
-            <div className="flex gap-2 mt-4">
+            <div className="flex flex-wrap gap-2 mt-3 sm:mt-4">
               <button
                 onClick={() => { setActiveTab('inquire'); setSubmitted(false); }}
-                className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition ${
+                className={`px-3 sm:px-4 py-1.5 rounded-lg text-xs font-semibold transition ${
                   activeTab === 'inquire'
                     ? 'text-white shadow-md'
                     : 'text-white/80 hover:bg-white/10'
@@ -158,7 +187,7 @@ export default function InquiryModal({ isOpen, onClose, tour = null }) {
               </button>
               <button
                 onClick={() => setActiveTab('admin')}
-                className={`px-4 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${
+                className={`px-3 sm:px-4 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${
                   activeTab === 'admin'
                     ? 'shadow-md'
                     : 'text-white/80 hover:bg-white/10'
