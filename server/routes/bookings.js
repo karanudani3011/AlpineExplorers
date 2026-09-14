@@ -3,7 +3,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { db, logActivity, getBookings, getBookingsCount, getBookingById, getBookingByBookingId, getTravelersByBookingId, getTravelerById, getDeclarationByTravelerId, getRiskCertificateByTravelerId, getGuardianByTravelerId, updateBookingStatus, getBookingStats, getAllBookingsForExport, getAllTravelersForExport, createBooking, createTraveler, createDeclaration, createRiskCertificate, createGuardian } from '../db.js'
-import { authRequired } from '../middleware.js'
+import { authRequired, requirePermission } from '../middleware.js'
 import { generateBookingPdf, generateIndividualTravelerPdf, generateAllBookingsPdf } from '../utils/pdfGenerator.js'
 import { generateBookingExcel, generateIndividualTravelerExcel, generateAllBookingsExcel } from '../utils/excelGenerator.js'
 import { syncBookingToSupabase, supabaseRequest } from '../utils/supabase.js'
@@ -176,11 +176,11 @@ router.post('/', async (req, res) => {
 
 router.use(authRequired)
 
-router.get('/stats', (req, res) => {
+router.get('/stats', requirePermission('bookings.view'), (req, res) => {
   res.json(getBookingStats())
 })
 
-router.get('/', async (req, res) => {
+router.get('/', requirePermission('bookings.view'), async (req, res) => {
   // Sync from Supabase bookings table to local cache if present
   try {
     const supBookings = await supabaseRequest('bookings', {
@@ -244,7 +244,7 @@ router.get('/', async (req, res) => {
   res.json({ bookings, total, page: Number(page), limit: Number(limit) })
 })
 
-router.get('/:id', (req, res) => {
+router.get('/:id', requirePermission('bookings.view'), (req, res) => {
   const booking = getBookingById(req.params.id)
   if (!booking) return res.status(404).json({ error: 'Not found' })
   
@@ -259,7 +259,7 @@ router.get('/:id', (req, res) => {
   res.json({ booking, travelers: travelersWithDetails })
 })
 
-router.get('/booking-id/:bookingId', (req, res) => {
+router.get('/booking-id/:bookingId', requirePermission('bookings.view'), (req, res) => {
   const booking = getBookingByBookingId(req.params.bookingId)
   if (!booking) return res.status(404).json({ error: 'Not found' })
   
@@ -274,7 +274,7 @@ router.get('/booking-id/:bookingId', (req, res) => {
   res.json({ booking, travelers: travelersWithDetails })
 })
 
-router.get('/:id/travelers', (req, res) => {
+router.get('/:id/travelers', requirePermission('bookings.view'), (req, res) => {
   const booking = getBookingById(req.params.id)
   if (!booking) return res.status(404).json({ error: 'Not found' })
   
@@ -289,7 +289,7 @@ router.get('/:id/travelers', (req, res) => {
   res.json({ travelers: travelersWithDetails })
 })
 
-router.get('/traveler/:travelerId', (req, res) => {
+router.get('/traveler/:travelerId', requirePermission('bookings.view'), (req, res) => {
   const traveler = getTravelerById(req.params.travelerId)
   if (!traveler) return res.status(404).json({ error: 'Not found' })
   
@@ -301,7 +301,7 @@ router.get('/traveler/:travelerId', (req, res) => {
   res.json({ traveler, declaration, risk_certificate, guardian, booking })
 })
 
-router.patch('/:id/status', async (req, res) => {
+router.patch('/:id/status', requirePermission('bookings.edit'), async (req, res) => {
   const statuses = ['pending', 'confirmed', 'cancelled', 'completed']
   const status = req.body.status
   if (!statuses.includes(status)) return res.status(400).json({ error: 'Invalid status' })
@@ -323,11 +323,11 @@ router.patch('/:id/status', async (req, res) => {
     console.warn('[Supabase status patch warning]:', supErr.message)
   }
 
-  logActivity({ user_name: req.user.username, action: 'Booking status updated', module: 'Bookings', details: `#${req.params.id} -> ${status}` })
+  logActivity({ user_name: req.user.full_name || req.user.username || req.user.email, action: 'Booking status updated', module: 'Bookings', details: `#${req.params.id} -> ${status}` })
   res.json({ message: 'Status updated', status })
 })
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', requirePermission('bookings.delete'), async (req, res) => {
   const existing = getBookingById(req.params.id)
   if (!existing) return res.status(404).json({ error: 'Not found' })
 
@@ -344,12 +344,12 @@ router.delete('/:id', async (req, res) => {
 
   // Delete from SQLite
   db.prepare('DELETE FROM bookings WHERE id = ?').run(req.params.id)
-  logActivity({ user_name: req.user.username, action: 'Booking deleted', module: 'Bookings', details: `Booking #${req.params.id} (${existing.booking_id})` })
+  logActivity({ user_name: req.user.full_name || req.user.username || req.user.email, action: 'Booking deleted', module: 'Bookings', details: `Booking #${req.params.id} (${existing.booking_id})` })
   res.json({ message: 'Booking deleted successfully' })
 })
 
 // PDF Downloads
-router.get('/:id/download/pdf', async (req, res) => {
+router.get('/:id/download/pdf', requirePermission('bookings.export_individual_pdf'), async (req, res) => {
   try {
     const pdfBuffer = await generateBookingPdf(Number(req.params.id))
     const booking = getBookingById(req.params.id)
@@ -361,7 +361,7 @@ router.get('/:id/download/pdf', async (req, res) => {
   }
 })
 
-router.get('/traveler/:travelerId/download/pdf', async (req, res) => {
+router.get('/traveler/:travelerId/download/pdf', requirePermission('bookings.export_individual_pdf'), async (req, res) => {
   try {
     const pdfBuffer = await generateIndividualTravelerPdf(Number(req.params.travelerId))
     const traveler = getTravelerById(req.params.travelerId)
@@ -374,7 +374,7 @@ router.get('/traveler/:travelerId/download/pdf', async (req, res) => {
   }
 })
 
-router.get('/download/all/pdf', async (req, res) => {
+router.get('/download/all/pdf', requirePermission('bookings.export_pdf'), async (req, res) => {
   try {
     const pdfBuffer = await generateAllBookingsPdf()
     res.setHeader('Content-Type', 'application/pdf')
@@ -386,7 +386,7 @@ router.get('/download/all/pdf', async (req, res) => {
 })
 
 // Excel Downloads
-router.get('/:id/download/excel', async (req, res) => {
+router.get('/:id/download/excel', requirePermission('bookings.export_individual_excel'), async (req, res) => {
   try {
     const excelBuffer = await generateBookingExcel(Number(req.params.id))
     const booking = getBookingById(req.params.id)
@@ -398,7 +398,7 @@ router.get('/:id/download/excel', async (req, res) => {
   }
 })
 
-router.get('/traveler/:travelerId/download/excel', async (req, res) => {
+router.get('/traveler/:travelerId/download/excel', requirePermission('bookings.export_individual_excel'), async (req, res) => {
   try {
     const excelBuffer = await generateIndividualTravelerExcel(Number(req.params.travelerId))
     const traveler = getTravelerById(req.params.travelerId)
@@ -411,7 +411,7 @@ router.get('/traveler/:travelerId/download/excel', async (req, res) => {
   }
 })
 
-router.get('/download/all/excel', async (req, res) => {
+router.get('/download/all/excel', requirePermission('bookings.export_excel'), async (req, res) => {
   try {
     const excelBuffer = await generateAllBookingsExcel()
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')

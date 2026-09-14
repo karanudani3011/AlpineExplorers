@@ -1,6 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { createClient } from '@supabase/supabase-js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const rootDir = path.join(__dirname, '..', '..')
@@ -28,6 +29,16 @@ loadEnv()
 
 export const SUPABASE_URL = process.env.SUPABASE_URL || 'https://qhbsilnramjkagdjitlp.supabase.co'
 export const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY
+
+/**
+ * Supabase Admin Client using service role key (Privileged Backend Operations Only)
+ */
+export const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false,
+  },
+})
 
 /**
  * Perform a request to Supabase REST API
@@ -172,3 +183,121 @@ export async function syncBookingToSupabase(booking, travelers = []) {
     }),
   ])
 }
+
+/**
+ * RBAC Helper: Get admin profile by auth user ID
+ */
+export async function fetchAdminProfileByAuthId(authUserId) {
+  if (!authUserId) return null
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('admin_profiles')
+      .select('*')
+      .eq('auth_user_id', authUserId)
+      .maybeSingle()
+    if (!error && data) return data
+  } catch (e) {
+    console.warn('[Supabase RBAC] fetchAdminProfileByAuthId fallback:', e.message)
+  }
+  return null
+}
+
+/**
+ * RBAC Helper: Get admin profile by email
+ */
+export async function fetchAdminProfileByEmail(email) {
+  if (!email) return null
+  const cleanEmail = email.trim().toLowerCase()
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('admin_profiles')
+      .select('*')
+      .eq('email', cleanEmail)
+      .maybeSingle()
+    if (!error && data) return data
+  } catch (e) {
+    console.warn('[Supabase RBAC] fetchAdminProfileByEmail fallback:', e.message)
+  }
+  return null
+}
+
+/**
+ * RBAC Helper: Get all permissions for an admin profile
+ */
+export async function fetchAdminPermissions(profileId) {
+  if (!profileId) return []
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('admin_permissions')
+      .select('permission_key')
+      .eq('user_id', profileId)
+    if (!error && Array.isArray(data)) {
+      return data.map((p) => p.permission_key)
+    }
+  } catch (e) {
+    console.warn('[Supabase RBAC] fetchAdminPermissions fallback:', e.message)
+  }
+  return []
+}
+
+/**
+ * RBAC Helper: Save permissions for an admin profile
+ */
+export async function saveAdminPermissions(profileId, permissionKeys = []) {
+  if (!profileId) return false
+  try {
+    // 1. Delete existing
+    await supabaseAdmin
+      .from('admin_permissions')
+      .delete()
+      .eq('user_id', profileId)
+
+    // 2. Insert new set
+    if (permissionKeys.length > 0) {
+      const rows = permissionKeys.map((key) => ({
+        user_id: profileId,
+        permission_key: key,
+      }))
+      await supabaseAdmin.from('admin_permissions').insert(rows)
+    }
+    return true
+  } catch (e) {
+    console.error('[Supabase RBAC] saveAdminPermissions error:', e.message)
+    return false
+  }
+}
+
+/**
+ * RBAC Helper: Record an administrative audit log
+ */
+export async function recordAuditLog({ admin_user_id, action, target_user_id = null, module = 'Staff', details = '' }) {
+  try {
+    await supabaseAdmin.from('admin_audit_logs').insert({
+      admin_user_id: admin_user_id || null,
+      action,
+      target_user_id: target_user_id || null,
+      module,
+      details: typeof details === 'object' ? JSON.stringify(details) : String(details),
+    })
+  } catch (e) {
+    console.warn('[Supabase RBAC] recordAuditLog warning:', e.message)
+  }
+}
+
+/**
+ * RBAC Helper: Fetch audit logs
+ */
+export async function fetchAuditLogs(limit = 100) {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('admin_audit_logs')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(limit)
+    if (!error && Array.isArray(data)) return data
+  } catch (e) {
+    console.warn('[Supabase RBAC] fetchAuditLogs warning:', e.message)
+  }
+  return []
+}
+

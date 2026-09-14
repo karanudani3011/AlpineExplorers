@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url'
 import publicRouter from './routes/public.js'
 import authRouter from './routes/auth.js'
 import usersRouter from './routes/users.js'
+import staffRouter from './routes/staff.js'
 import blogsRouter from './routes/blogs.js'
 import mediaRouter from './routes/media.js'
 import inquiriesRouter from './routes/inquiries.js'
@@ -48,6 +49,7 @@ app.use('/api/adventure', crudAdminRouter(CONTENT_CONFIGS.adventure))
 app.use('/api/camps', crudAdminRouter(CONTENT_CONFIGS.camping))
 app.use('/api/services', crudAdminRouter(CONTENT_CONFIGS.services))
 app.use('/api/users', usersRouter)
+app.use('/api/staff', staffRouter)
 app.use('/api/blogs', blogsRouter)
 app.use('/api/media', mediaRouter)
 app.use('/api/inquiries', inquiriesRouter)

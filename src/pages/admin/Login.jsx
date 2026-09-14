@@ -1,14 +1,13 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Lock, User, ShieldCheck, Eye, EyeOff } from 'lucide-react'
+import { Lock, Mail, ShieldCheck, Eye, EyeOff } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { BG, NAVY, GOLD, NAVY_DARK } from '../../components/admin/admin-ui'
-import { api } from '../../services/api'
 
 export default function Login() {
   const { login } = useAuth()
   const navigate = useNavigate()
-  const [form, setForm] = useState({ username: '', password: '' })
+  const [form, setForm] = useState({ email: '', password: '' })
   const [show, setShow] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -18,7 +17,7 @@ export default function Login() {
     setError('')
     setLoading(true)
     try {
-      await login(form.username, form.password)
+      await login(form.email, form.password)
       navigate('/admin/homepage', { replace: true })
     } catch (err) {
       setError(err.message || 'Login failed')
@@ -52,21 +51,34 @@ export default function Login() {
               </div>
             )}
             <div className="mb-4">
-              <label className="block text-[11px] font-bold uppercase tracking-wide mb-1.5" style={{ color: NAVY }}>Username</label>
+              <label className="block text-[11px] font-bold uppercase tracking-wide mb-1.5" style={{ color: NAVY }}>Email Address or Username</label>
               <div className="relative">
-                <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 opacity-40" />
-                <input value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })}
-                  className="w-full pl-10 pr-4 py-3 rounded-xl outline-none" style={{ border: '1px solid rgba(0,26,77,0.18)', background: '#fff', fontFamily: 'Inter', fontSize: 14 }}
-                  placeholder="Enter username" autoFocus />
+                <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 opacity-40" />
+                <input
+                  type="text"
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  className="w-full pl-10 pr-4 py-3 rounded-xl outline-none"
+                  style={{ border: '1px solid rgba(0,26,77,0.18)', background: '#fff', fontFamily: 'Inter', fontSize: 14 }}
+                  placeholder="Enter email or username"
+                  autoFocus
+                  autoComplete="username"
+                />
               </div>
             </div>
             <div className="mb-5">
               <label className="block text-[11px] font-bold uppercase tracking-wide mb-1.5" style={{ color: NAVY }}>Password</label>
               <div className="relative">
                 <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 opacity-40" />
-                <input type={show ? 'text' : 'password'} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })}
-                  className="w-full pl-10 pr-10 py-3 rounded-xl outline-none" style={{ border: '1px solid rgba(0,26,77,0.18)', background: '#fff', fontFamily: 'Inter', fontSize: 14 }}
-                  placeholder="Enter password" />
+                <input
+                  type={show ? 'text' : 'password'}
+                  value={form.password}
+                  onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  className="w-full pl-10 pr-10 py-3 rounded-xl outline-none"
+                  style={{ border: '1px solid rgba(0,26,77,0.18)', background: '#fff', fontFamily: 'Inter', fontSize: 14 }}
+                  placeholder="Enter password"
+                  autoComplete="current-password"
+                />
                 <button type="button" onClick={() => setShow(!show)} className="absolute right-3 top-1/2 -translate-y-1/2 opacity-40 hover:opacity-70">
                   {show ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>

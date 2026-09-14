@@ -311,6 +311,36 @@ CREATE TABLE IF NOT EXISTS activity_logs (
   details TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+CREATE TABLE IF NOT EXISTS admin_profiles (
+  id TEXT PRIMARY KEY,
+  auth_user_id TEXT UNIQUE,
+  full_name TEXT NOT NULL,
+  email TEXT NOT NULL UNIQUE,
+  phone TEXT,
+  role TEXT NOT NULL DEFAULT 'STAFF' CHECK(role IN ('SUPER_ADMIN', 'STAFF')),
+  status TEXT NOT NULL DEFAULT 'ACTIVE' CHECK(status IN ('ACTIVE', 'INACTIVE')),
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS admin_permissions (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES admin_profiles(id) ON DELETE CASCADE,
+  permission_key TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE(user_id, permission_key)
+);
+
+CREATE TABLE IF NOT EXISTS admin_audit_logs (
+  id TEXT PRIMARY KEY,
+  admin_user_id TEXT,
+  action TEXT NOT NULL,
+  target_user_id TEXT,
+  module TEXT NOT NULL,
+  details TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
 `)
 
 export function logActivity({ user_name, action, module, details = '' }) {

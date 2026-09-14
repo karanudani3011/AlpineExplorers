@@ -8,9 +8,9 @@ import { useAuth } from '../../contexts/AuthContext'
 import { BG, NAVY, GOLD, NAVY_DARK } from './admin-ui'
 
 const NAV = [
-  { to: '/admin/homepage', label: 'Home', icon: Home, end: true, roles: ['super_admin', 'admin'] },
+  { to: '/admin/dashboard', label: 'Dashboard', icon: Home, end: true, permission: 'dashboard.view' },
   {
-    type: 'group', label: 'Services', icon: Compass, roles: ['super_admin', 'admin', 'editor'],
+    type: 'group', label: 'Services', icon: Compass, permission: 'services.view',
     children: [
       { to: '/admin/international', label: 'International', icon: Globe2 },
       { to: '/admin/domestic', label: 'Domestic', icon: MapIcon },
@@ -19,17 +19,17 @@ const NAV = [
       { to: '/admin/services', label: 'Special Services', icon: Plane },
     ],
   },
-  { to: '/admin/bookings', label: 'Bookings / Applications', icon: FileText, roles: ['super_admin', 'admin', 'editor'] },
-  { to: '/admin/events', label: 'Upcoming Events', icon: CalendarDays, roles: ['super_admin', 'admin', 'editor'] },
-  { to: '/admin/blog', label: 'Blog', icon: PenLine, roles: ['super_admin', 'admin', 'editor'] },
-  { to: '/admin/travel-mood', label: 'Find Your Travel Mood', icon: MapPinned, roles: ['super_admin', 'admin', 'editor'] },
-  { to: '/admin/about', label: 'About Us', icon: Info, roles: ['super_admin', 'admin'] },
-  { to: '/admin/inquiries', label: 'Contact Us', icon: Mail, roles: ['super_admin', 'admin', 'editor'] },
+  { to: '/admin/bookings', label: 'Bookings / Applications', icon: FileText, permission: 'bookings.view' },
+  { to: '/admin/events', label: 'Upcoming Events', icon: CalendarDays, permission: 'events.view' },
+  { to: '/admin/blog', label: 'Blog', icon: PenLine, permission: 'blog.view' },
+  { to: '/admin/travel-mood', label: 'Find Your Travel Mood', icon: MapPinned, permission: 'travel_mood.view' },
+  { to: '/admin/about', label: 'About Us', icon: Info, permission: 'about.view' },
+  { to: '/admin/inquiries', label: 'Contact Us', icon: Mail, permission: 'contact.view' },
 ]
 
 const BOTTOM_NAV = [
-  { to: '/admin/settings', label: 'Settings', icon: Settings, roles: ['super_admin'] },
-  { to: '/admin/users', label: 'Super Administrator', icon: Users, roles: ['super_admin'] },
+  { to: '/admin/settings', label: 'Settings', icon: Settings, permission: 'settings.view', superAdminOnly: true },
+  { to: '/admin/users', label: 'Staff Management', icon: Users, permission: 'staff.view', superAdminOnly: true },
 ]
 
 const linkClass = ({ isActive }) =>
@@ -67,9 +67,19 @@ function GroupItem({ group, onNavigate }) {
   )
 }
 
-function SidebarContent({ onNavigate, user, onLogout }) {
-  const items = NAV.filter((n) => user && n.roles.includes(user.role))
-  const bottomItems = BOTTOM_NAV.filter((n) => user && n.roles.includes(user.role))
+function SidebarContent({ onNavigate, user, isSuperAdmin, hasPermission, onLogout }) {
+  // Dynamically filter items by permission
+  const items = NAV.filter((n) => {
+    if (isSuperAdmin) return true
+    return hasPermission(n.permission)
+  })
+
+  const bottomItems = BOTTOM_NAV.filter((n) => {
+    if (isSuperAdmin) return true
+    if (n.superAdminOnly) return false
+    return hasPermission(n.permission)
+  })
+
   return (
     <div className="h-full flex flex-col" style={{ background: NAVY_DARK }}>
       <div className="px-5 py-6">
@@ -81,26 +91,32 @@ function SidebarContent({ onNavigate, user, onLogout }) {
           </div>
         </div>
       </div>
+
       <nav className="flex-1 px-3 pb-4 space-y-1 overflow-y-auto">
         {items.map((n) => n.type === 'group'
           ? <GroupItem key={n.label} group={n} onNavigate={onNavigate} />
           : (
-            <NavLink key={n.to} to={n.to} end={!!n.exact} onClick={onNavigate} className={linkClass} style={linkStyle}>
+            <NavLink key={n.to} to={n.to} end={!!n.end} onClick={onNavigate} className={linkClass} style={linkStyle}>
               <n.icon size={17} style={{ color: GOLD }} /> {n.label}
             </NavLink>
           ))}
       </nav>
+
       <div className="px-4 py-4 pb-safe border-t border-white/10">
         {bottomItems.map((n) => (
-          <NavLink key={n.to} to={n.to} end={!!n.exact} onClick={onNavigate} className={linkClass} style={linkStyle}>
+          <NavLink key={n.to} to={n.to} end={!!n.end} onClick={onNavigate} className={linkClass} style={linkStyle}>
             <n.icon size={16} style={{ color: GOLD }} /> {n.label}
           </NavLink>
         ))}
         <div className="flex items-center gap-2 mb-3 px-1 mt-3">
-          <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-white text-[10px] font-bold uppercase">{user?.full_name?.[0]}</div>
+          <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-white text-[10px] font-bold uppercase">
+            {user?.full_name?.[0] || 'A'}
+          </div>
           <div className="min-w-0">
-            <div className="text-white text-xs font-bold truncate">{user?.full_name}</div>
-            <div className="text-[9px] uppercase tracking-wider" style={{ color: GOLD }}>{user?.role?.replace('_', ' ')}</div>
+            <div className="text-white text-xs font-bold truncate">{user?.full_name || user?.email}</div>
+            <div className="text-[9px] uppercase tracking-wider font-semibold" style={{ color: GOLD }}>
+              {isSuperAdmin ? 'SUPER ADMIN' : 'STAFF'}
+            </div>
           </div>
         </div>
         <button onClick={onLogout} className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold text-red-300 hover:bg-red-500/10 transition-colors">
@@ -112,17 +128,26 @@ function SidebarContent({ onNavigate, user, onLogout }) {
 }
 
 export default function AdminLayout() {
-  const { user, logout } = useAuth()
+  const { user, isSuperAdmin, hasPermission, logout } = useAuth()
   const navigate = useNavigate()
   const [mobileOpen, setMobileOpen] = useState(false)
 
-  const onLogout = async () => { await logout(); navigate('/admin/login') }
+  const onLogout = async () => {
+    await logout()
+    navigate('/admin/login')
+  }
 
   return (
     <div className="min-h-screen flex" style={{ background: BG }}>
       {/* Desktop sidebar */}
       <aside className="hidden lg:block w-64 fixed inset-y-0 left-0 z-40">
-        <SidebarContent user={user} onNavigate={() => {}} onLogout={onLogout} />
+        <SidebarContent
+          user={user}
+          isSuperAdmin={isSuperAdmin}
+          hasPermission={hasPermission}
+          onNavigate={() => {}}
+          onLogout={onLogout}
+        />
       </aside>
 
       {/* Mobile drawer */}
@@ -130,7 +155,13 @@ export default function AdminLayout() {
         <div className="fixed inset-0 z-50 lg:hidden">
           <div className="absolute inset-0 bg-black/50" onClick={() => setMobileOpen(false)} />
           <div className="absolute inset-y-0 left-0 w-64">
-            <SidebarContent user={user} onNavigate={() => setMobileOpen(false)} onLogout={onLogout} />
+            <SidebarContent
+              user={user}
+              isSuperAdmin={isSuperAdmin}
+              hasPermission={hasPermission}
+              onNavigate={() => setMobileOpen(false)}
+              onLogout={onLogout}
+            />
           </div>
         </div>
       )}

@@ -7,11 +7,13 @@ import {
 import { api } from '../../services/api'
 import { useToasts } from '../../components/admin/useToasts'
 import { PageHeader, Btn, Card, Spinner, EmptyState, Badge, StatCard, NAVY, GOLD, GOLD2, BG, font } from '../../components/admin/admin-ui'
+import { useAuth } from '../../contexts/AuthContext'
 
 const STATUSES = ['pending', 'confirmed', 'cancelled', 'completed']
 
 export default function Bookings() {
   const navigate = useNavigate()
+  const { hasPermission } = useAuth()
   const { toasts, addToast, dismiss, ToastHost } = useToasts()
   
   const [bookings, setBookings] = useState([])
@@ -177,16 +179,20 @@ export default function Bookings() {
         subtitle="Manage customer bookings, traveler applications and risk certificates."
         actions={
           <div className="flex flex-wrap gap-2">
-            <Btn variant="ghostGold" onClick={() => generatePdf(null, 'all')} disabled={pdfGenerating === 'all' || excelGenerating === 'all'}>
-              {pdfGenerating === 'all'
-                ? <><Loader2 size={14} className="animate-spin" /><span className="hidden sm:inline"> Generating…</span></>
-                : <><Download size={14} /><span className="hidden sm:inline"> PDF All</span><span className="sm:hidden">PDF</span></>}
-            </Btn>
-            <Btn variant="ghostGold" onClick={() => generateExcel(null, 'all')} disabled={pdfGenerating === 'all' || excelGenerating === 'all'}>
-              {excelGenerating === 'all'
-                ? <><Loader2 size={14} className="animate-spin" /><span className="hidden sm:inline"> Generating…</span></>
-                : <><FileSpreadsheet size={14} /><span className="hidden sm:inline"> Excel All</span><span className="sm:hidden">XLS</span></>}
-            </Btn>
+            {hasPermission('bookings.export_pdf') && (
+              <Btn variant="ghostGold" onClick={() => generatePdf(null, 'all')} disabled={pdfGenerating === 'all' || excelGenerating === 'all'}>
+                {pdfGenerating === 'all'
+                  ? <><Loader2 size={14} className="animate-spin" /><span className="hidden sm:inline"> Generating…</span></>
+                  : <><Download size={14} /><span className="hidden sm:inline"> PDF All</span><span className="sm:hidden">PDF</span></>}
+              </Btn>
+            )}
+            {hasPermission('bookings.export_excel') && (
+              <Btn variant="ghostGold" onClick={() => generateExcel(null, 'all')} disabled={pdfGenerating === 'all' || excelGenerating === 'all'}>
+                {excelGenerating === 'all'
+                  ? <><Loader2 size={14} className="animate-spin" /><span className="hidden sm:inline"> Generating…</span></>
+                  : <><FileSpreadsheet size={14} /><span className="hidden sm:inline"> Excel All</span><span className="sm:hidden">XLS</span></>}
+              </Btn>
+            )}
           </div>
         }
       />
@@ -356,24 +362,28 @@ export default function Bookings() {
                     >
                       View Details
                     </NavLink>
-                    <button
-                      onClick={() => generatePdf(booking.id)}
-                      disabled={pdfGenerating === booking.id || excelGenerating === booking.id}
-                      className="p-2.5 rounded-xl transition"
-                      style={{ background: 'rgba(197,155,39,0.12)', color: NAVY, minWidth: 44, minHeight: 44 }}
-                      title={pdfGenerating === booking.id ? 'Generating PDF…' : 'Download PDF'}
-                    >
-                      {pdfGenerating === booking.id ? <Loader2 size={14} className="animate-spin" /> : <FileText size={15} />}
-                    </button>
-                    <button
-                      onClick={() => generateExcel(booking.id)}
-                      disabled={excelGenerating === booking.id || pdfGenerating === booking.id}
-                      className="p-2.5 rounded-xl transition"
-                      style={{ background: 'rgba(22,163,74,0.12)', color: '#166534', minWidth: 44, minHeight: 44 }}
-                      title={excelGenerating === booking.id ? 'Generating Excel…' : 'Download Excel'}
-                    >
-                      {excelGenerating === booking.id ? <Loader2 size={14} className="animate-spin" /> : <FileSpreadsheet size={15} />}
-                    </button>
+                    {hasPermission('bookings.export_pdf') && (
+                      <button
+                        onClick={() => generatePdf(booking.id)}
+                        disabled={pdfGenerating === booking.id || excelGenerating === booking.id}
+                        className="p-2.5 rounded-xl transition"
+                        style={{ background: 'rgba(197,155,39,0.12)', color: NAVY, minWidth: 44, minHeight: 44 }}
+                        title={pdfGenerating === booking.id ? 'Generating PDF…' : 'Download PDF'}
+                      >
+                        {pdfGenerating === booking.id ? <Loader2 size={14} className="animate-spin" /> : <FileText size={15} />}
+                      </button>
+                    )}
+                    {hasPermission('bookings.export_excel') && (
+                      <button
+                        onClick={() => generateExcel(booking.id)}
+                        disabled={excelGenerating === booking.id || pdfGenerating === booking.id}
+                        className="p-2.5 rounded-xl transition"
+                        style={{ background: 'rgba(22,163,74,0.12)', color: '#166534', minWidth: 44, minHeight: 44 }}
+                        title={excelGenerating === booking.id ? 'Generating Excel…' : 'Download Excel'}
+                      >
+                        {excelGenerating === booking.id ? <Loader2 size={14} className="animate-spin" /> : <FileSpreadsheet size={15} />}
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}
@@ -416,28 +426,32 @@ export default function Bookings() {
                           >
                             <Eye size={15} />
                           </NavLink>
-                          <button
-                            onClick={() => generatePdf(booking.id)}
-                            disabled={pdfGenerating === booking.id || excelGenerating === booking.id}
-                            className="p-2 rounded-xl transition"
-                            style={{ background: 'rgba(197,155,39,0.12)', color: NAVY }}
-                            onMouseEnter={(e) => { if (pdfGenerating !== booking.id) { e.currentTarget.style.background = GOLD; e.currentTarget.style.color = NAVY }}}
-                            onMouseLeave={(e) => { if (pdfGenerating !== booking.id) { e.currentTarget.style.background = 'rgba(197,155,39,0.12)'; e.currentTarget.style.color = NAVY }}}
-                            title={pdfGenerating === booking.id ? "Generating PDF..." : "Download PDF"}
-                          >
-                            {pdfGenerating === booking.id ? <Loader2 size={14} className="animate-spin" /> : <FileText size={15} />}
-                          </button>
-                          <button
-                            onClick={() => generateExcel(booking.id)}
-                            disabled={excelGenerating === booking.id || pdfGenerating === booking.id}
-                            className="p-2 rounded-xl transition"
-                            style={{ background: 'rgba(22,163,74,0.12)', color: '#166534' }}
-                            onMouseEnter={(e) => { if (excelGenerating !== booking.id) { e.currentTarget.style.background = '#16a34a'; e.currentTarget.style.color = '#fff' }}}
-                            onMouseLeave={(e) => { if (excelGenerating !== booking.id) { e.currentTarget.style.background = 'rgba(22,163,74,0.12)'; e.currentTarget.style.color = '#166534' }}}
-                            title={excelGenerating === booking.id ? "Generating Excel..." : "Download Excel"}
-                          >
-                            {excelGenerating === booking.id ? <Loader2 size={14} className="animate-spin" /> : <FileSpreadsheet size={15} />}
-                          </button>
+                          {hasPermission('bookings.export_pdf') && (
+                            <button
+                              onClick={() => generatePdf(booking.id)}
+                              disabled={pdfGenerating === booking.id || excelGenerating === booking.id}
+                              className="p-2 rounded-xl transition"
+                              style={{ background: 'rgba(197,155,39,0.12)', color: NAVY }}
+                              onMouseEnter={(e) => { if (pdfGenerating !== booking.id) { e.currentTarget.style.background = GOLD; e.currentTarget.style.color = NAVY }}}
+                              onMouseLeave={(e) => { if (pdfGenerating !== booking.id) { e.currentTarget.style.background = 'rgba(197,155,39,0.12)'; e.currentTarget.style.color = NAVY }}}
+                              title={pdfGenerating === booking.id ? "Generating PDF..." : "Download PDF"}
+                            >
+                              {pdfGenerating === booking.id ? <Loader2 size={14} className="animate-spin" /> : <FileText size={15} />}
+                            </button>
+                          )}
+                          {hasPermission('bookings.export_excel') && (
+                            <button
+                              onClick={() => generateExcel(booking.id)}
+                              disabled={excelGenerating === booking.id || pdfGenerating === booking.id}
+                              className="p-2 rounded-xl transition"
+                              style={{ background: 'rgba(22,163,74,0.12)', color: '#166534' }}
+                              onMouseEnter={(e) => { if (excelGenerating !== booking.id) { e.currentTarget.style.background = '#16a34a'; e.currentTarget.style.color = '#fff' }}}
+                              onMouseLeave={(e) => { if (excelGenerating !== booking.id) { e.currentTarget.style.background = 'rgba(22,163,74,0.12)'; e.currentTarget.style.color = '#166534' }}}
+                              title={excelGenerating === booking.id ? "Generating Excel..." : "Download Excel"}
+                            >
+                              {excelGenerating === booking.id ? <Loader2 size={14} className="animate-spin" /> : <FileSpreadsheet size={15} />}
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>

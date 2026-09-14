@@ -4,11 +4,13 @@ import { api } from '../../services/api'
 import { useToasts } from '../../components/admin/useToasts'
 import { PageHeader, StatCard, Card, Spinner, NAVY, GOLD, GOLD2 } from '../../components/admin/admin-ui'
 import { Badge } from '../../components/admin/admin-ui'
+import { useAuth } from '../../contexts/AuthContext'
 
 const fonts = { fontFamily: "'Inter'" }
 
 export default function Dashboard() {
   const { toasts, addToast, dismiss, ToastHost } = useToasts()
+  const { hasPermission, hasModulePermission, isSuperAdmin } = useAuth()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
 
@@ -25,20 +27,24 @@ export default function Dashboard() {
   const maxDest = Math.max(...topDestinations.map((d) => d.value), 1)
   const maxActive = Math.max(stats.international, stats.domestic)
 
+  const canSeeContent = isSuperAdmin || hasModulePermission('services') || hasModulePermission('blog')
+  const canSeeBookings = isSuperAdmin || hasModulePermission('bookings')
+  const canSeeInquiries = isSuperAdmin || hasModulePermission('contact')
+
   return (
     <div>
-      <PageHeader icon={LayoutDashboard} title="Dashboard" subtitle={`Welcome back, Admin — here's what's happening`} />
+      <PageHeader icon={LayoutDashboard} title="Dashboard" subtitle={`Welcome back — here's what's happening`} />
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
-        <StatCard label="International Packages" value={stats.international} icon={Globe2} accent="#1d4ed8" />
-        <StatCard label="Domestic Packages" value={stats.domestic} icon={MapIcon} accent="#15803d" />
-        <StatCard label="Adventure Packages" value={stats.adventure} icon={Mountain} accent="#8b2518" />
-        <StatCard label="Camping Packages" value={stats.camping} icon={Tent} accent="#b45309" />
-        <StatCard label="Blog Posts" value={stats.blogs} icon={PenLine} accent="#7c3aed" />
-        <StatCard label="Total Users" value={stats.users} icon={Users} accent="#0e7490" />
-        <StatCard label="New Inquiries" value={stats.newInquiries} icon={Inbox} accent={GOLD} />
-        <StatCard label="Active Packages" value={stats.activePackages} icon={Package} accent="#166534" />
+        {canSeeContent && <StatCard label="International Packages" value={stats.international} icon={Globe2} accent="#1d4ed8" />}
+        {canSeeContent && <StatCard label="Domestic Packages" value={stats.domestic} icon={MapIcon} accent="#15803d" />}
+        {canSeeContent && <StatCard label="Adventure Packages" value={stats.adventure} icon={Mountain} accent="#8b2518" />}
+        {canSeeContent && <StatCard label="Camping Packages" value={stats.camping} icon={Tent} accent="#b45309" />}
+        {(isSuperAdmin || hasModulePermission('blog')) && <StatCard label="Blog Posts" value={stats.blogs} icon={PenLine} accent="#7c3aed" />}
+        {isSuperAdmin && <StatCard label="Total Users" value={stats.users} icon={Users} accent="#0e7490" />}
+        {canSeeInquiries && <StatCard label="New Inquiries" value={stats.newInquiries} icon={Inbox} accent={GOLD} />}
+        {canSeeContent && <StatCard label="Active Packages" value={stats.activePackages} icon={Package} accent="#166534" />}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">

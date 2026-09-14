@@ -73,24 +73,25 @@ function App() {
               <AdminLayout />
             </ProtectedRoute>
           }>
-            <Route path="dashboard" element={<Dashboard />} />
-            <Route path="international" element={<InternationalPage />} />
-            <Route path="domestic" element={<DomesticPage />} />
-            <Route path="adventure" element={<AdventurePage />} />
-            <Route path="camps" element={<CampsPage />} />
-            <Route path="services" element={<ServicesPage />} />
-            <Route path="blog" element={<BlogPage />} />
-            <Route path="events" element={<ComingSoon icon={CalendarDays} title="Upcoming Events" subtitle="Manage events, excursions & meetups" message="Upcoming events are currently defined in the public site code (src/pages/UpcomingEvents.jsx). A manager that lets you publish, edit and unpublish events directly from here is on the roadmap." note="Existing functionality is untouched — nothing is broken or removed." />} />
-            <Route path="travel-mood" element={<ComingSoon icon={MapPinned} title="Find Your Travel Mood" subtitle="Manage travel moods & recommendations" message="Travel moods, destinations, budgets and recommendations are currently defined in the public site code (src/pages/TravelMood.jsx). A manager for these is on the roadmap." note="Existing functionality is untouched — nothing is broken or removed." />} />
-            <Route path="media" element={<MediaLibrary />} />
-            <Route path="homepage" element={<ProtectedRoute roles={['super_admin', 'admin']}><HomepageAdmin /></ProtectedRoute>} />
-            <Route path="about" element={<ProtectedRoute roles={['super_admin', 'admin']}><AboutAdmin /></ProtectedRoute>} />
-            <Route path="bookings" element={<Bookings />} />
-            <Route path="bookings/:id" element={<BookingDetail />} />
-            <Route path="inquiries" element={<Inquiries />} />
-            <Route path="activity" element={<ProtectedRoute roles={['super_admin']}><ActivityLogs /></ProtectedRoute>} />
-            <Route path="users" element={<ProtectedRoute roles={['super_admin']}><UsersAdmin /></ProtectedRoute>} />
-            <Route path="settings" element={<ProtectedRoute roles={['super_admin']}><SettingsAdmin /></ProtectedRoute>} />
+            <Route index element={<ProtectedRoute permission="dashboard.view"><Dashboard /></ProtectedRoute>} />
+            <Route path="dashboard" element={<ProtectedRoute permission="dashboard.view"><Dashboard /></ProtectedRoute>} />
+            <Route path="international" element={<ProtectedRoute permission="services.view"><InternationalPage /></ProtectedRoute>} />
+            <Route path="domestic" element={<ProtectedRoute permission="services.view"><DomesticPage /></ProtectedRoute>} />
+            <Route path="adventure" element={<ProtectedRoute permission="services.view"><AdventurePage /></ProtectedRoute>} />
+            <Route path="camps" element={<ProtectedRoute permission="services.view"><CampsPage /></ProtectedRoute>} />
+            <Route path="services" element={<ProtectedRoute permission="services.view"><ServicesPage /></ProtectedRoute>} />
+            <Route path="blog" element={<ProtectedRoute permission="blog.view"><BlogPage /></ProtectedRoute>} />
+            <Route path="events" element={<ProtectedRoute permission="events.view"><ComingSoon icon={CalendarDays} title="Upcoming Events" subtitle="Manage events, excursions & meetups" message="Upcoming events are currently defined in the public site code (src/pages/UpcomingEvents.jsx). A manager that lets you publish, edit and unpublish events directly from here is on the roadmap." note="Existing functionality is untouched — nothing is broken or removed." /></ProtectedRoute>} />
+            <Route path="travel-mood" element={<ProtectedRoute permission="travel_mood.view"><ComingSoon icon={MapPinned} title="Find Your Travel Mood" subtitle="Manage travel moods & recommendations" message="Travel moods, destinations, budgets and recommendations are currently defined in the public site code (src/pages/TravelMood.jsx). A manager for these is on the roadmap." note="Existing functionality is untouched — nothing is broken or removed." /></ProtectedRoute>} />
+            <Route path="media" element={<ProtectedRoute permission="services.view"><MediaLibrary /></ProtectedRoute>} />
+            <Route path="homepage" element={<ProtectedRoute permission="dashboard.view"><HomepageAdmin /></ProtectedRoute>} />
+            <Route path="about" element={<ProtectedRoute permission="about.view"><AboutAdmin /></ProtectedRoute>} />
+            <Route path="bookings" element={<ProtectedRoute permission="bookings.view"><Bookings /></ProtectedRoute>} />
+            <Route path="bookings/:id" element={<ProtectedRoute permission="bookings.view"><BookingDetail /></ProtectedRoute>} />
+            <Route path="inquiries" element={<ProtectedRoute permission="contact.view"><Inquiries /></ProtectedRoute>} />
+            <Route path="activity" element={<ProtectedRoute superAdminOnly={true}><ActivityLogs /></ProtectedRoute>} />
+            <Route path="users" element={<ProtectedRoute superAdminOnly={true} permission="staff.view"><UsersAdmin /></ProtectedRoute>} />
+            <Route path="settings" element={<ProtectedRoute superAdminOnly={true} permission="settings.view"><SettingsAdmin /></ProtectedRoute>} />
           </Route>
         </Routes>
       </Router>

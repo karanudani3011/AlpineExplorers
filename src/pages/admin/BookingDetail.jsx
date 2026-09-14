@@ -10,12 +10,14 @@ import { api } from '../../services/api'
 import { useToasts } from '../../components/admin/useToasts'
 import { PageHeader, Btn, Card, Spinner, Badge, NAVY, GOLD, GOLD2, BG, font, Modal } from '../../components/admin/admin-ui'
 import { TravelerDetailModal } from './BookingDetailModal'
+import { useAuth } from '../../contexts/AuthContext'
 
 const STATUSES = ['pending', 'confirmed', 'cancelled', 'completed']
 
 export default function BookingDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { hasPermission } = useAuth()
   const { toasts, addToast, dismiss, ToastHost } = useToasts()
   
   const [booking, setBooking] = useState(null)
@@ -187,7 +189,7 @@ export default function BookingDetail() {
             <Link to="/admin/bookings" className="flex items-center gap-1.5 px-3 sm:px-4 py-2 min-h-[44px] rounded-full text-xs font-bold uppercase tracking-wider transition" style={{ border: '1px solid rgba(0,26,77,0.2)', color: NAVY }}>
               <ArrowLeft size={14} /> Back
             </Link>
-            {booking.status !== 'confirmed' && (
+            {hasPermission('bookings.edit') && booking.status !== 'confirmed' && (
               <button
                 type="button"
                 onClick={() => handleStatusChange('confirmed')}
@@ -198,7 +200,7 @@ export default function BookingDetail() {
                 <Check size={14} /> Confirm Booking
               </button>
             )}
-            {booking.status !== 'completed' && (
+            {hasPermission('bookings.edit') && booking.status !== 'completed' && (
               <button
                 type="button"
                 onClick={() => handleStatusChange('completed')}
@@ -209,7 +211,7 @@ export default function BookingDetail() {
                 <Clock size={14} /> Mark Completed
               </button>
             )}
-            {booking.status !== 'cancelled' && (
+            {hasPermission('bookings.edit') && booking.status !== 'cancelled' && (
               <button
                 type="button"
                 onClick={() => handleStatusChange('cancelled')}
@@ -220,21 +222,27 @@ export default function BookingDetail() {
                 <Ban size={14} /> Cancel Booking
               </button>
             )}
-            <Btn variant="ghostGold" onClick={generatePdf} disabled={pdfGenerating || excelGenerating}>
-              {pdfGenerating ? <><Loader2 size={14} className="animate-spin" /> <span className="hidden sm:inline">Generating PDF...</span><span className="sm:hidden">PDF...</span></> : <><Download size={14} /> <span className="hidden sm:inline">Download Complete PDF</span><span className="sm:hidden">PDF</span></>}
-            </Btn>
-            <Btn variant="ghostGold" onClick={generateExcel} disabled={pdfGenerating || excelGenerating}>
-              {excelGenerating ? <><Loader2 size={14} className="animate-spin" /> <span className="hidden sm:inline">Generating Excel...</span><span className="sm:hidden">Excel...</span></> : <><FileSpreadsheet size={14} /> <span className="hidden sm:inline">Download Complete Excel</span><span className="sm:hidden">Excel</span></>}
-            </Btn>
-            <button
-              type="button"
-              onClick={() => setShowDeleteModal(true)}
-              className="flex items-center gap-1.5 px-3 sm:px-4 py-2 min-h-[44px] rounded-full text-xs font-bold uppercase tracking-wider transition border text-red-600 hover:bg-red-50"
-              style={{ borderColor: 'rgba(220,38,38,0.3)' }}
-              title="Delete Booking"
-            >
-              <Trash2 size={14} /> Delete
-            </button>
+            {hasPermission('bookings.export_pdf') && (
+              <Btn variant="ghostGold" onClick={generatePdf} disabled={pdfGenerating || excelGenerating}>
+                {pdfGenerating ? <><Loader2 size={14} className="animate-spin" /> <span className="hidden sm:inline">Generating PDF...</span><span className="sm:hidden">PDF...</span></> : <><Download size={14} /> <span className="hidden sm:inline">Download Complete PDF</span><span className="sm:hidden">PDF</span></>}
+              </Btn>
+            )}
+            {hasPermission('bookings.export_excel') && (
+              <Btn variant="ghostGold" onClick={generateExcel} disabled={pdfGenerating || excelGenerating}>
+                {excelGenerating ? <><Loader2 size={14} className="animate-spin" /> <span className="hidden sm:inline">Generating Excel...</span><span className="sm:hidden">Excel...</span></> : <><FileSpreadsheet size={14} /> <span className="hidden sm:inline">Download Complete Excel</span><span className="sm:hidden">Excel</span></>}
+              </Btn>
+            )}
+            {hasPermission('bookings.delete') && (
+              <button
+                type="button"
+                onClick={() => setShowDeleteModal(true)}
+                className="flex items-center gap-1.5 px-3 sm:px-4 py-2 min-h-[44px] rounded-full text-xs font-bold uppercase tracking-wider transition border text-red-600 hover:bg-red-50"
+                style={{ borderColor: 'rgba(220,38,38,0.3)' }}
+                title="Delete Booking"
+              >
+                <Trash2 size={14} /> Delete
+              </button>
+            )}
           </div>
         }
       />
@@ -257,15 +265,19 @@ export default function BookingDetail() {
             <DetailRow label="Number of Travelers" value={`${booking.number_of_travelers}`} icon={Users} />
             <DetailRow label="Total Amount" value={formatCurrency(booking.total_amount)} icon={CreditCard} />
             <DetailRow label="Status" value={
-              <select
-                value={booking.status}
-                onChange={(e) => handleStatusChange(e.target.value)}
-                disabled={updatingStatus}
-                className="rounded-full text-[10px] font-bold uppercase px-2 py-1 border outline-none"
-                style={{ background: '#fff', borderColor: 'rgba(0,26,77,0.2)', color: NAVY, fontFamily: font.body }}
-              >
-                {STATUSES.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
-              </select>
+              hasPermission('bookings.edit') ? (
+                <select
+                  value={booking.status}
+                  onChange={(e) => handleStatusChange(e.target.value)}
+                  disabled={updatingStatus}
+                  className="rounded-full text-[10px] font-bold uppercase px-2 py-1 border outline-none"
+                  style={{ background: '#fff', borderColor: 'rgba(0,26,77,0.2)', color: NAVY, fontFamily: font.body }}
+                >
+                  {STATUSES.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
+                </select>
+              ) : (
+                getStatusBadge(booking.status)
+              )
             } />
           </div>
         </Card>

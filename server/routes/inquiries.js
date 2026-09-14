@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { db, logActivity } from '../db.js'
-import { authRequired } from '../middleware.js'
+import { authRequired, requirePermission } from '../middleware.js'
 import { syncInquiryToSupabase, supabaseRequest } from '../utils/supabase.js'
 
 const router = Router()
@@ -40,7 +40,7 @@ router.post('/', async (req, res) => {
 
 router.use(authRequired)
 
-router.get('/', (req, res) => {
+router.get('/', requirePermission('contact.view'), (req, res) => {
   const { status = '', q = '' } = req.query
   let sql = 'SELECT * FROM inquiries WHERE 1=1'
   const params = []
@@ -50,22 +50,22 @@ router.get('/', (req, res) => {
   res.json({ inquiries: db.prepare(sql).all(...params) })
 })
 
-router.patch('/:id/status', (req, res) => {
+router.patch('/:id/status', requirePermission('contact.edit'), (req, res) => {
   const statuses = ['new', 'contacted', 'in_progress', 'converted', 'closed']
   const status = req.body.status
   if (!statuses.includes(status)) return res.status(400).json({ error: 'Invalid status' })
   const existing = db.prepare('SELECT * FROM inquiries WHERE id = ?').get(req.params.id)
   if (!existing) return res.status(404).json({ error: 'Not found' })
   db.prepare('UPDATE inquiries SET status=? WHERE id=?').run(status, req.params.id)
-  logActivity({ user_name: req.user.username, action: 'Inquiry updated', module: 'Inquiries', details: `#${req.params.id} -> ${status}` })
+  logActivity({ user_name: req.user.full_name || req.user.username || req.user.email, action: 'Inquiry updated', module: 'Inquiries', details: `#${req.params.id} -> ${status}` })
   res.json({ message: 'Status updated', status })
 })
 
-router.delete('/:id', (req, res) => {
+router.delete('/:id', requirePermission('contact.delete'), (req, res) => {
   const existing = db.prepare('SELECT * FROM inquiries WHERE id = ?').get(req.params.id)
   if (!existing) return res.status(404).json({ error: 'Not found' })
   db.prepare('DELETE FROM inquiries WHERE id = ?').run(req.params.id)
-  logActivity({ user_name: req.user.username, action: 'Inquiry deleted', module: 'Inquiries', details: `#${req.params.id}` })
+  logActivity({ user_name: req.user.full_name || req.user.username || req.user.email, action: 'Inquiry deleted', module: 'Inquiries', details: `#${req.params.id}` })
   res.json({ message: 'Deleted' })
 })
 

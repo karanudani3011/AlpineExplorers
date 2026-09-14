@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { db, logActivity } from '../db.js'
-import { authRequired } from '../middleware.js'
+import { authRequired, requirePermission } from '../middleware.js'
 
 const JSON_ARRAY = ['gallery', 'activities', 'includes', 'rules', 'what_to_bring', 'tags', 'values', 'recognition', 'statistics']
 const NUM = ['price', 'original_price']
@@ -41,18 +41,18 @@ export function crudAdminRouter({ table, fields, module }) {
 
   const selectable = `id, ${fields.join(', ')}, created_at, updated_at`
 
-  router.get('/', (req, res) => {
+  router.get('/', requirePermission('services.view'), (req, res) => {
     const rows = db.prepare(`SELECT ${selectable} FROM ${table} ORDER BY id DESC`).all()
     res.json({ [module]: rows.map(decorateRow) })
   })
 
-  router.get('/:id', (req, res) => {
+  router.get('/:id', requirePermission('services.view'), (req, res) => {
     const row = db.prepare(`SELECT ${selectable} FROM ${table} WHERE id = ?`).get(req.params.id)
     if (!row) return res.status(404).json({ error: 'Not found' })
     res.json(decorateRow(row))
   })
 
-  router.post('/', (req, res) => {
+  router.post('/', requirePermission('services.create'), (req, res) => {
     const data = normalizeRow(req.body || {}, fields)
     const cols = Object.keys(data).filter((c) => data[c] !== undefined)
     if (cols.length === 0) return res.status(400).json({ error: 'No valid fields provided' })
@@ -63,12 +63,12 @@ export function crudAdminRouter({ table, fields, module }) {
     const ph = cols.map(() => '?').join(', ')
     const vals = cols.map((c) => data[c])
     const info = db.prepare(`INSERT INTO ${table} (${cols.join(', ')}) VALUES (${ph})`).run(...vals)
-    logActivity({ user_name: req.user.username, action: 'Created', module, details: `#${info.lastInsertRowid}` })
+    logActivity({ user_name: req.user.full_name || req.user.username || req.user.email, action: 'Created', module, details: `#${info.lastInsertRowid}` })
     const row = db.prepare(`SELECT ${selectable} FROM ${table} WHERE id = ?`).get(info.lastInsertRowid)
     res.status(201).json(decorateRow(row))
   })
 
-  router.put('/:id', (req, res) => {
+  router.put('/:id', requirePermission('services.edit'), (req, res) => {
     const existing = db.prepare(`SELECT id FROM ${table} WHERE id = ?`).get(req.params.id)
     if (!existing) return res.status(404).json({ error: 'Not found' })
     const data = normalizeRow(req.body || {}, fields)
@@ -77,34 +77,34 @@ export function crudAdminRouter({ table, fields, module }) {
     const set = cols.map((c) => `${c} = ?`).join(', ')
     const vals = [...cols.map((c) => data[c]), req.params.id]
     db.prepare(`UPDATE ${table} SET ${set}, updated_at = datetime('now') WHERE id = ?`).run(...vals)
-    logActivity({ user_name: req.user.username, action: 'Updated', module, details: `#${req.params.id}` })
+    logActivity({ user_name: req.user.full_name || req.user.username || req.user.email, action: 'Updated', module, details: `#${req.params.id}` })
     const row = db.prepare(`SELECT ${selectable} FROM ${table} WHERE id = ?`).get(req.params.id)
     res.json(decorateRow(row))
   })
 
-  router.patch('/:id/status', (req, res) => {
+  router.patch('/:id/status', requirePermission('services.edit'), (req, res) => {
     const existing = db.prepare(`SELECT id FROM ${table} WHERE id = ?`).get(req.params.id)
     if (!existing) return res.status(404).json({ error: 'Not found' })
     const status = req.body.status === 'active' ? 'active' : 'inactive'
     db.prepare(`UPDATE ${table} SET status = ?, updated_at = datetime('now') WHERE id = ?`).run(status, req.params.id)
-    logActivity({ user_name: req.user.username, action: status === 'active' ? 'Activated' : 'Deactivated', module, details: `#${req.params.id}` })
+    logActivity({ user_name: req.user.full_name || req.user.username || req.user.email, action: status === 'active' ? 'Activated' : 'Deactivated', module, details: `#${req.params.id}` })
     res.json({ message: 'Status updated', status })
   })
 
-  router.patch('/:id/featured', (req, res) => {
+  router.patch('/:id/featured', requirePermission('services.edit'), (req, res) => {
     const existing = db.prepare(`SELECT id FROM ${table} WHERE id = ?`).get(req.params.id)
     if (!existing) return res.status(404).json({ error: 'Not found' })
     const featured = req.body.featured ? 1 : 0
     db.prepare(`UPDATE ${table} SET featured = ?, updated_at = datetime('now') WHERE id = ?`).run(featured, req.params.id)
-    logActivity({ user_name: req.user.username, action: featured ? 'Featured' : 'Unfeatured', module, details: `#${req.params.id}` })
+    logActivity({ user_name: req.user.full_name || req.user.username || req.user.email, action: featured ? 'Featured' : 'Unfeatured', module, details: `#${req.params.id}` })
     res.json({ message: 'Updated', featured })
   })
 
-  router.delete('/:id', (req, res) => {
+  router.delete('/:id', requirePermission('services.delete'), (req, res) => {
     const existing = db.prepare(`SELECT id FROM ${table} WHERE id = ?`).get(req.params.id)
     if (!existing) return res.status(404).json({ error: 'Not found' })
     db.prepare(`DELETE FROM ${table} WHERE id = ?`).run(req.params.id)
-    logActivity({ user_name: req.user.username, action: 'Deleted', module, details: `#${req.params.id}` })
+    logActivity({ user_name: req.user.full_name || req.user.username || req.user.email, action: 'Deleted', module, details: `#${req.params.id}` })
     res.json({ message: 'Deleted' })
   })
 
