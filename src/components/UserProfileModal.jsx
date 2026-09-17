@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Heart, Shield, Award, Compass, LogOut, LogIn, Ticket, User } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useSupabaseAuth } from '../contexts/SupabaseAuthContext'
+import { useSupabaseAuth } from '../hooks/useSupabaseAuth'
 
 const NAVY = '#001a4d'
 const NAVY_MID = '#0d3a80'

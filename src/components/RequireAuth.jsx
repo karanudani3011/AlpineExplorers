@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { useSupabaseAuth } from '../contexts/SupabaseAuthContext'
+import { useSupabaseAuth } from '../hooks/useSupabaseAuth'
 import { Loader2 } from 'lucide-react'
 
 const NAVY = '#001a4d'

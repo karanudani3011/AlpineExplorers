@@ -6,7 +6,7 @@ import SearchModal from './SearchModal'
 import UserProfileModal from './UserProfileModal'
 import InquiryModal from './InquiryModal'
 import ServicesMegaMenu from './ServicesMegaMenu'
-import { useSupabaseAuth } from '../contexts/SupabaseAuthContext'
+import { useSupabaseAuth } from '../hooks/useSupabaseAuth'
 
 const NAVY = '#001a4d'
 const NAVY_MID = '#0d3a80'

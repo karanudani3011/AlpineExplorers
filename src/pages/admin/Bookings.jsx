@@ -26,6 +26,7 @@ export default function Bookings() {
   
   const [search, setSearch] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
+  const [filterPaymentStatus, setFilterPaymentStatus] = useState('')
   const [filterTour, setFilterTour] = useState('')
   const [filterTravelDate, setFilterTravelDate] = useState('')
   const [filterBookingDate, setFilterBookingDate] = useState('')
@@ -35,6 +36,7 @@ export default function Bookings() {
   
   const [pdfGenerating, setPdfGenerating] = useState(null)
   const [excelGenerating, setExcelGenerating] = useState(null)
+  const [verifyingId, setVerifyingId] = useState(null)
 
   const loadBookings = useCallback(async () => {
     setLoading(true)
@@ -43,6 +45,7 @@ export default function Bookings() {
       qs.set('page', page)
       qs.set('limit', limit)
       if (filterStatus) qs.set('status', filterStatus)
+      if (filterPaymentStatus) qs.set('payment_status', filterPaymentStatus)
       if (search) qs.set('search', search)
       if (filterTour) qs.set('tour', filterTour)
       if (filterTravelDate) qs.set('travelDate', filterTravelDate)
@@ -58,7 +61,7 @@ export default function Bookings() {
     } finally {
       setLoading(false)
     }
-  }, [page, filterStatus, search, filterTour, filterTravelDate, filterBookingDate, filterMinTravelers, filterMaxTravelers])
+  }, [page, limit, filterStatus, filterPaymentStatus, search, filterTour, filterTravelDate, filterBookingDate, filterMinTravelers, filterMaxTravelers])
 
   const loadStats = useCallback(async () => {
     setStatsLoading(true)
@@ -88,6 +91,7 @@ export default function Bookings() {
 
   const resetFilters = () => {
     setFilterStatus('')
+    setFilterPaymentStatus('')
     setFilterTour('')
     setFilterTravelDate('')
     setFilterBookingDate('')
@@ -96,7 +100,21 @@ export default function Bookings() {
     setPage(1)
   }
 
-  const hasActiveFilters = filterStatus || filterTour || filterTravelDate || filterBookingDate || filterMinTravelers || filterMaxTravelers
+  const hasActiveFilters = filterStatus || filterPaymentStatus || filterTour || filterTravelDate || filterBookingDate || filterMinTravelers || filterMaxTravelers
+
+  const handleVerifyPayment = async (bookingId) => {
+    setVerifyingId(bookingId)
+    try {
+      await api.patch(`/bookings/${bookingId}/verify-payment`)
+      addToast('Payment verified successfully')
+      await loadBookings()
+      await loadStats()
+    } catch (e) {
+      addToast(e.message || 'Failed to verify payment', 'error')
+    } finally {
+      setVerifyingId(null)
+    }
+  }
 
   const generatePdf = async (bookingId, type = 'booking') => {
     setPdfGenerating(bookingId)
@@ -167,6 +185,37 @@ export default function Bookings() {
   const getStatusBadge = (status) => {
     const tones = { pending: 'new', confirmed: 'active', cancelled: 'inactive', completed: 'converted' }
     return <Badge tone={tones[status] || 'new'}>{status}</Badge>
+  }
+
+  const getPaymentBadge = (paymentStatus, paymentMethod) => {
+    const s = (paymentStatus || 'pending').toLowerCase()
+    const methodPrefix = paymentMethod ? `${paymentMethod} · ` : ''
+    if (s === 'paid') {
+      return (
+        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 uppercase tracking-wider">
+          {methodPrefix}Paid
+        </span>
+      )
+    }
+    if (s === 'pending_verification') {
+      return (
+        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 uppercase tracking-wider border border-amber-300">
+          {methodPrefix}Verify Pending
+        </span>
+      )
+    }
+    if (s === 'payment_failed') {
+      return (
+        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-800 uppercase tracking-wider">
+          Failed
+        </span>
+      )
+    }
+    return (
+      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 text-gray-700 uppercase tracking-wider">
+        Pending
+      </span>
+    )
   }
 
   if (statsLoading && loading) return <Spinner />
@@ -242,7 +291,7 @@ export default function Bookings() {
         </div>
 
         {showFilters && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 pb-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-4 pb-2">
             <div>
               <label className="block text-[11px] font-bold uppercase tracking-wide mb-1" style={{ color: NAVY, fontFamily: font.body }}>Status</label>
               <select
@@ -253,6 +302,21 @@ export default function Bookings() {
               >
                 <option value="">All Statuses</option>
                 {STATUSES.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold uppercase tracking-wide mb-1" style={{ color: NAVY, fontFamily: font.body }}>Payment Status</label>
+              <select
+                value={filterPaymentStatus}
+                onChange={(e) => { setFilterPaymentStatus(e.target.value); handleFilterChange() }}
+                className="w-full px-3 py-2 rounded-xl border outline-none text-sm"
+                style={{ borderColor: 'rgba(0,26,77,0.15)', background: '#fff', color: NAVY, fontFamily: font.body }}
+              >
+                <option value="">All Payments</option>
+                <option value="pending_verification">Pending Verification</option>
+                <option value="paid">Paid</option>
+                <option value="pending">Pending</option>
+                <option value="payment_failed">Failed</option>
               </select>
             </div>
             <div>
@@ -346,7 +410,10 @@ export default function Bookings() {
                       <p className="font-bold text-[13px] truncate" style={{ color: NAVY, fontFamily: 'Cinzel, serif' }}>{booking.booking_id}</p>
                       <p className="text-sm font-medium mt-0.5 line-clamp-1" style={{ color: NAVY }}>{booking.tour_name}</p>
                     </div>
-                    <div className="flex-shrink-0">{getStatusBadge(booking.status)}</div>
+                    <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                      {getStatusBadge(booking.status)}
+                      {getPaymentBadge(booking.payment_status, booking.payment_method)}
+                    </div>
                   </div>
                   <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 text-xs mb-3" style={{ color: 'rgba(58,42,24,0.7)', fontFamily: font.body }}>
                     <span><b>Booked:</b> {formatDate(booking.booking_date)}</span>
@@ -355,6 +422,17 @@ export default function Bookings() {
                     <span style={{ color: GOLD }}><b>Amount:</b> {formatCurrency(booking.total_amount)}</span>
                   </div>
                   <div className="flex items-center gap-2">
+                    {booking.payment_status === 'pending_verification' && (
+                      <button
+                        onClick={() => handleVerifyPayment(booking.id)}
+                        disabled={verifyingId === booking.id}
+                        className="px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-emerald-600 text-white hover:bg-emerald-700"
+                        title="Verify UPI Payment"
+                      >
+                        {verifyingId === booking.id ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle2 size={12} />}
+                        Verify UPI
+                      </button>
+                    )}
                     <NavLink
                       to={`/admin/bookings/${booking.id}`}
                       className="flex-1 py-2 text-center rounded-xl text-xs font-bold transition"
@@ -400,6 +478,7 @@ export default function Bookings() {
                     <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: 'rgba(0,26,77,0.5)', fontFamily: font.body }}>TRAVEL DATE</th>
                     <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: 'rgba(0,26,77,0.5)', fontFamily: font.body }}>TRAVELERS</th>
                     <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: 'rgba(0,26,77,0.5)', fontFamily: font.body }}>TOTAL AMOUNT</th>
+                    <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: 'rgba(0,26,77,0.5)', fontFamily: font.body }}>PAYMENT</th>
                     <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: 'rgba(0,26,77,0.5)', fontFamily: font.body }}>STATUS</th>
                     <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: 'rgba(0,26,77,0.5)', fontFamily: font.body }}>ACTIONS</th>
                   </tr>
@@ -413,6 +492,22 @@ export default function Bookings() {
                       <td className="px-5 py-4 text-sm" style={{ color: 'rgba(58,42,24,0.7)' }}>{formatDate(booking.travel_date)}</td>
                       <td className="px-5 py-4 text-sm font-semibold" style={{ color: NAVY }}>{booking.number_of_travelers} Traveler{booking.number_of_travelers > 1 ? 's' : ''}</td>
                       <td className="px-5 py-4 text-sm font-bold" style={{ color: GOLD }}>{formatCurrency(booking.total_amount)}</td>
+                      <td className="px-5 py-4">
+                        <div className="flex flex-col gap-1 items-start">
+                          {getPaymentBadge(booking.payment_status, booking.payment_method)}
+                          {booking.payment_status === 'pending_verification' && (
+                            <button
+                              onClick={() => handleVerifyPayment(booking.id)}
+                              disabled={verifyingId === booking.id}
+                              className="mt-1 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-emerald-600 text-white hover:bg-emerald-700 flex items-center gap-1 transition shadow-sm"
+                              title="Verify UPI Payment"
+                            >
+                              {verifyingId === booking.id ? <Loader2 size={10} className="animate-spin" /> : <CheckCircle2 size={10} />}
+                              Verify
+                            </button>
+                          )}
+                        </div>
+                      </td>
                       <td className="px-5 py-4">{getStatusBadge(booking.status)}</td>
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-2">

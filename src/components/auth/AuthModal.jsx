@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Mail, Lock, User, Compass, ArrowRight, Loader2, CheckCircle2, AlertCircle, ArrowLeft } from 'lucide-react'
-import { useSupabaseAuth } from '../../contexts/SupabaseAuthContext'
+import { useSupabaseAuth } from '../../hooks/useSupabaseAuth'
 import { useNavigate } from 'react-router-dom'
 
 const NAVY = '#001a4d'
@@ -12,10 +12,17 @@ const CREAM = '#faf5ea'
 const BROWN = '#3a2a18'
 
 export default function AuthModal() {
-  const { authModalOpen, authModalConfig, closeAuthModal, signIn, signUp, resetPassword } = useSupabaseAuth()
+  const {
+    authModalOpen,
+    authModalConfig,
+    closeAuthModal,
+    signIn,
+    signUp,
+    resetPassword,
+  } = useSupabaseAuth()
   const navigate = useNavigate()
 
-  const [tab, setTab] = useState('login') // 'login' | 'signup' | 'forgot'
+  const [tab, setTab] = useState('login')
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -68,7 +75,14 @@ export default function AuthModal() {
       const res = await signIn({ email, password })
       handleSuccessfulAuth(res.user)
     } catch (err) {
-      setErrorMsg(err.message || 'Invalid email or password.')
+      console.error('Supabase login error:', err)
+      if (err.code === 'email_not_confirmed' || err.message?.toLowerCase().includes('email not confirmed')) {
+        setErrorMsg('Email not confirmed. Please check your inbox or contact support.')
+      } else if (err.code === 'invalid_credentials' || err.message?.toLowerCase().includes('invalid login') || err.message?.toLowerCase().includes('invalid credentials')) {
+        setErrorMsg('Incorrect email or password.')
+      } else {
+        setErrorMsg(err.message || 'Failed to log in. Please try again.')
+      }
     } finally {
       setLoading(false)
     }
@@ -93,12 +107,23 @@ export default function AuthModal() {
         confirmPassword,
         phone,
       })
-      setSuccessMsg('Account created successfully! Continuing to your booking...')
-      window.setTimeout(() => {
-        handleSuccessfulAuth(res.user)
-      }, 700)
+
+      if (res.session && res.user) {
+        setSuccessMsg('Account created successfully! Continuing to your booking...')
+        window.setTimeout(() => {
+          handleSuccessfulAuth(res.user)
+        }, 700)
+      } else {
+        setSuccessMsg('Account created successfully. You can now log in.')
+        setTab('login')
+      }
     } catch (err) {
-      setErrorMsg(err.message || 'Unable to create account. Please check your information.')
+      console.error('Supabase signup error:', err)
+      if (err.message?.toLowerCase().includes('already registered') || err.message?.toLowerCase().includes('user already exists')) {
+        setErrorMsg('An account with this email already exists. Please log in instead.')
+      } else {
+        setErrorMsg(err.message || 'Unable to create account. Please check your information.')
+      }
     } finally {
       setLoading(false)
     }
@@ -113,6 +138,7 @@ export default function AuthModal() {
       await resetPassword(email)
       setSuccessMsg('Password reset link has been sent to your email address.')
     } catch (err) {
+      console.error('Supabase reset password error:', err)
       setErrorMsg(err.message || 'Unable to send password reset email.')
     } finally {
       setLoading(false)
@@ -241,29 +267,33 @@ export default function AuthModal() {
             {/* Status alerts */}
             {errorMsg && (
               <div
-                className="mb-4 rounded-xl px-3.5 py-2.5 text-xs font-semibold flex items-start gap-2"
+                className="mb-4 rounded-xl px-3.5 py-2.5 text-xs font-semibold"
                 style={{
                   backgroundColor: 'rgba(220,38,38,0.08)',
                   border: '1px solid rgba(220,38,38,0.3)',
                   color: '#b91c1c',
                 }}
               >
-                <AlertCircle size={15} className="shrink-0 mt-0.5" />
-                <span>{errorMsg}</span>
+                <div className="flex items-start gap-2">
+                  <AlertCircle size={15} className="shrink-0 mt-0.5" />
+                  <span className="flex-1">{errorMsg}</span>
+                </div>
               </div>
             )}
 
             {successMsg && (
               <div
-                className="mb-4 rounded-xl px-3.5 py-2.5 text-xs font-semibold flex items-start gap-2"
+                className="mb-4 rounded-xl px-3.5 py-2.5 text-xs font-semibold"
                 style={{
                   backgroundColor: 'rgba(16,185,129,0.1)',
                   border: '1px solid rgba(16,185,129,0.35)',
                   color: '#047857',
                 }}
               >
-                <CheckCircle2 size={15} className="shrink-0 mt-0.5" />
-                <span>{successMsg}</span>
+                <div className="flex items-start gap-2">
+                  <CheckCircle2 size={15} className="shrink-0 mt-0.5" />
+                  <span className="flex-1">{successMsg}</span>
+                </div>
               </div>
             )}
 

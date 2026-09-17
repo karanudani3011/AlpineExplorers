@@ -44,6 +44,13 @@ CREATE TABLE IF NOT EXISTS public.bookings (
   special_requirements TEXT,
   notes TEXT,
   status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'confirmed', 'cancelled', 'completed')),
+  payment_status TEXT DEFAULT 'pending' CHECK (payment_status IN ('pending', 'pending_verification', 'paid', 'payment_failed', 'refunded')),
+  payment_method TEXT,
+  payment_id TEXT,
+  order_id TEXT,
+  currency TEXT DEFAULT 'INR',
+  booking_status TEXT DEFAULT 'pending' CHECK (booking_status IN ('pending', 'confirmed', 'cancelled')),
+  booking_details JSONB DEFAULT '{}'::jsonb,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );

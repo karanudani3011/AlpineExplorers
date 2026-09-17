@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { supabase } from '../services/supabaseClient'
 
-const SupabaseAuthContext = createContext(null)
+export const SupabaseAuthContext = createContext(null)
 
 export function SupabaseAuthProvider({ children }) {
   const [user, setUser] = useState(null)
@@ -62,6 +62,7 @@ export function SupabaseAuthProvider({ children }) {
     // 1. Initial user check
     supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
       if (!mounted) return
+      console.log('[SupabaseAuth] Initial session:', initialSession?.user?.email || 'none')
       setSession(initialSession)
       const currentUser = initialSession?.user ?? null
       setUser(currentUser)
@@ -81,6 +82,7 @@ export function SupabaseAuthProvider({ children }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
         if (!mounted) return
+        console.log('[SupabaseAuth] Auth state change:', event, currentSession?.user?.email || 'no user')
         setSession(currentSession)
         const currentUser = currentSession?.user ?? null
         setUser(currentUser)
@@ -124,21 +126,33 @@ export function SupabaseAuthProvider({ children }) {
       throw new Error('Please enter both email and password.')
     }
 
+    console.log('[SupabaseAuth] Attempting sign in for:', cleanEmail)
     const { data, error } = await supabase.auth.signInWithPassword({
       email: cleanEmail,
       password,
     })
 
     if (error) {
+      console.error('[SupabaseAuth] Sign in error:', error)
       if (
+        error.code === 'email_not_confirmed' ||
+        error.message?.toLowerCase().includes('email not confirmed')
+      ) {
+        const err = new Error('Email not confirmed. Please check your inbox or contact support.')
+        err.code = 'email_not_confirmed'
+        throw err
+      }
+      if (
+        error.code === 'invalid_credentials' ||
         error.message?.toLowerCase().includes('invalid login') ||
         error.message?.toLowerCase().includes('invalid credentials')
       ) {
-        throw new Error('Invalid email or password.')
+        throw new Error('Incorrect email or password.')
       }
       throw new Error(error.message || 'Failed to log in. Please try again.')
     }
 
+    console.log('[SupabaseAuth] Sign in successful, user:', data.user?.email)
     setUser(data.user)
     setSession(data.session)
     if (data.user) {
@@ -161,6 +175,7 @@ export function SupabaseAuthProvider({ children }) {
     if (password.length < 6) throw new Error('Password must be at least 6 characters long.')
     if (password !== confirmPassword) throw new Error('Passwords do not match.')
 
+    console.log('[SupabaseAuth] Attempting sign up for:', cleanEmail)
     const { data, error } = await supabase.auth.signUp({
       email: cleanEmail,
       password,
@@ -173,6 +188,7 @@ export function SupabaseAuthProvider({ children }) {
     })
 
     if (error) {
+      console.error('[SupabaseAuth] Sign up error:', error)
       if (
         error.message?.toLowerCase().includes('already registered') ||
         error.message?.toLowerCase().includes('user already exists')
@@ -182,8 +198,14 @@ export function SupabaseAuthProvider({ children }) {
       throw new Error(error.message || 'Unable to create account. Please try again.')
     }
 
-    // Attempt to upsert profile in profiles table
-    if (data?.user) {
+    console.log('[SupabaseAuth] Sign up successful, user:', data.user?.email, 'session:', Boolean(data.session))
+
+    const hasSession = Boolean(data?.session)
+
+    // If session is immediately active, set user & session and sync profile
+    if (hasSession && data?.user) {
+      setUser(data.user)
+      setSession(data.session)
       try {
         await supabase.from('profiles').upsert({
           id: data.user.id,
@@ -192,12 +214,16 @@ export function SupabaseAuthProvider({ children }) {
           phone: phone ? phone.trim() : '',
         })
       } catch {
-        // Ignored if table not migrated yet
+        // Ignored
       }
       await fetchProfile(data.user.id, cleanEmail, cleanName)
     }
 
-    return data
+    return {
+      user: data?.user || null,
+      session: data?.session || null,
+      needsEmailVerification: false,
+    }
   }, [fetchProfile])
 
   const signOut = useCallback(async () => {
@@ -214,14 +240,15 @@ export function SupabaseAuthProvider({ children }) {
     const cleanEmail = (email || '').trim().toLowerCase()
     if (!cleanEmail) throw new Error('Please enter your email address.')
 
-    const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
-      redirectTo: `${window.location.origin}/`,
-    })
+    // No redirectTo needed since email confirmation is disabled
+    console.log('[SupabaseAuth] Sending password reset email to:', cleanEmail)
+    const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail)
 
     if (error) {
+      console.error('[SupabaseAuth] Password reset error:', error)
       throw new Error(error.message || 'Unable to send password reset email. Please check the email address.')
     }
-
+    console.log('[SupabaseAuth] Password reset email sent successfully')
     return true
   }, [])
 
@@ -248,10 +275,4 @@ export function SupabaseAuthProvider({ children }) {
   )
 }
 
-export function useSupabaseAuth() {
-  const context = useContext(SupabaseAuthContext)
-  if (!context) {
-    throw new Error('useSupabaseAuth must be used within a SupabaseAuthProvider')
-  }
-  return context
-}
+export default SupabaseAuthProvider

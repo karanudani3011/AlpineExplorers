@@ -9,6 +9,7 @@ import BookingModal from '../components/BookingModal'
 import TourImageSlider from '../components/TourImageSlider'
 import { eventImages } from '../data/eventImages'
 import { Calendar, Clock, MapPin, ArrowRight, Compass } from 'lucide-react'
+import { useSupabaseAuth } from '../hooks/useSupabaseAuth'
 
 const NAVY = '#001a4d'
 const NAVY_MID = '#0d3a80'
@@ -106,6 +107,8 @@ const events = [
 ]
 
 export default function UpcomingEvents() {
+  const { user, openAuthModal } = useSupabaseAuth()
+
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [])
@@ -114,8 +117,18 @@ export default function UpcomingEvents() {
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false)
 
   const openBooking = (item) => {
-    setSelectedItem(item)
-    setIsBookingModalOpen(true)
+    if (user) {
+      setSelectedItem(item)
+      setIsBookingModalOpen(true)
+    } else {
+      openAuthModal({
+        message: 'Login or create an account to book this event.',
+        onSuccess: () => {
+          setSelectedItem(item)
+          setIsBookingModalOpen(true)
+        },
+      })
+    }
   }
 
   const closeBooking = () => {

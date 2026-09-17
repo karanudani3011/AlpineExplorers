@@ -1,16 +1,17 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   Mountain, ArrowLeft, MapPin, Clock, Calendar, Users, CreditCard,
   Phone, Mail, User, MessageSquare, CheckCircle2, AlertCircle,
-  Loader2, Ticket, ArrowRight, ShieldCheck
+  Loader2, Ticket, ArrowRight, ShieldCheck, Edit3, Lock
 } from 'lucide-react'
 import Navbar from './Navbar'
 import Footer from './Footer'
-import { serviceTours, serviceCategories } from '../data/servicesData'
+import PaymentScreen from './booking/PaymentScreen'
+import { serviceTours } from '../data/servicesData'
 import { tours as dataTours } from '../data/data'
-import { useSupabaseAuth } from '../contexts/SupabaseAuthContext'
+import { useSupabaseAuth } from '../hooks/useSupabaseAuth'
 import { supabase } from '../services/supabaseClient'
 import { api } from '../services/api'
 
@@ -24,10 +25,19 @@ const BROWN = '#3a2a18'
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatINR(amount) {
-  if (!amount || amount <= 0) return null
+  if (!amount || amount <= 0) return '₹0'
   return new Intl.NumberFormat('en-IN', {
     style: 'currency', currency: 'INR', maximumFractionDigits: 0,
   }).format(amount)
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return 'Flexible / To be confirmed'
+  return new Date(dateStr).toLocaleDateString('en-IN', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
 }
 
 function generateBookingRef() {
@@ -41,7 +51,6 @@ function findTourById(id) {
     const found = serviceTours[cat].find((t) => t.id === id)
     if (found) return found
   }
-  // Also check data.js tours (numeric ids)
   const numeric = dataTours.find((t) => String(t.id) === String(id))
   return numeric || null
 }
@@ -81,9 +90,12 @@ function Input({ icon: Icon, ...props }) {
   )
 }
 
-// ── Confirmation Screen ───────────────────────────────────────────────────────
+// ── Booking Confirmation Screen ───────────────────────────────────────────────
 
 function BookingConfirmation({ booking, tour, onViewMyBookings }) {
+  const isPaid = booking.payment_status === 'paid'
+  const isPendingVerification = booking.payment_status === 'pending_verification'
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 24 }}
@@ -101,10 +113,14 @@ function BookingConfirmation({ booking, tour, onViewMyBookings }) {
           <CheckCircle2 size={36} style={{ color: GOLD2 }} />
         </div>
         <h2 className="text-2xl font-bold text-white mb-2" style={{ fontFamily: 'Cinzel, serif' }}>
-          Booking Request Submitted!
+          {isPaid ? 'Booking Confirmed!' : 'Booking Request Received!'}
         </h2>
         <p className="text-sm" style={{ color: 'rgba(250,245,234,0.85)' }}>
-          Thank you! Our team will review and confirm your booking shortly.
+          {isPaid
+            ? 'Thank you! Your payment is confirmed and your booking is secured.'
+            : isPendingVerification
+            ? 'Thank you! We received your UPI payment confirmation and our team is verifying it.'
+            : 'Thank you! Our team will review your booking details shortly.'}
         </p>
       </div>
 
@@ -118,7 +134,7 @@ function BookingConfirmation({ booking, tour, onViewMyBookings }) {
             Booking Reference
           </p>
           <p className="text-2xl font-black" style={{ color: NAVY, fontFamily: 'Cinzel, serif' }}>
-            {booking.booking_reference}
+            {booking.booking_reference || booking.booking_id}
           </p>
         </div>
       </div>
@@ -128,10 +144,25 @@ function BookingConfirmation({ booking, tour, onViewMyBookings }) {
         {[
           { label: 'Tour Name', value: booking.tour_name },
           { label: 'Traveler Name', value: booking.customer_name },
-          { label: 'Travel Date', value: booking.tour_date ? new Date(booking.tour_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : '—' },
-          { label: 'Total Travelers', value: booking.total_travelers },
-          { label: 'Total Amount', value: booking.total_amount ? formatINR(booking.total_amount) : 'On Request' },
-          { label: 'Status', value: <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700 uppercase tracking-wider">Pending</span> },
+          { label: 'Travel Date', value: formatDate(booking.tour_date) },
+          { label: 'Total Travelers', value: `${booking.total_travelers} Guest(s)` },
+          { label: 'Booking Amount', value: booking.total_amount ? formatINR(booking.total_amount) : 'On Request' },
+          {
+            label: 'Payment Status',
+            value: isPaid ? (
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 uppercase tracking-wider">
+                Paid
+              </span>
+            ) : isPendingVerification ? (
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 uppercase tracking-wider">
+                Pending Verification
+              </span>
+            ) : (
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-gray-100 text-gray-700 uppercase tracking-wider">
+                Pending
+              </span>
+            ),
+          },
         ].map(({ label, value }) => (
           <div key={label}>
             <p className="text-[10px] font-bold uppercase tracking-wider mb-0.5" style={{ color: 'rgba(58,42,24,0.55)' }}>{label}</p>
@@ -154,7 +185,7 @@ function BookingConfirmation({ booking, tour, onViewMyBookings }) {
         <button
           type="button"
           onClick={onViewMyBookings}
-          className="px-6 py-2.5 rounded-xl text-sm font-bold text-white transition flex items-center gap-1.5"
+          className="px-6 py-2.5 rounded-xl text-sm font-bold text-white transition flex items-center gap-1.5 cursor-pointer shadow-md"
           style={{ backgroundColor: NAVY }}
           onMouseEnter={(e) => e.currentTarget.style.backgroundColor = NAVY_MID}
           onMouseLeave={(e) => e.currentTarget.style.backgroundColor = NAVY}
@@ -175,6 +206,9 @@ export default function BookingForm() {
 
   const tour = findTourById(id)
 
+  // Step management: 'form' | 'summary' | 'payment' | 'confirmed'
+  const [step, setStep] = useState('form')
+
   // Redirect unauthenticated visitors back to auth
   useEffect(() => {
     if (!user) {
@@ -186,7 +220,7 @@ export default function BookingForm() {
     }
   }, [user]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => { window.scrollTo(0, 0) }, [id])
+  useEffect(() => { window.scrollTo(0, 0) }, [id, step])
 
   // ── Form state ──────────────────────────────────────────────────────────────
   const [form, setForm] = useState({
@@ -203,7 +237,6 @@ export default function BookingForm() {
   const [errors, setErrors] = useState({})
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
-  const [submitted, setSubmitted] = useState(false)
   const [confirmedBooking, setConfirmedBooking] = useState(null)
 
   // Pre-fill from profile/user
@@ -225,7 +258,7 @@ export default function BookingForm() {
 
   const totalTravelers = Number(form.adults) + Number(form.children)
   const price = tour?.price > 0 ? tour.price : null
-  const totalAmount = price ? price * Number(form.adults) : null
+  const totalAmount = price ? price * Number(form.adults) : 0
 
   // ── Validation ──────────────────────────────────────────────────────────────
   const validate = useCallback(() => {
@@ -243,24 +276,33 @@ export default function BookingForm() {
     return e
   }, [form])
 
-  // ── Submit ──────────────────────────────────────────────────────────────────
-  const handleSubmit = async (e) => {
+  // Step 1 -> Step 2: Show Booking Summary
+  const handleProceedToSummary = (e) => {
     e.preventDefault()
     const errs = validate()
     if (Object.keys(errs).length > 0) {
       setErrors(errs)
-      setSubmitError('Please fill all required fields correctly.')
+      setSubmitError('Please fill all required fields correctly before proceeding.')
       return
     }
+    setSubmitError('')
+    setStep('summary')
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  // Step 2 -> Step 3: Create Booking and Open Payment Screen
+  const handleProceedToPayment = async () => {
+    if (submitting) return // Prevent double-clicks / duplicate submissions
 
     setSubmitting(true)
     setSubmitError('')
 
-    const bookingRef = generateBookingRef()
+    const bookingRef = confirmedBooking?.booking_reference || generateBookingRef()
     const whatsapp = form.sameAsPhone ? form.customer_phone : form.whatsapp_number
 
     const bookingPayload = {
       booking_reference: bookingRef,
+      booking_id: bookingRef,
       user_id: user?.id || null,
       tour_id: tour?.id ? String(tour.id) : null,
       tour_name: tour?.title || 'Tour Booking',
@@ -279,19 +321,55 @@ export default function BookingForm() {
       special_requirements: form.special_requirements.trim() || null,
       notes: form.notes.trim() || null,
       status: 'pending',
+      payment_status: 'pending',
+      currency: 'INR',
+      booking_status: 'pending',
     }
 
     try {
-      // 1. Save to Supabase directly (user-linked)
-      const { data: supData, error: supError } = await supabase
-        .from('bookings')
-        .insert(bookingPayload)
-        .select()
-        .single()
+      // 1. Save to Supabase directly (user-linked with RLS)
+      let savedSupRecord = null
+      try {
+        const { data: supData, error: supError } = await supabase
+          .from('bookings')
+          .upsert(bookingPayload, { onConflict: 'booking_reference' })
+          .select()
+          .maybeSingle()
 
-      if (supError) {
-        // If Supabase fails, still attempt backend sync
-        console.warn('[Supabase booking insert failed]', supError.message)
+        if (!supError && supData) {
+          savedSupRecord = supData
+        } else if (supError) {
+          // If columns like payment_status don't exist yet on Supabase, fallback to basic fields
+          const legacyPayload = {
+            booking_reference: bookingPayload.booking_reference,
+            user_id: bookingPayload.user_id,
+            tour_id: bookingPayload.tour_id,
+            tour_name: bookingPayload.tour_name,
+            tour_location: bookingPayload.tour_location,
+            tour_date: bookingPayload.tour_date,
+            duration: bookingPayload.duration,
+            price_per_person: bookingPayload.price_per_person,
+            adults: bookingPayload.adults,
+            children: bookingPayload.children,
+            total_travelers: bookingPayload.total_travelers,
+            total_amount: bookingPayload.total_amount,
+            customer_name: bookingPayload.customer_name,
+            customer_email: bookingPayload.customer_email,
+            customer_phone: bookingPayload.customer_phone,
+            whatsapp_number: bookingPayload.whatsapp_number,
+            special_requirements: bookingPayload.special_requirements,
+            notes: bookingPayload.notes,
+            status: 'pending',
+          }
+          const { data: fallbackData } = await supabase
+            .from('bookings')
+            .upsert(legacyPayload, { onConflict: 'booking_reference' })
+            .select()
+            .maybeSingle()
+          savedSupRecord = fallbackData
+        }
+      } catch (e) {
+        console.warn('[Supabase booking save warning]:', e.message)
       }
 
       // 2. Sync to Express backend (for admin panel & SQLite)
@@ -300,7 +378,7 @@ export default function BookingForm() {
           booking_id: bookingRef,
           tour_id: bookingPayload.tour_id,
           tour_name: bookingPayload.tour_name,
-          tour_category: tour?.category || '',
+          tour_category: tour?.category || 'Adventure',
           location: bookingPayload.tour_location,
           duration: bookingPayload.duration,
           travel_date: bookingPayload.tour_date,
@@ -310,39 +388,24 @@ export default function BookingForm() {
           booking_contact_name: bookingPayload.customer_name,
           booking_contact_email: bookingPayload.customer_email,
           booking_contact_phone: bookingPayload.customer_phone,
+          status: 'pending',
+          payment_status: 'pending',
           travelers: [{
             fullName: bookingPayload.customer_name,
-            dob: '',
-            sex: '',
-            bloodGroup: '',
-            address: '',
             contact: bookingPayload.customer_phone,
-            education: '',
-            school: '',
-            photo: null,
-            declarationAccepted: false,
-            sigPlace: '',
-            sigDate: new Date().toISOString().slice(0, 10),
-            signature: '',
-            riskAccepted: false,
-            riskParticipantName: bookingPayload.customer_name,
-            riskCourseName: bookingPayload.tour_name,
-            riskPlace: '',
-            riskDate: new Date().toISOString().slice(0, 10),
-            riskSignature: '',
             participantType: 'adult',
           }],
         })
       } catch (backendErr) {
-        console.warn('[Backend booking sync failed]', backendErr.message)
-        // Non-fatal: Supabase is the source of truth for users
+        console.warn('[Backend booking sync note]:', backendErr.message)
       }
 
-      setConfirmedBooking(supData || bookingPayload)
-      setSubmitted(true)
+      const activeRecord = savedSupRecord || bookingPayload
+      setConfirmedBooking(activeRecord)
+      setStep('payment')
       window.scrollTo({ top: 0, behavior: 'smooth' })
     } catch (err) {
-      setSubmitError(err.message || 'Something went wrong. Please try again.')
+      setSubmitError(err.message || 'Something went wrong while initiating booking. Please try again.')
     } finally {
       setSubmitting(false)
     }
@@ -385,12 +448,12 @@ export default function BookingForm() {
             Login Required
           </h1>
           <p className="text-gray-500 text-sm mb-6">
-            Please login to continue with your booking.
+            Please login or sign up to continue with your booking.
           </p>
           <button
             type="button"
             onClick={() => openAuthModal({ message: 'Login to continue with your booking.', targetTour: tour, onSuccess: () => {} })}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-white font-bold text-sm"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-white font-bold text-sm cursor-pointer shadow-md"
             style={{ backgroundColor: NAVY }}
           >
             Login / Sign Up
@@ -415,16 +478,210 @@ export default function BookingForm() {
             {tour.title}
           </Link>
           <span>›</span>
-          <span>Book Now</span>
+          <span className="font-semibold" style={{ color: NAVY }}>
+            {step === 'form' ? 'Booking Details' : step === 'summary' ? 'Booking Summary' : step === 'payment' ? 'Payment' : 'Confirmation'}
+          </span>
         </div>
 
-        {submitted && confirmedBooking ? (
+        {/* Step Indicator Progress Bar */}
+        <div className="mb-8 p-3.5 rounded-2xl bg-white border shadow-sm flex items-center justify-between text-xs" style={{ borderColor: 'rgba(180,160,130,0.25)' }}>
+          {[
+            { id: 'form', label: '1. Details' },
+            { id: 'summary', label: '2. Summary' },
+            { id: 'payment', label: '3. Payment' },
+            { id: 'confirmed', label: '4. Done' },
+          ].map((s, idx) => {
+            const isActive = step === s.id
+            const isPassed =
+              (step === 'summary' && s.id === 'form') ||
+              (step === 'payment' && (s.id === 'form' || s.id === 'summary')) ||
+              (step === 'confirmed')
+
+            return (
+              <div key={s.id} className="flex items-center gap-2">
+                <span
+                  className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[11px] transition ${
+                    isActive
+                      ? 'bg-[#001a4d] text-white'
+                      : isPassed
+                      ? 'bg-emerald-600 text-white'
+                      : 'bg-gray-100 text-gray-500'
+                  }`}
+                >
+                  {isPassed && !isActive ? '✓' : idx + 1}
+                </span>
+                <span className={`hidden sm:inline font-bold ${isActive ? 'text-[#001a4d]' : 'text-gray-500'}`}>
+                  {s.label.split('. ')[1]}
+                </span>
+                {idx < 3 && <div className="w-6 sm:w-12 h-0.5 bg-gray-200 mx-1" />}
+              </div>
+            )
+          })}
+        </div>
+
+        {/* ── STEP 4: FINAL CONFIRMATION SCREEN ── */}
+        {step === 'confirmed' && confirmedBooking && (
           <BookingConfirmation
             booking={confirmedBooking}
             tour={tour}
             onViewMyBookings={() => navigate('/my-bookings')}
           />
-        ) : (
+        )}
+
+        {/* ── STEP 3: PAYMENT SCREEN ── */}
+        {step === 'payment' && confirmedBooking && (
+          <PaymentScreen
+            booking={confirmedBooking}
+            tour={tour}
+            onBack={() => setStep('summary')}
+            onPaymentSuccess={(updated) => {
+              setConfirmedBooking(updated)
+              setStep('confirmed')
+            }}
+            onUpiSubmitted={(updated) => {
+              setConfirmedBooking(updated)
+              setStep('confirmed')
+            }}
+          />
+        )}
+
+        {/* ── STEP 2: BOOKING SUMMARY (Before Payment) ── */}
+        {step === 'summary' && (
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="rounded-2xl overflow-hidden shadow-xl bg-white border"
+            style={{ borderColor: 'rgba(212,175,55,0.45)' }}
+          >
+            <div
+              className="px-6 py-6 text-white text-center"
+              style={{ background: `linear-gradient(135deg, ${NAVY}, ${NAVY_MID})`, borderBottom: '2px solid rgba(212,175,55,0.4)' }}
+            >
+              <h2 className="text-2xl font-bold tracking-wide" style={{ fontFamily: 'Cinzel, serif' }}>
+                Booking Summary
+              </h2>
+              <p className="text-xs mt-1" style={{ color: 'rgba(250,245,234,0.85)' }}>
+                Please review your booking details before proceeding to payment.
+              </p>
+            </div>
+
+            <div className="p-6 sm:p-8 space-y-6">
+              {/* Tour Highlight Card */}
+              <div className="p-4 rounded-xl border flex items-center gap-4" style={{ backgroundColor: '#fcfaf6', borderColor: 'rgba(180,160,130,0.35)' }}>
+                {tour.image && (
+                  <img src={tour.image} alt={tour.title} className="w-20 h-20 rounded-xl object-cover shrink-0" />
+                )}
+                <div>
+                  <span className="text-[10px] uppercase font-bold tracking-wider text-amber-700">Selected Package</span>
+                  <h3 className="text-base sm:text-lg font-bold" style={{ color: NAVY, fontFamily: 'Cinzel, serif' }}>
+                    {tour.title}
+                  </h3>
+                  <div className="flex items-center gap-3 text-xs text-gray-600 mt-1">
+                    <span className="flex items-center gap-1"><MapPin size={12} style={{ color: GOLD }} /> {tour.location || tour.destination}</span>
+                    <span className="flex items-center gap-1"><Clock size={12} style={{ color: GOLD }} /> {tour.duration}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Summary Details Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                <div className="p-3.5 rounded-xl border bg-gray-50" style={{ borderColor: 'rgba(180,160,130,0.2)' }}>
+                  <span className="text-gray-500 block uppercase font-bold text-[10px]">Tour / Package Name</span>
+                  <span className="text-sm font-semibold text-gray-900">{tour.title}</span>
+                </div>
+                <div className="p-3.5 rounded-xl border bg-gray-50" style={{ borderColor: 'rgba(180,160,130,0.2)' }}>
+                  <span className="text-gray-500 block uppercase font-bold text-[10px]">Destination</span>
+                  <span className="text-sm font-semibold text-gray-900">{tour.location || tour.destination || 'India'}</span>
+                </div>
+                <div className="p-3.5 rounded-xl border bg-gray-50" style={{ borderColor: 'rgba(180,160,130,0.2)' }}>
+                  <span className="text-gray-500 block uppercase font-bold text-[10px]">Travel Date</span>
+                  <span className="text-sm font-semibold text-gray-900">{formatDate(tour.date)}</span>
+                </div>
+                <div className="p-3.5 rounded-xl border bg-gray-50" style={{ borderColor: 'rgba(180,160,130,0.2)' }}>
+                  <span className="text-gray-500 block uppercase font-bold text-[10px]">Number of Travelers</span>
+                  <span className="text-sm font-semibold text-gray-900">
+                    {totalTravelers} Traveler(s) ({form.adults} Adult{Number(form.adults) !== 1 ? 's' : ''}{Number(form.children) > 0 ? `, ${form.children} Child` : ''})
+                  </span>
+                </div>
+                <div className="p-3.5 rounded-xl border bg-gray-50" style={{ borderColor: 'rgba(180,160,130,0.2)' }}>
+                  <span className="text-gray-500 block uppercase font-bold text-[10px]">Customer Name</span>
+                  <span className="text-sm font-semibold text-gray-900">{form.customer_name}</span>
+                </div>
+                <div className="p-3.5 rounded-xl border bg-gray-50" style={{ borderColor: 'rgba(180,160,130,0.2)' }}>
+                  <span className="text-gray-500 block uppercase font-bold text-[10px]">Email</span>
+                  <span className="text-sm font-semibold text-gray-900">{form.customer_email}</span>
+                </div>
+                <div className="p-3.5 rounded-xl border bg-gray-50 sm:col-span-2" style={{ borderColor: 'rgba(180,160,130,0.2)' }}>
+                  <span className="text-gray-500 block uppercase font-bold text-[10px]">Phone Number</span>
+                  <span className="text-sm font-semibold text-gray-900">{form.customer_phone}</span>
+                </div>
+              </div>
+
+              {/* Prominent Booking Amount Display */}
+              <div
+                className="p-5 rounded-2xl text-center border"
+                style={{ backgroundColor: 'rgba(197,155,39,0.1)', borderColor: 'rgba(197,155,39,0.45)' }}
+              >
+                <p className="text-xs uppercase font-bold tracking-widest text-amber-800 mb-1">
+                  Booking Amount
+                </p>
+                <p className="text-3xl sm:text-4xl font-black tracking-wide" style={{ color: NAVY, fontFamily: 'Cinzel, serif' }}>
+                  {formatINR(totalAmount)}
+                </p>
+                {price && (
+                  <p className="text-xs text-gray-600 mt-1">
+                    Calculated as {formatINR(price)} × {form.adults} Adult{Number(form.adults) !== 1 ? 's' : ''}
+                  </p>
+                )}
+              </div>
+
+              {submitError && (
+                <div className="p-3 rounded-xl text-xs font-semibold text-red-700 bg-red-50 border border-red-200">
+                  {submitError}
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setStep('form')}
+                  className="flex-1 py-3.5 rounded-xl font-bold text-sm border flex items-center justify-center gap-2 transition cursor-pointer"
+                  style={{ borderColor: 'rgba(0,26,77,0.3)', color: NAVY }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(0,26,77,0.05)'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                >
+                  <Edit3 size={15} /> Edit Details
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleProceedToPayment}
+                  disabled={submitting}
+                  className="flex-1 py-3.5 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2 shadow-lg transition cursor-pointer disabled:opacity-50"
+                  style={{ backgroundColor: NAVY }}
+                  onMouseEnter={(e) => { if (!submitting) e.currentTarget.style.backgroundColor = NAVY_MID }}
+                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = NAVY }}
+                >
+                  {submitting ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" />
+                      <span>Preparing Payment...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Continue to Payment</span>
+                      <ArrowRight size={16} />
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* ── STEP 1: BOOKING FORM ── */}
+        {step === 'form' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
             {/* Left: Main Form */}
@@ -446,7 +703,7 @@ export default function BookingForm() {
                   </p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="px-6 py-6 space-y-6">
+                <form onSubmit={handleProceedToSummary} className="px-6 py-6 space-y-6">
 
                   {/* Personal Information */}
                   <div>
@@ -572,6 +829,20 @@ export default function BookingForm() {
                     </div>
                   </div>
 
+                  {/* Prominent Live Amount in Form */}
+                  <div
+                    className="rounded-xl px-4 py-3 flex items-center justify-between"
+                    style={{ backgroundColor: 'rgba(197,155,39,0.12)', border: '1px solid rgba(197,155,39,0.4)' }}
+                  >
+                    <div>
+                      <span className="text-[10px] uppercase font-bold tracking-wider block text-amber-800">Booking Amount</span>
+                      <span className="text-xs text-gray-600">Calculated from tour price & traveler count</span>
+                    </div>
+                    <span className="text-xl sm:text-2xl font-black" style={{ color: NAVY, fontFamily: 'Cinzel, serif' }}>
+                      {formatINR(totalAmount)}
+                    </span>
+                  </div>
+
                   {/* Error banner */}
                   {submitError && (
                     <div
@@ -583,34 +854,15 @@ export default function BookingForm() {
                     </div>
                   )}
 
-                  {/* Notice */}
-                  <div
-                    className="rounded-xl px-4 py-3 text-xs leading-relaxed"
-                    style={{ backgroundColor: 'rgba(197,155,39,0.1)', border: '1px solid rgba(197,155,39,0.4)', color: '#7a5a12' }}
-                  >
-                    <ShieldCheck size={13} className="inline mr-1 -translate-y-px" style={{ color: GOLD }} />
-                    No payment is collected at this step. After submission, the Alpine Explorers team will review your booking request and contact you with payment and confirmation details.
-                  </div>
-
-                  {/* Submit Button */}
+                  {/* Proceed to Summary Button */}
                   <button
                     type="submit"
-                    disabled={submitting}
-                    className="w-full py-4 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2 transition cursor-pointer shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
-                    style={{ background: submitting ? '#6b7280' : `linear-gradient(135deg, ${NAVY}, ${NAVY_MID})` }}
+                    className="w-full py-4 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2 transition cursor-pointer shadow-lg"
+                    style={{ background: `linear-gradient(135deg, ${NAVY}, ${NAVY_MID})` }}
                   >
-                    {submitting ? (
-                      <>
-                        <Loader2 size={18} className="animate-spin" />
-                        Submitting Booking...
-                      </>
-                    ) : (
-                      <>
-                        <Ticket size={18} />
-                        Confirm Booking
-                        <ArrowRight size={16} />
-                      </>
-                    )}
+                    <Ticket size={18} />
+                    Review Booking Summary
+                    <ArrowRight size={16} />
                   </button>
                 </form>
               </div>
@@ -642,7 +894,7 @@ export default function BookingForm() {
                   {[
                     { icon: MapPin, label: 'Location', value: tour.location || tour.destination },
                     { icon: Clock, label: 'Duration', value: tour.duration },
-                    { icon: Calendar, label: 'Date', value: tour.date ? new Date(tour.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : null },
+                    { icon: Calendar, label: 'Date', value: formatDate(tour.date) },
                     { icon: CreditCard, label: 'Price / Person', value: price ? formatINR(price) : 'On Request' },
                   ].filter((i) => i.value).map(({ icon: Icon, label, value }) => (
                     <div key={label} className="py-2.5 flex items-start gap-2.5">
@@ -659,10 +911,10 @@ export default function BookingForm() {
                     <div className="py-3 rounded-b-xl">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold uppercase tracking-wider" style={{ color: NAVY }}>
-                          Estimated Total
+                          Booking Amount
                         </span>
                         <span className="text-xl font-black" style={{ color: GOLD, fontFamily: 'Cinzel, serif' }}>
-                          {totalAmount ? formatINR(totalAmount) : 'On Request'}
+                          {formatINR(totalAmount)}
                         </span>
                       </div>
                       <p className="text-[10px] mt-1" style={{ color: 'rgba(58,42,24,0.5)' }}>

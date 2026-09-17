@@ -189,6 +189,13 @@ CREATE TABLE IF NOT EXISTS bookings (
   booking_contact_email TEXT,
   booking_contact_phone TEXT,
   status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending','confirmed','cancelled','completed')),
+  payment_status TEXT NOT NULL DEFAULT 'pending' CHECK(payment_status IN ('pending','pending_verification','paid','payment_failed','refunded')),
+  payment_method TEXT,
+  payment_id TEXT,
+  order_id TEXT,
+  currency TEXT DEFAULT 'INR',
+  booking_status TEXT DEFAULT 'pending',
+  booking_details TEXT DEFAULT '{}',
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -343,6 +350,15 @@ CREATE TABLE IF NOT EXISTS admin_audit_logs (
 );
 `)
 
+// Automatically ensure payment & booking fields exist in SQLite bookings table
+try { db.exec("ALTER TABLE bookings ADD COLUMN payment_status TEXT DEFAULT 'pending';") } catch {}
+try { db.exec("ALTER TABLE bookings ADD COLUMN payment_method TEXT;") } catch {}
+try { db.exec("ALTER TABLE bookings ADD COLUMN payment_id TEXT;") } catch {}
+try { db.exec("ALTER TABLE bookings ADD COLUMN order_id TEXT;") } catch {}
+try { db.exec("ALTER TABLE bookings ADD COLUMN currency TEXT DEFAULT 'INR';") } catch {}
+try { db.exec("ALTER TABLE bookings ADD COLUMN booking_status TEXT DEFAULT 'pending';") } catch {}
+try { db.exec("ALTER TABLE bookings ADD COLUMN booking_details TEXT DEFAULT '{}';") } catch {}
+
 export function logActivity({ user_name, action, module, details = '' }) {
   db.prepare('INSERT INTO activity_logs (user_name, action, module, details) VALUES (?,?,?,?)')
     .run(user_name || 'system', action, module, details)
@@ -361,17 +377,18 @@ export function run(sql, ...params) {
 }
 
 export function getBookingById(id) {
-  return db.prepare('SELECT * FROM bookings WHERE id = ?').get(id)
+  return db.prepare('SELECT * FROM bookings WHERE id = ? OR booking_id = ?').get(id, id)
 }
 
 export function getBookingByBookingId(bookingId) {
   return db.prepare('SELECT * FROM bookings WHERE booking_id = ?').get(bookingId)
 }
 
-export function getBookings({ status, search, tour, travelDate, bookingDate, minTravelers, maxTravelers, limit, offset }) {
+export function getBookings({ status, paymentStatus, search, tour, travelDate, bookingDate, minTravelers, maxTravelers, limit, offset }) {
   let sql = 'SELECT * FROM bookings WHERE 1=1'
   const params = []
   if (status) { sql += ' AND status = ?'; params.push(status) }
+  if (paymentStatus) { sql += ' AND payment_status = ?'; params.push(paymentStatus) }
   if (search) {
     sql += ' AND (booking_id LIKE ? OR tour_name LIKE ? OR booking_contact_name LIKE ? OR booking_contact_email LIKE ? OR booking_contact_phone LIKE ? OR id IN (SELECT booking_id FROM travelers WHERE full_name LIKE ? OR contact_number LIKE ?))'
     params.push(`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`)
@@ -387,10 +404,11 @@ export function getBookings({ status, search, tour, travelDate, bookingDate, min
   return db.prepare(sql).all(...params)
 }
 
-export function getBookingsCount({ status, search, tour, travelDate, bookingDate, minTravelers, maxTravelers }) {
+export function getBookingsCount({ status, paymentStatus, search, tour, travelDate, bookingDate, minTravelers, maxTravelers }) {
   let sql = 'SELECT COUNT(*) as count FROM bookings WHERE 1=1'
   const params = []
   if (status) { sql += ' AND status = ?'; params.push(status) }
+  if (paymentStatus) { sql += ' AND payment_status = ?'; params.push(paymentStatus) }
   if (search) {
     sql += ' AND (booking_id LIKE ? OR tour_name LIKE ? OR booking_contact_name LIKE ? OR booking_contact_email LIKE ? OR booking_contact_phone LIKE ? OR id IN (SELECT booking_id FROM travelers WHERE full_name LIKE ? OR contact_number LIKE ?))'
     params.push(`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`)
@@ -425,24 +443,36 @@ export function getGuardianByTravelerId(travelerId) {
 
 export function createBooking(data) {
   const info = db.prepare(`
-    INSERT INTO bookings (booking_id, tour_id, tour_name, tour_category, location, duration, travel_date, booking_date, price_per_person, number_of_travelers, total_amount, booking_contact_name, booking_contact_email, booking_contact_phone, status)
-    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    INSERT INTO bookings (
+      booking_id, tour_id, tour_name, tour_category, location, duration, travel_date,
+      booking_date, price_per_person, number_of_travelers, total_amount,
+      booking_contact_name, booking_contact_email, booking_contact_phone, status,
+      payment_status, payment_method, payment_id, order_id, currency, booking_status, booking_details
+    )
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
   `).run(
     data.booking_id,
-    data.tour_id,
+    data.tour_id || '',
     data.tour_name,
-    data.tour_category,
-    data.location,
-    data.duration,
-    data.travel_date,
+    data.tour_category || '',
+    data.location || '',
+    data.duration || '',
+    data.travel_date || '',
     data.booking_date || new Date().toISOString(),
-    data.price_per_person,
-    data.number_of_travelers,
-    data.total_amount,
-    data.booking_contact_name,
-    data.booking_contact_email,
-    data.booking_contact_phone,
-    data.status || 'pending'
+    data.price_per_person || null,
+    data.number_of_travelers || 1,
+    data.total_amount || null,
+    data.booking_contact_name || '',
+    data.booking_contact_email || '',
+    data.booking_contact_phone || '',
+    data.status || 'pending',
+    data.payment_status || 'pending',
+    data.payment_method || null,
+    data.payment_id || null,
+    data.order_id || null,
+    data.currency || 'INR',
+    data.booking_status || 'pending',
+    typeof data.booking_details === 'object' ? JSON.stringify(data.booking_details) : (data.booking_details || '{}')
   )
   return info.lastInsertRowid
 }
@@ -521,7 +551,25 @@ export function createGuardian(data) {
 }
 
 export function updateBookingStatus(id, status) {
-  return db.prepare('UPDATE bookings SET status = ?, updated_at = datetime(\'now\') WHERE id = ?').run(status, id)
+  return db.prepare("UPDATE bookings SET status = ?, booking_status = ?, updated_at = datetime('now') WHERE id = ? OR booking_id = ?").run(status, status, id, id)
+}
+
+export function updateBookingPayment(id, { payment_status, payment_method, payment_id, order_id, booking_status } = {}) {
+  let updates = ["updated_at = datetime('now')"]
+  const params = []
+  if (payment_status !== undefined) { updates.push('payment_status = ?'); params.push(payment_status) }
+  if (payment_method !== undefined) { updates.push('payment_method = ?'); params.push(payment_method) }
+  if (payment_id !== undefined) { updates.push('payment_id = ?'); params.push(payment_id) }
+  if (order_id !== undefined) { updates.push('order_id = ?'); params.push(order_id) }
+  if (booking_status !== undefined) {
+    updates.push('booking_status = ?')
+    params.push(booking_status)
+    updates.push('status = ?')
+    params.push(booking_status)
+  }
+  params.push(id)
+  params.push(id)
+  return db.prepare(`UPDATE bookings SET ${updates.join(', ')} WHERE id = ? OR booking_id = ?`).run(...params)
 }
 
 export function getBookingStats() {

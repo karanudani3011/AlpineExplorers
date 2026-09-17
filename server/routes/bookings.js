@@ -2,11 +2,11 @@ import { Router } from 'express'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { db, logActivity, getBookings, getBookingsCount, getBookingById, getBookingByBookingId, getTravelersByBookingId, getTravelerById, getDeclarationByTravelerId, getRiskCertificateByTravelerId, getGuardianByTravelerId, updateBookingStatus, getBookingStats, getAllBookingsForExport, getAllTravelersForExport, createBooking, createTraveler, createDeclaration, createRiskCertificate, createGuardian } from '../db.js'
+import { db, logActivity, getBookings, getBookingsCount, getBookingById, getBookingByBookingId, getTravelersByBookingId, getTravelerById, getDeclarationByTravelerId, getRiskCertificateByTravelerId, getGuardianByTravelerId, updateBookingStatus, updateBookingPayment, getBookingStats, getAllBookingsForExport, getAllTravelersForExport, createBooking, createTraveler, createDeclaration, createRiskCertificate, createGuardian } from '../db.js'
 import { authRequired, requirePermission } from '../middleware.js'
 import { generateBookingPdf, generateIndividualTravelerPdf, generateAllBookingsPdf } from '../utils/pdfGenerator.js'
 import { generateBookingExcel, generateIndividualTravelerExcel, generateAllBookingsExcel } from '../utils/excelGenerator.js'
-import { syncBookingToSupabase, supabaseRequest } from '../utils/supabase.js'
+import { syncBookingToSupabase, supabaseRequest, supabaseAdmin } from '../utils/supabase.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const uploadsDir = path.join(__dirname, '..', '..', 'uploads')
@@ -36,7 +36,12 @@ function saveBase64Image(dataUrl, prefix = 'img') {
 const router = Router()
 
 router.post('/', async (req, res) => {
-  const { booking_id, tour_id, tour_name, tour_category, location, duration, travel_date, price_per_person, number_of_travelers, total_amount, booking_contact_name, booking_contact_email, booking_contact_phone, travelers } = req.body || {}
+  const {
+    booking_id, tour_id, tour_name, tour_category, location, duration, travel_date,
+    price_per_person, number_of_travelers, total_amount, booking_contact_name,
+    booking_contact_email, booking_contact_phone, travelers,
+    payment_status, payment_method, payment_id, order_id, currency, booking_status, booking_details
+  } = req.body || {}
   
   if (!booking_id || !tour_name || !Array.isArray(travelers) || travelers.length === 0) {
     return res.status(400).json({ error: 'A booking requires booking_id, tour_name, and at least one traveler' })
@@ -44,6 +49,17 @@ router.post('/', async (req, res) => {
 
   const existing = db.prepare('SELECT id FROM bookings WHERE booking_id = ?').get(booking_id)
   if (existing) {
+    // If booking already exists, update payment details if provided instead of throwing duplicate error
+    if (payment_status || payment_method || payment_id || order_id) {
+      updateBookingPayment(existing.id, {
+        payment_status: payment_status || undefined,
+        payment_method: payment_method || undefined,
+        payment_id: payment_id || undefined,
+        order_id: order_id || undefined,
+        booking_status: booking_status || undefined,
+      })
+      return res.status(200).json({ message: 'Booking payment updated', bookingId: booking_id, id: existing.id })
+    }
     return res.status(409).json({ error: 'Booking ID already exists' })
   }
 
@@ -66,7 +82,14 @@ router.post('/', async (req, res) => {
     booking_contact_name: contactName,
     booking_contact_email: contactEmail,
     booking_contact_phone: contactPhone,
-    status: 'pending'
+    status: booking_status || 'pending',
+    payment_status: payment_status || 'pending',
+    payment_method: payment_method || null,
+    payment_id: payment_id || null,
+    order_id: order_id || null,
+    currency: currency || 'INR',
+    booking_status: booking_status || 'pending',
+    booking_details: booking_details || {}
   })
 
   for (let i = 0; i < travelers.length; i++) {
@@ -216,11 +239,12 @@ router.get('/', requirePermission('bookings.view'), async (req, res) => {
     // Ignored if table not created yet
   }
 
-  const { status, search, tour, travelDate, bookingDate, minTravelers, maxTravelers, page = 1, limit = 20 } = req.query
+  const { status, payment_status, paymentStatus, search, tour, travelDate, bookingDate, minTravelers, maxTravelers, page = 1, limit = 20 } = req.query
   const offset = (Number(page) - 1) * Number(limit)
   
   const bookings = getBookings({
     status,
+    paymentStatus: payment_status || paymentStatus,
     search,
     tour,
     travelDate,
@@ -233,6 +257,7 @@ router.get('/', requirePermission('bookings.view'), async (req, res) => {
 
   const total = getBookingsCount({
     status,
+    paymentStatus: payment_status || paymentStatus,
     search,
     tour,
     travelDate,
@@ -325,6 +350,135 @@ router.patch('/:id/status', requirePermission('bookings.edit'), async (req, res)
 
   logActivity({ user_name: req.user.full_name || req.user.username || req.user.email, action: 'Booking status updated', module: 'Bookings', details: `#${req.params.id} -> ${status}` })
   res.json({ message: 'Status updated', status })
+})
+
+// Admin verify UPI / manual payment: sets payment_status = 'paid' and status = 'confirmed'
+router.patch('/:id/verify-payment', requirePermission('bookings.edit'), async (req, res) => {
+  const existing = getBookingById(req.params.id)
+  if (!existing) return res.status(404).json({ error: 'Not found' })
+
+  updateBookingPayment(req.params.id, {
+    payment_status: 'paid',
+    booking_status: 'confirmed'
+  })
+
+  // Sync to Supabase bookings table
+  try {
+    const bookingRef = existing.booking_id || req.params.id
+    // Try updating payment_status and status
+    const supRes = await supabaseRequest('bookings', {
+      method: 'PATCH',
+      body: { payment_status: 'paid', status: 'confirmed', updated_at: new Date().toISOString() },
+      query: `booking_reference=eq.${encodeURIComponent(bookingRef)}`
+    })
+    // If column doesn't exist yet, fallback to status only
+    if (supRes?.error && supRes.error.includes('column')) {
+      await supabaseRequest('bookings', {
+        method: 'PATCH',
+        body: { status: 'confirmed', updated_at: new Date().toISOString() },
+        query: `booking_reference=eq.${encodeURIComponent(bookingRef)}`
+      })
+    }
+  } catch (supErr) {
+    console.warn('[Supabase verify payment warning]:', supErr.message)
+  }
+
+  logActivity({
+    user_name: req.user.full_name || req.user.username || req.user.email,
+    action: 'Payment verified',
+    module: 'Bookings',
+    details: `Payment verified for booking #${req.params.id} (${existing.booking_id})`
+  })
+
+  res.json({
+    message: 'Payment verified successfully',
+    payment_status: 'paid',
+    status: 'confirmed'
+  })
+})
+
+// Admin reject payment: sets payment_status = 'payment_failed' (does NOT delete the booking)
+router.patch('/:id/reject-payment', requirePermission('bookings.edit'), async (req, res) => {
+  const existing = getBookingById(req.params.id)
+  if (!existing) return res.status(404).json({ error: 'Not found' })
+
+  updateBookingPayment(req.params.id, {
+    payment_status: 'payment_failed'
+  })
+
+  // Sync to Supabase bookings table
+  try {
+    const bookingRef = existing.booking_id || req.params.id
+    await supabaseRequest('bookings', {
+      method: 'PATCH',
+      body: { payment_status: 'payment_failed', updated_at: new Date().toISOString() },
+      query: `booking_reference=eq.${encodeURIComponent(bookingRef)}`
+    })
+  } catch (supErr) {
+    console.warn('[Supabase reject payment warning]:', supErr.message)
+  }
+
+  logActivity({
+    user_name: req.user.full_name || req.user.username || req.user.email,
+    action: 'Payment rejected',
+    module: 'Bookings',
+    details: `Payment rejected for booking #${req.params.id} (${existing.booking_id})`
+  })
+
+  res.json({
+    message: 'Payment marked as failed',
+    payment_status: 'payment_failed',
+    status: existing.status
+  })
+})
+
+// Generic payment status update
+router.patch('/:id/payment-status', requirePermission('bookings.edit'), async (req, res) => {
+  const validStatuses = ['pending', 'pending_verification', 'paid', 'payment_failed', 'refunded']
+  const { payment_status, payment_method, payment_id } = req.body || {}
+  if (!validStatuses.includes(payment_status)) {
+    return res.status(400).json({ error: 'Invalid payment status' })
+  }
+
+  const existing = getBookingById(req.params.id)
+  if (!existing) return res.status(404).json({ error: 'Not found' })
+
+  updateBookingPayment(req.params.id, {
+    payment_status,
+    payment_method: payment_method || undefined,
+    payment_id: payment_id || undefined,
+    booking_status: payment_status === 'paid' ? 'confirmed' : undefined
+  })
+
+  // Sync to Supabase bookings table
+  try {
+    const bookingRef = existing.booking_id || req.params.id
+    const payload = { payment_status, updated_at: new Date().toISOString() }
+    if (payment_status === 'paid') payload.status = 'confirmed'
+    if (payment_method) payload.payment_method = payment_method
+    if (payment_id) payload.payment_id = payment_id
+
+    await supabaseRequest('bookings', {
+      method: 'PATCH',
+      body: payload,
+      query: `booking_reference=eq.${encodeURIComponent(bookingRef)}`
+    })
+  } catch (supErr) {
+    console.warn('[Supabase payment status patch warning]:', supErr.message)
+  }
+
+  logActivity({
+    user_name: req.user.full_name || req.user.username || req.user.email,
+    action: 'Payment status updated',
+    module: 'Bookings',
+    details: `Booking #${req.params.id} payment_status -> ${payment_status}`
+  })
+
+  res.json({
+    message: 'Payment status updated',
+    payment_status,
+    status: payment_status === 'paid' ? 'confirmed' : existing.status
+  })
 })
 
 router.delete('/:id', requirePermission('bookings.delete'), async (req, res) => {

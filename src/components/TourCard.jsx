@@ -5,7 +5,7 @@ import { Star, MapPin, Calendar, Clock, ArrowRight, MessageSquare, ShieldCheck, 
 import InquiryModal from './InquiryModal'
 import TourImageSlider from './TourImageSlider'
 import { tourImages } from '../data/tourImages'
-import { useSupabaseAuth } from '../contexts/SupabaseAuthContext'
+import { useSupabaseAuth } from '../hooks/useSupabaseAuth'
 
 export default function TourCard({ tour }) {
   const [inquiryOpen, setInquiryOpen] = useState(false)

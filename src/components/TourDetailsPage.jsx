@@ -5,7 +5,7 @@ import Navbar from './Navbar'
 import Footer from './Footer'
 import InquiryModal from './InquiryModal'
 import { serviceTours, serviceCategories } from '../data/servicesData'
-import { useSupabaseAuth } from '../contexts/SupabaseAuthContext'
+import { useSupabaseAuth } from '../hooks/useSupabaseAuth'
 import {
   Star, MapPin, Calendar, Clock, Users, CheckCircle, X,
   ChevronDown, ChevronUp, ChevronRight, Share2, Heart, MessageSquare,

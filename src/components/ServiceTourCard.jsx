@@ -7,7 +7,7 @@ import BookNowButton from './BookNowButton'
 import BookingModal from './BookingModal'
 import TourImageSlider from './TourImageSlider'
 import { tourImages } from '../data/tourImages'
-import { useSupabaseAuth } from '../contexts/SupabaseAuthContext'
+import { useSupabaseAuth } from '../hooks/useSupabaseAuth'
 
 const NAVY = '#001a4d'
 const GOLD = '#c59b27'

@@ -4,7 +4,7 @@ import {
   ArrowLeft, FileText, Download, Eye, FileSpreadsheet, ChevronDown,
   Loader2, MapPin, Calendar, Users, CreditCard, AlertCircle,
   CheckCircle2, User, Phone, Mail, Camera, PenTool, Shield, Heart,
-  Trash2, Check, Ban, Clock
+  Trash2, Check, Ban, Clock, QrCode, XCircle
 } from 'lucide-react'
 import { api } from '../../services/api'
 import { useToasts } from '../../components/admin/useToasts'
@@ -24,6 +24,8 @@ export default function BookingDetail() {
   const [travelers, setTravelers] = useState([])
   const [loading, setLoading] = useState(true)
   const [updatingStatus, setUpdatingStatus] = useState(false)
+  const [verifyingPayment, setVerifyingPayment] = useState(false)
+  const [rejectingPayment, setRejectingPayment] = useState(false)
   const [pdfGenerating, setPdfGenerating] = useState(false)
   const [excelGenerating, setExcelGenerating] = useState(false)
   const [selectedTraveler, setSelectedTraveler] = useState(null)
@@ -41,6 +43,42 @@ export default function BookingDetail() {
       navigate('/admin/bookings')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleVerifyPayment = async () => {
+    setVerifyingPayment(true)
+    try {
+      await api.patch(`/bookings/${id}/verify-payment`)
+      addToast('Payment verified successfully & booking confirmed!')
+      setBooking(prev => ({
+        ...prev,
+        payment_status: 'paid',
+        status: 'confirmed'
+      }))
+    } catch (e) {
+      addToast(e.message || 'Failed to verify payment', 'error')
+    } finally {
+      setVerifyingPayment(false)
+    }
+  }
+
+  const handleRejectPayment = async () => {
+    if (!window.confirm('Are you sure you want to reject this payment? The booking will NOT be deleted, and payment status will be marked as Failed.')) {
+      return
+    }
+    setRejectingPayment(true)
+    try {
+      await api.patch(`/bookings/${id}/reject-payment`)
+      addToast('Payment marked as failed. Booking has not been deleted.')
+      setBooking(prev => ({
+        ...prev,
+        payment_status: 'payment_failed'
+      }))
+    } catch (e) {
+      addToast(e.message || 'Failed to reject payment', 'error')
+    } finally {
+      setRejectingPayment(false)
     }
   }
 
@@ -172,6 +210,37 @@ export default function BookingDetail() {
     return <Badge tone={tones[status] || 'new'}>{status.charAt(0).toUpperCase() + status.slice(1)}</Badge>
   }
 
+  const getPaymentBadge = (paymentStatus, paymentMethod) => {
+    const s = (paymentStatus || 'pending').toLowerCase()
+    const methodPrefix = paymentMethod ? `${paymentMethod} · ` : ''
+    if (s === 'paid') {
+      return (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 uppercase tracking-wider">
+          {methodPrefix}Paid
+        </span>
+      )
+    }
+    if (s === 'pending_verification') {
+      return (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 uppercase tracking-wider border border-amber-300">
+          {methodPrefix}Pending Verification
+        </span>
+      )
+    }
+    if (s === 'payment_failed') {
+      return (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-800 uppercase tracking-wider">
+          Failed
+        </span>
+      )
+    }
+    return (
+      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-gray-100 text-gray-700 uppercase tracking-wider">
+        Pending
+      </span>
+    )
+  }
+
   if (loading) return <Spinner />
 
   if (!booking) return null
@@ -189,6 +258,45 @@ export default function BookingDetail() {
             <Link to="/admin/bookings" className="flex items-center gap-1.5 px-3 sm:px-4 py-2 min-h-[44px] rounded-full text-xs font-bold uppercase tracking-wider transition" style={{ border: '1px solid rgba(0,26,77,0.2)', color: NAVY }}>
               <ArrowLeft size={14} /> Back
             </Link>
+            {hasPermission('bookings.edit') && (
+              <>
+                {booking.payment_status === 'pending_verification' && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={handleVerifyPayment}
+                      disabled={verifyingPayment || rejectingPayment}
+                      className="flex items-center gap-1.5 px-3 sm:px-4 py-2 min-h-[44px] rounded-full text-xs font-bold uppercase tracking-wider transition text-white shadow-sm"
+                      style={{ backgroundColor: '#10b981' }}
+                    >
+                      {verifyingPayment ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
+                      Verify Payment
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleRejectPayment}
+                      disabled={verifyingPayment || rejectingPayment}
+                      className="flex items-center gap-1.5 px-3 sm:px-4 py-2 min-h-[44px] rounded-full text-xs font-bold uppercase tracking-wider transition text-red-600 bg-red-50 hover:bg-red-100 border border-red-300"
+                    >
+                      {rejectingPayment ? <Loader2 size={14} className="animate-spin" /> : <XCircle size={14} />}
+                      Reject Payment
+                    </button>
+                  </>
+                )}
+                {booking.payment_status !== 'paid' && booking.payment_status !== 'pending_verification' && (
+                  <button
+                    type="button"
+                    onClick={handleVerifyPayment}
+                    disabled={verifyingPayment || rejectingPayment}
+                    className="flex items-center gap-1.5 px-3 sm:px-4 py-2 min-h-[44px] rounded-full text-xs font-bold uppercase tracking-wider transition text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300"
+                    title="Mark payment as verified and paid"
+                  >
+                    {verifyingPayment ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
+                    Mark as Paid
+                  </button>
+                )}
+              </>
+            )}
             {hasPermission('bookings.edit') && booking.status !== 'confirmed' && (
               <button
                 type="button"
@@ -247,7 +355,7 @@ export default function BookingDetail() {
         }
       />
 
-      {/* Booking Details */}
+      {/* Booking Details + Contact & Payment */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         <Card className="lg:col-span-2">
           <h3 className="font-bold mb-4 flex items-center gap-2" style={{ fontFamily: 'Cinzel', color: NAVY }}>
@@ -264,7 +372,7 @@ export default function BookingDetail() {
             <DetailRow label="Price Per Person" value={formatCurrency(booking.price_per_person)} icon={CreditCard} />
             <DetailRow label="Number of Travelers" value={`${booking.number_of_travelers}`} icon={Users} />
             <DetailRow label="Total Amount" value={formatCurrency(booking.total_amount)} icon={CreditCard} />
-            <DetailRow label="Status" value={
+            <DetailRow label="Booking Status" value={
               hasPermission('bookings.edit') ? (
                 <select
                   value={booking.status}
@@ -279,19 +387,69 @@ export default function BookingDetail() {
                 getStatusBadge(booking.status)
               )
             } />
+            <DetailRow label="Payment Status" value={getPaymentBadge(booking.payment_status, booking.payment_method)} />
           </div>
         </Card>
 
-        <Card>
-          <h3 className="font-bold mb-4 flex items-center gap-2" style={{ fontFamily: 'Cinzel', color: NAVY }}>
-            <User size={18} style={{ color: GOLD }} /> BOOKING CONTACT
-          </h3>
-          <div className="space-y-3">
-            <DetailRow label="Name" value={booking.booking_contact_name || primaryTraveler.full_name || '—'} />
-            <DetailRow label="Email" value={booking.booking_contact_email || '—'} icon={Mail} />
-            <DetailRow label="Phone" value={booking.booking_contact_phone || primaryTraveler.contact_number || '—'} icon={Phone} />
-          </div>
-        </Card>
+        <div className="space-y-6">
+          <Card>
+            <h3 className="font-bold mb-4 flex items-center gap-2" style={{ fontFamily: 'Cinzel', color: NAVY }}>
+              <User size={18} style={{ color: GOLD }} /> BOOKING CONTACT
+            </h3>
+            <div className="space-y-3">
+              <DetailRow label="Name" value={booking.booking_contact_name || primaryTraveler.full_name || '—'} />
+              <DetailRow label="Email" value={booking.booking_contact_email || '—'} icon={Mail} />
+              <DetailRow label="Phone" value={booking.booking_contact_phone || primaryTraveler.contact_number || '—'} icon={Phone} />
+            </div>
+          </Card>
+
+          <Card>
+            <h3 className="font-bold mb-4 flex items-center justify-between" style={{ fontFamily: 'Cinzel', color: NAVY }}>
+              <span className="flex items-center gap-2">
+                <CreditCard size={18} style={{ color: GOLD }} /> PAYMENT INFORMATION
+              </span>
+              <div>{getPaymentBadge(booking.payment_status, booking.payment_method)}</div>
+            </h3>
+            <div className="space-y-3 text-sm">
+              <DetailRow label="Payment Method" value={booking.payment_method ? booking.payment_method.toUpperCase() : 'Not Specified'} />
+              <DetailRow label="Amount" value={formatCurrency(booking.total_amount)} />
+              {booking.payment_id && (
+                <DetailRow label="Payment ID" value={<span className="font-mono text-xs break-all">{booking.payment_id}</span>} />
+              )}
+              {booking.order_id && (
+                <DetailRow label="Order ID" value={<span className="font-mono text-xs break-all">{booking.order_id}</span>} />
+              )}
+              
+              {hasPermission('bookings.edit') && booking.payment_status === 'pending_verification' && (
+                <div className="pt-3 border-t border-amber-200 mt-3 space-y-2">
+                  <p className="text-xs text-amber-800 font-medium">
+                    Customer completed payment step via UPI and is awaiting verification.
+                  </p>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={handleVerifyPayment}
+                      disabled={verifyingPayment || rejectingPayment}
+                      className="flex-1 py-2 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 transition flex items-center justify-center gap-1 shadow-sm"
+                    >
+                      {verifyingPayment ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle2 size={12} />}
+                      Verify Payment
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleRejectPayment}
+                      disabled={verifyingPayment || rejectingPayment}
+                      className="flex-1 py-2 rounded-xl text-xs font-bold text-red-700 bg-red-50 hover:bg-red-100 border border-red-300 transition flex items-center justify-center gap-1"
+                    >
+                      {rejectingPayment ? <Loader2 size={12} className="animate-spin" /> : <XCircle size={12} />}
+                      Reject
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </Card>
+        </div>
       </div>
 
       {/* Travelers */}
