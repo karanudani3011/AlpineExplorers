@@ -28,12 +28,14 @@ function loadEnv() {
 loadEnv()
 
 export const SUPABASE_URL = process.env.SUPABASE_URL || 'https://qhbsilnramjkagdjitlp.supabase.co'
-export const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY
+export const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || ''
+
+const fallbackKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoanNpbG5yYW1qa2FnZGppdGxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE2Nzc3MjE2MDAsImV4cCI6MTk5MzI5NzYwMH0.placeholder'
 
 /**
  * Supabase Admin Client using service role key (Privileged Backend Operations Only)
  */
-export const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_KEY, {
+export const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_KEY || fallbackKey, {
   auth: {
     autoRefreshToken: false,
     persistSession: false,

@@ -91,9 +91,6 @@ export default function Navbar() {
                 </span>
               </div>
             </Link>
-                </span>
-              </div>
-            </Link>
 
             {/* Desktop Navigation Menu */}
             <div className="hidden lg:flex items-center space-x-7">
