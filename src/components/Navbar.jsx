@@ -74,18 +74,23 @@ export default function Navbar() {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
-            {/* Logo */}
-            <Link to="/home" className="flex items-center space-x-2 sm:space-x-3 group">
-              <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center group-hover:scale-105 transition flex-shrink-0"
-                style={{ background: 'linear-gradient(135deg, #001a4d, #0d3a80)', boxShadow: '0 6px 16px rgba(0,26,77,0.3)' }}>
-                <Compass size={20} style={{ color: GOLD2 }} className="group-hover:rotate-45 transition duration-500" />
-              </div>
+            {/* Header Logo & Brand */}
+            <Link to="/home" className="flex items-center space-x-3 group">
+              <img
+                src="/alpine_logo.png"
+                alt="Alpine Explorers Rajkot Logo"
+                className="w-14 h-14 sm:w-16 sm:h-16 object-contain flex-shrink-0 transition-transform duration-300 group-hover:scale-105"
+                style={{ filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.12))' }}
+              />
               <div>
-                <span className="font-vintage font-bold text-base sm:text-xl tracking-wider block leading-tight" style={{ color: NAVY, fontFamily: 'Cinzel, serif' }}>
+                <span className="font-vintage font-bold text-xl sm:text-2xl tracking-wider block leading-tight uppercase" style={{ color: '#C8102E', fontFamily: 'Cinzel, serif' }}>
                   Alpine Explorers
                 </span>
-                <span className="hidden sm:block text-[10px] uppercase tracking-widest font-semibold" style={{ color: GOLD }}>
-                  Travel & Tourism
+                <span className="text-[9px] sm:text-[10px] uppercase tracking-[0.18em] font-semibold block" style={{ color: NAVY, fontFamily: 'Inter, sans-serif' }}>
+                  Pioneer In Adventure Tourism
+                </span>
+              </div>
+            </Link>
                 </span>
               </div>
             </Link>

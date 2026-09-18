@@ -151,98 +151,131 @@ export default function Home() {
       {/* ===================================================================== */}
       {/* SECTION 1 — IMMERSIVE HERO                                           */}
       {/* ===================================================================== */}
-      <section className="relative h-[94vh] min-h-[640px] overflow-hidden">
+      {/* ===================================================================== */}
+      {/* SECTION 1 — IMMERSIVE HERO                                           */}
+      {/* ===================================================================== */}
+      <section className="relative h-[92vh] min-h-[660px] overflow-hidden">
         <motion.div style={{ y: heroY }} className="absolute inset-0 -bottom-24">
           <img
-            src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=2000&h=1300&fit=crop"
-            alt="A winding mountain road at golden hour"
+            src="https://images.unsplash.com/photo-1509316785289-025f5b846b35?auto=format&fit=crop&w=3840&q=95"
+            alt="A scenic road winding through red-orange desert canyons beneath a clear blue sky"
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0" style={{ background: 'linear-gradient(to right, rgba(0,26,77,0.82) 0%, rgba(0,26,77,0.42) 48%, rgba(6,14,30,0.5) 100%)' }} />
-          <div className="absolute inset-x-0 bottom-0 h-48" style={{ background: 'linear-gradient(to top, #f7f2ea 0%, rgba(247,242,234,0) 100%)' }} />
+          {/* Subtle dark navy gradient from left behind hero text fading smoothly into the natural landscape */}
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(to right, rgba(11,42,91,0.65) 0%, rgba(11,42,91,0.4) 28%, rgba(11,42,91,0.15) 55%, transparent 80%)' }} />
         </motion.div>
 
-        <motion.div style={{ y: heroTextY, opacity: heroOpacity }} className="relative z-10 h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col justify-center">
+        <motion.div style={{ y: heroTextY, opacity: heroOpacity }} className="relative z-10 h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col justify-center pt-8 pb-20">
+          {/* 1. Gold script subtitle */}
           <motion.span
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.7 }}
-            className="text-2xl mb-4"
-            style={{ ...font.script, color: GOLD2 }}
+            className="text-xl sm:text-2xl mb-2 font-medium"
+            style={{ ...font.script, color: GOLD2, textShadow: '0 2px 8px rgba(0,26,77,0.5)' }}
           >
             Alpine Explorers · Journeys beyond the postcard
           </motion.span>
 
+          {/* 2. Main white serif headline */}
           <motion.h1
-            initial={{ opacity: 0, y: 26 }}
+            initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.35, duration: 0.8 }}
-            className="text-[1.75rem] sm:text-6xl lg:text-7xl font-extrabold text-white uppercase leading-[1.05] tracking-wide mb-5"
-            style={font.vintage}
+            className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-white uppercase leading-[1.05] tracking-wide mb-3"
+            style={{ ...font.vintage, textShadow: '0 4px 20px rgba(11,42,91,0.6)' }}
           >
-            Go somewhere
-            <br />
-            <span className="italic normal-case" style={{ fontFamily: 'Playfair Display, serif', color: GOLD2 }}>
-              you&apos;ve never been.
-            </span>
+            Lifetime Memories
           </motion.h1>
 
+          {/* 3. Supporting text */}
           <motion.p
-            initial={{ opacity: 0, y: 22 }}
+            initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5, duration: 0.8 }}
-            className="text-white/90 max-w-xl text-sm sm:text-lg leading-relaxed mb-8"
-            style={font.body}
+            transition={{ delay: 0.45, duration: 0.8 }}
+            className="text-base sm:text-xl text-white/95 font-medium leading-relaxed mb-6 drop-shadow-md"
+            style={{ ...font.body }}
           >
             Journeys designed for curious travelers.
           </motion.p>
 
+          {/* 4. Ultra high-contrast Dark Navy italic serif tagline */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.55, duration: 0.8 }}
+            className="mb-8"
+          >
+            <p
+              className="text-4xl sm:text-5xl lg:text-6xl font-extrabold italic leading-[1.1] tracking-tight mb-1"
+              style={{
+                fontFamily: 'Playfair Display, serif',
+                color: '#082B63',
+                textShadow: '0 0 24px #FFFFFF, 0 0 12px #FFFFFF, 0 0 4px #FFFFFF, 0 2px 6px rgba(255,255,255,0.9)',
+                filter: 'drop-shadow(0px 2px 8px rgba(255, 255, 255, 0.85))',
+              }}
+            >
+              Only With
+            </p>
+            <p
+              className="text-4xl sm:text-5xl lg:text-6xl font-extrabold italic leading-[1.1] tracking-tight"
+              style={{
+                fontFamily: 'Playfair Display, serif',
+                color: '#082B63',
+                textShadow: '0 0 24px #FFFFFF, 0 0 12px #FFFFFF, 0 0 4px #FFFFFF, 0 2px 6px rgba(255,255,255,0.9)',
+                filter: 'drop-shadow(0px 2px 8px rgba(255, 255, 255, 0.85))',
+              }}
+            >
+              - Alpine Explorers
+            </p>
+          </motion.div>
+
+          {/* 5. Buttons */}
           <motion.div
             initial={{ opacity: 0, y: 22 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.65, duration: 0.8 }}
-            className="flex flex-col sm:flex-row gap-3 sm:gap-4"
+            className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center"
           >
             <Link
               to="/services"
-              className="group inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl text-sm font-bold uppercase tracking-widest text-[#001a4d] transition hover:-translate-y-0.5"
-              style={{ backgroundColor: GOLD, fontFamily: 'Cinzel, serif' }}
+              className="group inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-widest text-[#001a4d] transition duration-300 hover:-translate-y-0.5 hover:shadow-xl"
+              style={{ backgroundColor: GOLD, fontFamily: 'Cinzel, serif', boxShadow: '0 8px 24px rgba(197,155,39,0.4)' }}
             >
-              Explore Tours
-              <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
+              Explore Tours →
             </Link>
             <Link
               to="/contact"
-              className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl text-sm font-bold uppercase tracking-widest text-white transition hover:-translate-y-0.5"
-              style={{ border: '1px solid rgba(212,175,55,0.7)', backgroundColor: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(6px)', fontFamily: 'Cinzel, serif' }}
+              className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-widest text-white transition duration-300 hover:-translate-y-0.5 hover:shadow-xl"
+              style={{ backgroundColor: 'rgba(11,42,91,0.85)', border: '1.5px solid rgba(255,255,255,0.3)', backdropFilter: 'blur(8px)', fontFamily: 'Cinzel, serif', boxShadow: '0 8px 24px rgba(11,42,91,0.3)' }}
             >
               Plan My Trip
             </Link>
           </motion.div>
         </motion.div>
 
-        {/* Floating brand details */}
+        {/* 6. Floating brand stats card */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.9, duration: 0.9 }}
-          className="absolute bottom-8 left-0 right-0 z-10"
+          transition={{ delay: 0.85, duration: 0.8 }}
+          className="absolute bottom-6 left-0 right-0 z-10"
         >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="inline-flex flex-wrap items-center gap-3 sm:gap-6 rounded-2xl px-5 py-3 sm:px-7"
-              style={{ backgroundColor: 'rgba(250,245,234,0.92)', backdropFilter: 'blur(12px)', border: '1px solid rgba(212,175,55,0.35)', boxShadow: '0 18px 44px rgba(0,26,77,0.28)' }}>
+            <div className="inline-flex flex-wrap items-center gap-4 sm:gap-8 rounded-2xl px-6 py-3.5 sm:px-8"
+              style={{ backgroundColor: '#FAF5EA', border: '1px solid rgba(212,175,55,0.4)', boxShadow: '0 12px 36px rgba(11,42,91,0.25)' }}>
               {[
-                { value: '120+', label: 'Destinations' },
-                { value: '5000+', label: 'Happy Travelers' },
-                { value: 'Since', label: '1998' },
+                { value: '120+', label: 'DESTINATIONS' },
+                { value: '5000+', label: 'HAPPY TRAVELERS' },
+                { value: '1998', label: 'SINCE' },
               ].map((stat, i) => (
-                <div key={stat.label} className="flex items-center gap-3 sm:gap-6">
+                <div key={stat.label + stat.value} className="flex items-center gap-4 sm:gap-8">
                   <div>
-                    <div className="text-lg sm:text-2xl font-extrabold leading-none" style={{ color: NAVY, fontFamily: 'Cinzel, serif' }}>{stat.value}</div>
-                    <div className="text-[10px] sm:text-xs uppercase tracking-widest font-bold" style={{ color: GOLD }}>{stat.label}</div>
+                    <div className="text-xl sm:text-2xl font-extrabold leading-none" style={{ color: NAVY, fontFamily: 'Cinzel, serif' }}>{stat.value}</div>
+                    <div className="text-[10px] sm:text-xs uppercase tracking-wider font-bold mt-1" style={{ color: GOLD }}>{stat.label}</div>
                   </div>
                   {i < 2 && (
-                    <div className="hidden sm:block w-px h-8" style={{ backgroundColor: 'rgba(197,155,39,0.4)' }} />
+                    <div className="hidden sm:block w-px h-7" style={{ backgroundColor: 'rgba(197,155,39,0.35)' }} />
                   )}
                 </div>
               ))}
