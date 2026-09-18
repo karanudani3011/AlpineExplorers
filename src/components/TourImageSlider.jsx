@@ -1,8 +1,7 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 
-const DEFAULT_INTERVAL = 1000
-const TRANSITION_MS = 600
-const TRANSITION = `transform ${TRANSITION_MS}ms cubic-bezier(0.4, 0, 0.2, 1)`
+const DEFAULT_INTERVAL = 3500
 
 export default function TourImageSlider({
   images = [],
@@ -10,94 +9,133 @@ export default function TourImageSlider({
   paused = false,
   interval = DEFAULT_INTERVAL,
 }) {
-  const realCount = images.length
-  const slides = realCount > 1 ? [...images, images[0]] : images
-  const total = slides.length
+  const validImages = Array.isArray(images) && images.length > 0
+    ? images.filter(Boolean)
+    : []
 
-  const [index, setIndex] = useState(0)
-  const [animating, setAnimating] = useState(true)
-  const [failed, setFailed] = useState([])
-  const [hovered, setHovered] = useState(false)
+  const count = validImages.length
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [isHovered, setIsHovered] = useState(false)
+  const [failedImages, setFailedImages] = useState({})
 
-  const active = index % realCount
-
+  // Auto-advance only when not hovered and multiple images exist
   useEffect(() => {
-    if (paused || hovered || total < 2) return undefined
-    const id = setInterval(() => {
-      setAnimating(true)
-      setIndex((i) => i + 1)
+    if (count <= 1 || paused || isHovered) return undefined
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % count)
     }, interval)
-    return () => clearInterval(id)
-  }, [paused, hovered, interval, total])
+    return () => clearInterval(timer)
+  }, [count, paused, isHovered, interval])
 
-  useEffect(() => {
-    if (index !== total - 1) return undefined
-    const t = setTimeout(() => {
-      setAnimating(false)
-      setIndex(0)
-    }, TRANSITION_MS + 20)
-    return () => clearTimeout(t)
-  }, [index, total])
+  const handlePrev = useCallback((e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setCurrentIndex((prev) => (prev - 1 + count) % count)
+  }, [count])
 
-  useEffect(() => {
-    if (animating) return undefined
-    let raf
-    const restore = () => {
-      raf = requestAnimationFrame(() => {
-        raf = requestAnimationFrame(() => setAnimating(true))
-      })
-    }
-    restore()
-    return () => cancelAnimationFrame(raf)
-  }, [animating])
+  const handleNext = useCallback((e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setCurrentIndex((prev) => (prev + 1) % count)
+  }, [count])
 
-  const handleError = useCallback((position) => {
-    setFailed((prev) => (prev.includes(position) ? prev : [...prev, position]))
+  const handleDotClick = useCallback((e, index) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setCurrentIndex(index)
   }, [])
 
-  const srcFor = (position) => {
-    if (!failed.includes(position)) return slides[position]
-    const fallback = slides.find((src, i) => i !== position && !failed.includes(i))
-    return fallback ?? slides[position]
+  const handleImageError = useCallback((index) => {
+    setFailedImages((prev) => ({ ...prev, [index]: true }))
+  }, [])
+
+  if (count === 0) {
+    return (
+      <div className="w-full h-full bg-slate-200 flex items-center justify-center text-slate-400 text-xs">
+        No Image Available
+      </div>
+    )
   }
 
-  if (realCount < 1) return null
-
-  const translateX = (100 * index) / total
-  const slideWidth = 100 / total
+  // If only 1 image, render clean single image without slider controls
+  if (count === 1) {
+    return (
+      <div className="relative w-full h-full overflow-hidden">
+        <img
+          src={validImages[0]}
+          alt={alt}
+          className="w-full h-full object-cover block"
+          loading="lazy"
+        />
+      </div>
+    )
+  }
 
   return (
     <div
-      className="relative w-full h-full overflow-hidden"
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      onTouchStart={() => setHovered(true)}
-      onTouchEnd={() => setHovered(false)}
+      className="relative w-full h-full overflow-hidden select-none group/slider"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onTouchStart={() => setIsHovered(true)}
+      onTouchEnd={() => setIsHovered(false)}
     >
-      <div
-        className="flex h-full"
-        style={{
-          width: `${total * 100}%`,
-          transform: `translate3d(${-translateX}%, 0, 0)`,
-          transition: animating ? TRANSITION : 'none',
-          willChange: 'transform',
-        }}
+      {/* Slides Container */}
+      <div className="relative w-full h-full">
+        {validImages.map((src, i) => {
+          const isCurrent = i === currentIndex
+          return (
+            <div
+              key={`${src}-${i}`}
+              className={`absolute inset-0 w-full h-full transition-opacity duration-500 ease-in-out ${
+                isCurrent ? 'opacity-100 z-[1]' : 'opacity-0 z-0 pointer-events-none'
+              }`}
+            >
+              <img
+                src={failedImages[i] ? validImages[0] : src}
+                alt={isCurrent ? alt : ''}
+                className="w-full h-full object-cover block"
+                draggable={false}
+                onError={() => handleImageError(i)}
+                loading={i === 0 ? 'eager' : 'lazy'}
+              />
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Prev / Next Navigation Arrows (visible on hover or always subtly visible on touch) */}
+      <button
+        type="button"
+        onClick={handlePrev}
+        aria-label="Previous Image"
+        className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-black/40 hover:bg-black/75 text-white/90 hover:text-white backdrop-blur-sm flex items-center justify-center transition-all opacity-0 group-hover/slider:opacity-100 shadow-md hover:scale-105 active:scale-95 cursor-pointer"
       >
-        {slides.map((src, i) => (
-          <div
-            key={`${src}-${i}`}
-            className="h-full bg-gray-200"
-            style={{ flex: `0 0 ${slideWidth}%`, width: `${slideWidth}%` }}
-            aria-hidden={i === active ? undefined : true}
-          >
-            <img
-              src={srcFor(i)}
-              alt={i === active ? alt : ''}
-              className="w-full h-full object-cover block"
-              draggable={false}
-              onError={() => handleError(i)}
-            />
-          </div>
+        <ChevronLeft size={16} />
+      </button>
+
+      <button
+        type="button"
+        onClick={handleNext}
+        aria-label="Next Image"
+        className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-black/40 hover:bg-black/75 text-white/90 hover:text-white backdrop-blur-sm flex items-center justify-center transition-all opacity-0 group-hover/slider:opacity-100 shadow-md hover:scale-105 active:scale-95 cursor-pointer"
+      >
+        <ChevronRight size={16} />
+      </button>
+
+      {/* Dot Indicators */}
+      <div className="absolute bottom-9 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-black/30 backdrop-blur-sm">
+        {validImages.map((_, i) => (
+          <button
+            key={i}
+            type="button"
+            onClick={(e) => handleDotClick(e, i)}
+            aria-label={`Go to slide ${i + 1}`}
+            className={`transition-all rounded-full cursor-pointer ${
+              i === currentIndex
+                ? 'w-3.5 h-1.5 bg-white shadow-sm'
+                : 'w-1.5 h-1.5 bg-white/50 hover:bg-white/80'
+            }`}
+          />
         ))}
       </div>
     </div>

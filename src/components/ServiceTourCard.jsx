@@ -55,8 +55,8 @@ export default function ServiceTourCard({ tour }) {
       >
         {/* Image Container */}
         <div className="relative overflow-hidden h-56 sm:h-64 w-full flex-shrink-0">
-          <TourImageSlider images={tourImages[tour.id] || [tour.image]} alt={tour.title} />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/15 to-transparent" />
+          <TourImageSlider images={tour.images?.length ? tour.images : (tourImages[tour.id] || (tour.image ? [tour.image] : []))} alt={tour.title} />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/15 to-transparent pointer-events-none" />
 
           {/* Badges */}
           <div className="absolute top-3 left-3 flex flex-wrap gap-2 z-10">

@@ -5,6 +5,8 @@ import Navbar from './Navbar'
 import Footer from './Footer'
 import InquiryModal from './InquiryModal'
 import { serviceTours, serviceCategories } from '../data/servicesData'
+import { tours as fallbackTours } from '../data/data'
+import { tourImages } from '../data/tourImages'
 import { useSupabaseAuth } from '../hooks/useSupabaseAuth'
 import {
   Star, MapPin, Calendar, Clock, Users, CheckCircle, X,
@@ -36,11 +38,17 @@ function formatINR(amount) {
 
 function findTourById(id) {
   for (const category of Object.keys(serviceTours)) {
-    const found = serviceTours[category].find((t) => t.id === id)
+    const found = serviceTours[category].find((t) => t.id === id || String(t.id) === String(id))
     if (found) {
       const cat = serviceCategories.find((c) => c.slug === category)
       return { tour: found, category: cat }
     }
+  }
+  const fallback = fallbackTours.find((t) => String(t.id) === String(id))
+  if (fallback) {
+    // Attach images if not already present
+    const images = fallback.images || tourImages[fallback.id] || (fallback.image ? [fallback.image] : [])
+    return { tour: { ...fallback, images }, category: null }
   }
   return { tour: null, category: null }
 }
@@ -52,6 +60,7 @@ export default function TourDetailsPage() {
   const [travelersCount, setTravelersCount] = useState(2)
   const [inquiryOpen, setInquiryOpen] = useState(false)
   const [copiedToast, setCopiedToast] = useState(false)
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0)
 
   const { tour, category } = findTourById(id)
 
@@ -130,14 +139,15 @@ export default function TourDetailsPage() {
       {/* Hero Section */}
       <section className="relative h-[55vh] sm:h-[65vh] flex items-end overflow-hidden">
         <motion.img
-          src={tour.image}
+          key={selectedImageIndex}
+          src={tour.images?.[selectedImageIndex] || tour.image}
           alt={tour.title}
           className="absolute inset-0 w-full h-full object-cover"
-          initial={{ scale: 1.1 }}
+          initial={{ scale: 1.05 }}
           animate={{ scale: 1 }}
-          transition={{ duration: 1.2 }}
+          transition={{ duration: 0.8 }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/35 to-black/10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/35 to-black/10 pointer-events-none" />
 
         {/* Breadcrumb */}
         <div className="absolute top-6 left-0 right-0 z-10">
@@ -162,53 +172,75 @@ export default function TourDetailsPage() {
 
         {/* Hero Content */}
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 w-full text-white">
-          <motion.div
-            initial={{ opacity: 0, y: 25 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7 }}
-            className="space-y-3 max-w-4xl"
-          >
-            <div className="flex flex-wrap items-center gap-2">
-              {category && (
-                <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider"
-                  style={{ backgroundColor: 'rgba(197,155,39,0.9)' }}>
-                  {category.shortName}
-                </span>
-              )}
-              {tour.badge && (
-                <span className="bg-red-600 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
-                  {tour.badge}
-                </span>
-              )}
-              {discount > 0 && (
-                <span className="bg-emerald-600 px-3 py-1 rounded-full text-[10px] font-bold">
-                  Save {discount}%
-                </span>
-              )}
-            </div>
-
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight leading-tight" style={font.vintage}>
-              {tour.title}
-            </h1>
-
-            <div className="flex flex-wrap items-center gap-4 text-sm text-white/80 font-medium">
-              <div className="flex items-center gap-1.5">
-                <MapPin size={16} style={{ color: GOLD }} />
-                <span>{tour.location}</span>
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <motion.div
+              initial={{ opacity: 0, y: 25 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7 }}
+              className="space-y-3 max-w-4xl"
+            >
+              <div className="flex flex-wrap items-center gap-2">
+                {category && (
+                  <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider"
+                    style={{ backgroundColor: 'rgba(197,155,39,0.9)' }}>
+                    {category.shortName}
+                  </span>
+                )}
+                {tour.badge && (
+                  <span className="bg-red-600 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
+                    {tour.badge}
+                  </span>
+                )}
+                {discount > 0 && (
+                  <span className="bg-emerald-600 px-3 py-1 rounded-full text-[10px] font-bold">
+                    Save {discount}%
+                  </span>
+                )}
               </div>
-              {tour.rating > 0 && (
+
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight leading-tight" style={font.vintage}>
+                {tour.title}
+              </h1>
+
+              <div className="flex flex-wrap items-center gap-4 text-sm text-white/80 font-medium">
                 <div className="flex items-center gap-1.5">
-                  <Star size={16} className="fill-amber-400 text-amber-400" />
-                  <span className="font-bold text-white">{tour.rating}</span>
-                  {tour.reviews > 0 && <span className="opacity-70">({tour.reviews})</span>}
+                  <MapPin size={16} style={{ color: GOLD }} />
+                  <span>{tour.location}</span>
                 </div>
-              )}
-              <div className="flex items-center gap-1.5">
-                <Clock size={16} className="text-teal-300" />
-                <span>{tour.duration}</span>
+                {tour.rating > 0 && (
+                  <div className="flex items-center gap-1.5">
+                    <Star size={16} className="fill-amber-400 text-amber-400" />
+                    <span className="font-bold text-white">{tour.rating}</span>
+                    {tour.reviews > 0 && <span className="opacity-70">({tour.reviews})</span>}
+                  </div>
+                )}
+                <div className="flex items-center gap-1.5">
+                  <Clock size={16} className="text-teal-300" />
+                  <span>{tour.duration}</span>
+                </div>
               </div>
-            </div>
-          </motion.div>
+            </motion.div>
+
+            {/* Photo thumbnails gallery if multiple images */}
+            {tour.images && tour.images.length > 1 && (
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 max-w-full">
+                {tour.images.map((imgUrl, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setSelectedImageIndex(idx)}
+                    className={`relative w-14 h-11 sm:w-16 sm:h-12 rounded-lg overflow-hidden border-2 transition-all flex-shrink-0 cursor-pointer ${
+                      selectedImageIndex === idx
+                        ? 'border-amber-400 scale-105 shadow-lg'
+                        : 'border-white/50 opacity-70 hover:opacity-100'
+                    }`}
+                  >
+                    <img src={imgUrl} alt="" className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </section>
 

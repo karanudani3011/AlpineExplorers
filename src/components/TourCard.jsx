@@ -37,10 +37,10 @@ export default function TourCard({ tour }) {
       >
         {/* Image Container */}
         <div className="relative overflow-hidden h-64 sm:h-72 w-full flex-shrink-0">
-          <TourImageSlider images={tourImages[tour.id] || [tour.image]} alt={tour.title} />
+          <TourImageSlider images={tour.images?.length ? tour.images : (tourImages[tour.id] || (tour.image ? [tour.image] : []))} alt={tour.title} />
 
           {/* Gradient Shadow Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent pointer-events-none" />
 
           {/* Badges on Top Left */}
           <div className="absolute top-4 left-4 flex flex-wrap gap-2 z-10">
