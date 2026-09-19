@@ -74,10 +74,9 @@ function ColumnTitle({ children }) {
 }
 
 const socials = [
-  { name: 'Instagram', icon: Instagram, href: 'https://instagram.com', placeholder: true },
-  { name: 'Facebook', icon: Facebook, href: 'https://facebook.com', placeholder: true },
-  { name: 'YouTube', icon: Youtube, href: 'https://youtube.com', placeholder: true },
-  
+  { name: 'Instagram', icon: Instagram, href: 'https://www.instagram.com/alpine.explorers?utm_source=ig_web_button_share_sheet&stkn=ZDNlZDc0MzIxNw==' },
+  { name: 'Facebook', icon: Facebook, href: 'https://www.facebook.com/p/Alpine-Explorers-Rajkot-100063700699879/' },
+  { name: 'YouTube', icon: Youtube, href: 'https://youtube.com/@alpineexplorers346?si=jETMSBRVcQlzp4W8' },
 ]
 
 const quickLinks = [
@@ -137,16 +136,19 @@ export default function Footer() {
           {/* Brand */}
           <motion.div variants={item} className="space-y-5">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0"
-                style={{ background: `linear-gradient(135deg, ${GOLD}, ${GOLD2})`, boxShadow: '0 6px 18px rgba(212,175,55,0.35)' }}>
-                <svg width="26" height="22" viewBox="0 0 34 28" fill="none">
-                  <polygon points="17,4 6,24 28,24" stroke="#001a4d" strokeWidth="2.5" fill="none" />
-                  <polygon points="17,4 15,14 20,14" fill="#001a4d" opacity="0.8" />
-                </svg>
-              </div>
+              <img
+                src="/alpine_logo.png"
+                alt="Alpine Explorers Rajkot Logo"
+                className="w-16 h-16 sm:w-20 sm:h-20 object-contain flex-shrink-0"
+                style={{ filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.25))' }}
+              />
               <div>
-                <h3 className="text-xl font-bold leading-tight" style={{ ...font.vintage, color: CREAM }}>Alpine Explorers</h3>
-                <span className="text-xs font-bold tracking-[0.25em]" style={{ color: GOLD2, ...font.body }}>SINCE 1998</span>
+                <h3 className="text-xl font-bold leading-tight uppercase tracking-wider" style={{ ...font.vintage, color: '#C8102E' }}>Alpine Explorers</h3>
+                <span className="block text-[9px] sm:text-[10px] font-semibold uppercase tracking-[0.18em] mt-1 leading-snug"
+                  style={{ ...font.body, color: '#5E86E8' }}>
+                  Pioneer in Adventure Tourism
+                </span>
+                <span className="block text-xs font-bold tracking-[0.25em] mt-1" style={{ color: GOLD2, ...font.body }}>SINCE 1998</span>
               </div>
             </div>
 
@@ -251,9 +253,6 @@ export default function Footer() {
                 <div>
                   <a href="tel:+919979883339" className="block font-semibold hover:text-[#f7eccf] transition" style={{ color: CREAM }}>
                     +91 99798 83339
-                  </a>
-                  <a href="tel:+912812589090" className="block font-semibold hover:text-[#f7eccf] transition" style={{ color: CREAM }}>
-                    +91 281 2589090
                   </a>
                 </div>
               </li>
