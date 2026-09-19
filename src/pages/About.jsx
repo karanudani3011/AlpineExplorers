@@ -3,7 +3,12 @@ import { motion, useInView } from 'framer-motion'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { usePublicContent } from '../services/usePublic'
-import { Compass, ArrowRight, Shield, Award, Mountain, Users, CheckCircle, Star, MapPin, Flag } from 'lucide-react'
+import { Compass, ArrowRight, Shield, Award, Mountain, Users, CheckCircle, Star, MapPin, Flag, Heart, Eye, Target } from 'lucide-react'
+import bniLogo from '../assets/logos/bni.png'
+import lvbLogo from '../assets/logos/lvb.png'
+import tosgLogo from '../assets/logos/tosg.png'
+import utenLogo from '../assets/logos/uten.png'
+import jtaLogo from '../assets/logos/jta.png'
 
 function Counter({ to, suffix = '', duration = 2500 }) {
   const [value, setValue] = useState(0)
@@ -39,6 +44,38 @@ const item = {
   hidden: { opacity: 0, y: 24 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: 'easeOut' } },
 }
+
+const pillars = [
+  {
+    icon: Heart,
+    title: 'Our Values',
+    subtitle: 'Guided by Integrity, Driven by Adventure',
+    description: 'We uphold integrity, safety, respect for nature, and a commitment to excellence in everything we do. Our values shape every journey, every decision and every relationship we build.',
+    keywords: [['Integrity', 'Safety', 'Respect'], ['Excellence']],
+  },
+  {
+    icon: Eye,
+    title: 'Our Vision',
+    subtitle: 'To Be a Global Leader in Adventure Tourism',
+    description: 'We envision a world where more people explore, experience and connect with nature — creating a positive impact on communities, conservation and the spirit of adventure.',
+    keywords: [['Explore', 'Experience', 'Empower']],
+  },
+  {
+    icon: Target,
+    title: 'Our Mission',
+    subtitle: 'Create Meaningful Journeys, Lasting Impact',
+    description: 'Our mission is to design and deliver safe, authentic and sustainable adventure experiences, while promoting responsible tourism, supporting local communities and preserving the natural world.',
+    keywords: [['Safe', 'Sustainable', 'Responsible']],
+  },
+]
+
+const memberships = [
+  { abbr: 'BNI', name: 'Bharat Nirman Initiative', logo: bniLogo },
+  { abbr: 'LVB', name: 'Local Vendor Bureau', logo: lvbLogo },
+  { abbr: 'TOSG', name: 'Tour Operators Sustainable Group', logo: tosgLogo },
+  { abbr: 'UTEN', name: 'Uttarakhand Tourism Executive Network', logo: utenLogo },
+  { abbr: 'JTA', name: 'Jharkhand Tourism Association', logo: jtaLogo },
+]
 
 export default function About() {
   useEffect(() => { window.scrollTo(0, 0) }, [])
@@ -355,13 +392,13 @@ export default function About() {
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true, margin: '-40px' }}
-              className="grid grid-cols-1 md:grid-cols-2 gap-8"
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8"
             >
-              {/* Card 1 — Presidential */}
+              {/* Card 1 — Presidential Honors */}
               <motion.div
                 variants={item}
                 whileHover={{ y: -4 }}
-                className="relative rounded-2xl overflow-hidden"
+                className="relative rounded-2xl overflow-hidden flex flex-col"
                 style={{
                   backgroundColor: '#faf5ea',
                   boxShadow: '0 10px 36px rgba(60,40,20,0.13), 0 2px 8px rgba(60,40,20,0.06)',
@@ -369,24 +406,23 @@ export default function About() {
                 }}
               >
                 <div className="h-1.5" style={{ background: 'linear-gradient(to right, #c59b27, #d4af37, #c59b27)' }} />
-                <div className="p-7 md:p-9">
+                <div className="p-6 md:p-8 flex flex-col flex-1">
                   <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-5"
                     style={{ background: 'linear-gradient(135deg, rgba(0,26,77,0.08), rgba(0,26,77,0.03))', border: '1px solid rgba(0,26,77,0.10)' }}
                   >
                     <Award size={30} style={{ color: '#001a4d' }} strokeWidth={1.8} />
                   </div>
-                  <h3 className="text-xl md:text-2xl font-bold mb-1"
+                  <h3 className="text-lg lg:text-xl font-bold mb-1"
                     style={{ fontFamily: 'Cinzel, serif', color: '#001a4d' }}
                   >
-                    Presidential & Prime Ministerial Honors
+                    Presidential Honors
                   </h3>
                   <p className="italic text-sm mb-4" style={{ fontFamily: 'Playfair Display, serif', color: '#c59b27' }}>
                     Highest National Distinction
                   </p>
-                  <p className="text-[14px] leading-relaxed" style={{ color: '#3a2a18', fontFamily: 'Inter, sans-serif' }}>
+                  <p className="text-[13px] md:text-[14px] leading-relaxed flex-1" style={{ color: '#3a2a18', fontFamily: 'Inter, sans-serif' }}>
                     Awarded for pioneering achievements in adventure sports by the hands of{' '}
-                    <span className="font-bold" style={{ color: '#001a4d' }}>President Shri K.R. Narayanan</span> and{' '}
-                    <span className="font-bold" style={{ color: '#001a4d' }}>Prime Minister Shri A.B. Vajpayee</span>.
+                    <span className="font-bold" style={{ color: '#001a4d' }}>President Shri K.R. Narayanan</span>.
                   </p>
                   <div className="mt-5 pt-4" style={{ borderTop: '1px dashed rgba(197,155,39,0.3)' }}>
                     <div className="flex items-center gap-3">
@@ -395,7 +431,7 @@ export default function About() {
                       >
                         <CheckCircle size={16} style={{ color: '#c59b27' }} />
                       </div>
-                      <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'rgba(58,42,24,0.6)', fontFamily: 'Inter, sans-serif' }}>
+                      <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: 'rgba(58,42,24,0.6)', fontFamily: 'Inter, sans-serif' }}>
                         Verified Government Recognition
                       </span>
                     </div>
@@ -407,11 +443,59 @@ export default function About() {
                 />
               </motion.div>
 
-              {/* Card 2 — NIM & SVMI */}
+              {/* Card 2 — Prime Ministerial Honors */}
               <motion.div
                 variants={item}
                 whileHover={{ y: -4 }}
-                className="relative rounded-2xl overflow-hidden"
+                className="relative rounded-2xl overflow-hidden flex flex-col"
+                style={{
+                  backgroundColor: '#faf5ea',
+                  boxShadow: '0 10px 36px rgba(60,40,20,0.13), 0 2px 8px rgba(60,40,20,0.06)',
+                  border: '1px solid rgba(180,160,130,0.28)',
+                }}
+              >
+                <div className="h-1.5" style={{ background: 'linear-gradient(to right, #c59b27, #d4af37, #c59b27)' }} />
+                <div className="p-6 md:p-8 flex flex-col flex-1">
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-5"
+                    style={{ background: 'linear-gradient(135deg, rgba(0,26,77,0.08), rgba(0,26,77,0.03))', border: '1px solid rgba(0,26,77,0.10)' }}
+                  >
+                    <Flag size={30} style={{ color: '#001a4d' }} strokeWidth={1.8} />
+                  </div>
+                  <h3 className="text-lg lg:text-xl font-bold mb-1"
+                    style={{ fontFamily: 'Cinzel, serif', color: '#001a4d' }}
+                  >
+                    Prime Ministerial Honors
+                  </h3>
+                  <p className="italic text-sm mb-4" style={{ fontFamily: 'Playfair Display, serif', color: '#c59b27' }}>
+                    Highest National Distinction
+                  </p>
+                  <p className="text-[13px] md:text-[14px] leading-relaxed flex-1" style={{ color: '#3a2a18', fontFamily: 'Inter, sans-serif' }}>
+                    Awarded for pioneering achievements in adventure sports by the hands of{' '}
+                    <span className="font-bold" style={{ color: '#001a4d' }}>Prime Minister Shri A.B. Vajpayee</span>.
+                  </p>
+                  <div className="mt-5 pt-4" style={{ borderTop: '1px dashed rgba(197,155,39,0.3)' }}>
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                        style={{ backgroundColor: 'rgba(197,155,39,0.10)' }}
+                      >
+                        <CheckCircle size={16} style={{ color: '#c59b27' }} />
+                      </div>
+                      <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: 'rgba(58,42,24,0.6)', fontFamily: 'Inter, sans-serif' }}>
+                        National Appreciation
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="absolute bottom-0 right-0 w-12 h-12 pointer-events-none opacity-25"
+                  style={{ background: 'linear-gradient(135deg, transparent 50%, #d4c3a4 50%)' }}
+                />
+              </motion.div>
+
+              {/* Card 3 — NIM */}
+              <motion.div
+                variants={item}
+                whileHover={{ y: -4 }}
+                className="relative rounded-2xl overflow-hidden flex flex-col"
                 style={{
                   backgroundColor: '#faf5ea',
                   boxShadow: '0 10px 36px rgba(60,40,20,0.13), 0 2px 8px rgba(60,40,20,0.06)',
@@ -419,24 +503,23 @@ export default function About() {
                 }}
               >
                 <div className="h-1.5" style={{ background: 'linear-gradient(to right, #001a4d, #1a3a6d, #001a4d)' }} />
-                <div className="p-7 md:p-9">
+                <div className="p-6 md:p-8 flex flex-col flex-1">
                   <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-5"
                     style={{ background: 'linear-gradient(135deg, rgba(0,26,77,0.08), rgba(0,26,77,0.03))', border: '1px solid rgba(0,26,77,0.10)' }}
                   >
                     <Mountain size={30} style={{ color: '#001a4d' }} strokeWidth={1.8} />
                   </div>
-                  <h3 className="text-xl md:text-2xl font-bold mb-1"
+                  <h3 className="text-lg lg:text-xl font-bold mb-1"
                     style={{ fontFamily: 'Cinzel, serif', color: '#001a4d' }}
                   >
-                    NIM & SVMI Certified Guides
+                    NIM
                   </h3>
                   <p className="italic text-sm mb-4" style={{ fontFamily: 'Playfair Display, serif', color: '#c59b27' }}>
-                    Elite Mountaineering Institutions
+                    Nehru Institute of Mountaineering
                   </p>
-                  <p className="text-[14px] leading-relaxed" style={{ color: '#3a2a18', fontFamily: 'Inter, sans-serif' }}>
-                    Our treks are curated and led by veteran mountaineers certified from India's elite institutions:{' '}
-                    <span className="font-bold" style={{ color: '#001a4d' }}>NIM Uttarkashi</span> and{' '}
-                    <span className="font-bold" style={{ color: '#001a4d' }}>SVMI Mount Abu</span>.
+                  <p className="text-[13px] md:text-[14px] leading-relaxed flex-1" style={{ color: '#3a2a18', fontFamily: 'Inter, sans-serif' }}>
+                    Our treks are curated and led by veteran mountaineers certified from India&apos;s{' '}
+                    <span className="font-bold" style={{ color: '#001a4d' }}>elite mountaineering institution NIM Uttarkashi</span>.
                   </p>
                   <div className="mt-5 pt-4" style={{ borderTop: '1px dashed rgba(197,155,39,0.3)' }}>
                     <div className="flex items-center gap-3">
@@ -445,7 +528,55 @@ export default function About() {
                       >
                         <Shield size={16} style={{ color: '#c59b27' }} />
                       </div>
-                      <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'rgba(58,42,24,0.6)', fontFamily: 'Inter, sans-serif' }}>
+                      <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: 'rgba(58,42,24,0.6)', fontFamily: 'Inter, sans-serif' }}>
+                        Elite Mountaineering Institution
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="absolute bottom-0 right-0 w-12 h-12 pointer-events-none opacity-25"
+                  style={{ background: 'linear-gradient(135deg, transparent 50%, #d4c3a4 50%)' }}
+                />
+              </motion.div>
+
+              {/* Card 4 — SVMI Certified Guides */}
+              <motion.div
+                variants={item}
+                whileHover={{ y: -4 }}
+                className="relative rounded-2xl overflow-hidden flex flex-col"
+                style={{
+                  backgroundColor: '#faf5ea',
+                  boxShadow: '0 10px 36px rgba(60,40,20,0.13), 0 2px 8px rgba(60,40,20,0.06)',
+                  border: '1px solid rgba(180,160,130,0.28)',
+                }}
+              >
+                <div className="h-1.5" style={{ background: 'linear-gradient(to right, #001a4d, #1a3a6d, #001a4d)' }} />
+                <div className="p-6 md:p-8 flex flex-col flex-1">
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-5"
+                    style={{ background: 'linear-gradient(135deg, rgba(0,26,77,0.08), rgba(0,26,77,0.03))', border: '1px solid rgba(0,26,77,0.10)' }}
+                  >
+                    <Shield size={30} style={{ color: '#001a4d' }} strokeWidth={1.8} />
+                  </div>
+                  <h3 className="text-lg lg:text-xl font-bold mb-1"
+                    style={{ fontFamily: 'Cinzel, serif', color: '#001a4d' }}
+                  >
+                    SVMI Certified Guides
+                  </h3>
+                  <p className="italic text-sm mb-4" style={{ fontFamily: 'Playfair Display, serif', color: '#c59b27' }}>
+                    Swami Vivekanand Mountaineering Institute
+                  </p>
+                  <p className="text-[13px] md:text-[14px] leading-relaxed flex-1" style={{ color: '#3a2a18', fontFamily: 'Inter, sans-serif' }}>
+                    Our treks are curated and led by veteran mountaineers certified from India&apos;s{' '}
+                    <span className="font-bold" style={{ color: '#001a4d' }}>elite mountaineering institution SVMI Mount Abu</span>.
+                  </p>
+                  <div className="mt-5 pt-4" style={{ borderTop: '1px dashed rgba(197,155,39,0.3)' }}>
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                        style={{ backgroundColor: 'rgba(197,155,39,0.10)' }}
+                      >
+                        <CheckCircle size={16} style={{ color: '#c59b27' }} />
+                      </div>
+                      <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: 'rgba(58,42,24,0.6)', fontFamily: 'Inter, sans-serif' }}>
                         Certified Professional Leadership
                       </span>
                     </div>
@@ -455,6 +586,203 @@ export default function About() {
                   style={{ background: 'linear-gradient(135deg, transparent 50%, #d4c3a4 50%)' }}
                 />
               </motion.div>
+            </motion.div>
+          </div>
+        </section>
+
+        {/* ═══════════════ OUR VALUES, VISION & MISSION ═══════════════ */}
+        <section className="py-20 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-6xl mx-auto">
+            {/* Section heading with gold lines */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+              className="text-center mb-14"
+            >
+              <div className="flex items-center justify-center gap-4">
+                <div className="h-[1.5px] flex-1 max-w-[140px] sm:max-w-[180px]" style={{ background: 'linear-gradient(to right, transparent, rgba(197,155,39,0.7))' }} />
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold uppercase text-center"
+                  style={{ fontFamily: 'Cinzel, serif', color: '#0B2B5C' }}
+                >
+                  Our Values, Vision &amp; Mission
+                </h2>
+                <div className="h-[1.5px] flex-1 max-w-[140px] sm:max-w-[180px]" style={{ background: 'linear-gradient(to left, transparent, rgba(197,155,39,0.7))' }} />
+              </div>
+            </motion.div>
+
+            {/* 3 premium cards */}
+            <motion.div
+              variants={container}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-40px' }}
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8"
+            >
+              {pillars.map((p) => (
+                <motion.div
+                  key={p.title}
+                  variants={item}
+                  whileHover={{ y: -4 }}
+                  className="relative rounded-2xl overflow-hidden flex flex-col"
+                  style={{
+                    backgroundColor: '#faf5ea',
+                    boxShadow: '0 10px 36px rgba(60,40,20,0.13), 0 2px 8px rgba(60,40,20,0.06)',
+                    border: '1px solid rgba(180,160,130,0.28)',
+                  }}
+                >
+                  <div className="h-1.5" style={{ background: 'linear-gradient(to right, #c59b27, #d4af37, #c59b27)' }} />
+                  <div className="p-6 md:p-8 flex flex-col flex-1">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-5"
+                      style={{ background: 'linear-gradient(135deg, rgba(0,26,77,0.08), rgba(0,26,77,0.03))', border: '1px solid rgba(0,26,77,0.10)' }}
+                    >
+                      <p.icon size={30} style={{ color: '#001a4d' }} strokeWidth={1.8} />
+                    </div>
+                    <h3 className="text-xl md:text-2xl font-bold uppercase mb-1"
+                      style={{ fontFamily: 'Cinzel, serif', color: '#0B2B5C' }}
+                    >
+                      {p.title}
+                    </h3>
+                    <p className="italic text-sm mb-4" style={{ fontFamily: 'Playfair Display, serif', color: '#c59b27' }}>
+                      {p.subtitle}
+                    </p>
+                    <p className="text-[14px] leading-relaxed flex-1" style={{ color: '#3a2a18', fontFamily: 'Inter, sans-serif' }}>
+                      {p.description}
+                    </p>
+                    <div className="mt-5 pt-4" style={{ borderTop: '1px dashed rgba(197,155,39,0.3)' }}>
+                      {p.keywords.map((line, li) => (
+                        <div key={li} className="flex flex-wrap items-center gap-2.5 mt-1 first:mt-0">
+                          {line.map((w, wi) => (
+                            <span key={w} className="flex items-center gap-2.5">
+                              <span className="text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: '#001a4d', fontFamily: 'Inter, sans-serif' }}>
+                                {w}
+                              </span>
+                              {wi < line.length - 1 && (
+                                <span className="text-[11px]" style={{ color: '#c59b27' }}>•</span>
+                              )}
+                            </span>
+                          ))}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  {/* Corner fold */}
+                  <div className="absolute bottom-0 right-0 w-12 h-12 pointer-events-none opacity-25"
+                    style={{ background: 'linear-gradient(135deg, transparent 50%, #d4c3a4 50%)' }}
+                  />
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
+        </section>
+
+        {/* ═══════════════ OUR MEMBERSHIPS ═══════════════ */}
+        <section className="py-20 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-6xl mx-auto">
+            {/* Section heading with gold lines */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+              className="text-center mb-14"
+            >
+              <div className="flex items-center justify-center gap-4">
+                <div className="h-[1.5px] flex-1 max-w-[140px] sm:max-w-[180px]" style={{ background: 'linear-gradient(to right, transparent, rgba(197,155,39,0.7))' }} />
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold uppercase text-center"
+                  style={{ fontFamily: 'Cinzel, serif', color: '#0B2B5C' }}
+                >
+                  Our Memberships
+                </h2>
+                <div className="h-[1.5px] flex-1 max-w-[140px] sm:max-w-[180px]" style={{ background: 'linear-gradient(to left, transparent, rgba(197,155,39,0.7))' }} />
+              </div>
+            </motion.div>
+
+            {/* Large premium membership container */}
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7 }}
+              viewport={{ once: true, margin: '-40px' }}
+              className="relative rounded-2xl overflow-hidden"
+              style={{
+                backgroundColor: '#faf5ea',
+                boxShadow: '0 10px 36px rgba(60,40,20,0.13), 0 2px 8px rgba(60,40,20,0.06)',
+                border: '1px solid rgba(180,160,130,0.28)',
+              }}
+            >
+              <div className="h-1.5" style={{ background: 'linear-gradient(to right, #c59b27, #d4af37, #c59b27)' }} />
+              <div className="p-7 md:p-10">
+                <div className="flex flex-col lg:flex-row gap-10">
+                  {/* LEFT — heading + description */}
+                  <div className="lg:w-[34%] lg:pr-10 lg:border-r lg:border-[rgba(197,155,39,0.22)] flex flex-col justify-center items-center text-center lg:items-start lg:text-left">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-5"
+                      style={{ background: 'linear-gradient(135deg, rgba(0,26,77,0.08), rgba(0,26,77,0.03))', border: '1px solid rgba(0,26,77,0.10)' }}
+                    >
+                      <Award size={30} style={{ color: '#001a4d' }} strokeWidth={1.8} />
+                    </div>
+                    <h3 className="text-2xl md:text-3xl font-bold uppercase mb-2"
+                      style={{ fontFamily: 'Cinzel, serif', color: '#0B2B5C' }}
+                    >
+                      Our Memberships
+                    </h3>
+                    <p className="italic text-sm md:text-base mb-4"
+                      style={{ fontFamily: 'Playfair Display, serif', color: '#c59b27' }}
+                    >
+                      Associated with Prestigious National &amp; International Bodies
+                    </p>
+                    <p className="text-[14px] leading-relaxed max-w-md"
+                      style={{ color: '#3a2a18', fontFamily: 'Inter, sans-serif' }}
+                    >
+                      We are proud to be associated with leading national and international organizations,
+                      which uphold the highest standards in adventure tourism, safety and conservation.
+                    </p>
+                  </div>
+
+                  {/* RIGHT — 5 real logos in one row */}
+                  <div className="flex-1">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-y-8 lg:gap-y-4 h-full items-start">
+                      {memberships.map((m, mi) => (
+                        <div
+                          key={m.abbr}
+                          className="flex flex-col items-center justify-start text-center px-2 lg:border-l h-full"
+                          style={mi > 0 ? { borderColor: 'rgba(197,155,39,0.22)' } : undefined}
+                        >
+                          <div className="mb-3 flex items-center justify-center w-[120px] sm:w-[135px] h-[100px] sm:h-[115px]">
+                            <img
+                              src={m.logo}
+                              alt={`${m.abbr} logo`}
+                              loading="lazy"
+                              decoding="async"
+                              className="max-h-[95px] sm:max-h-[110px] max-w-[120px] sm:max-w-[135px] w-auto h-auto object-contain transition-transform duration-300 hover:scale-105"
+                            />
+                          </div>
+                          <span className="text-base font-bold uppercase tracking-wide" style={{ fontFamily: 'Cinzel, serif', color: '#0B2B5C' }}>
+                            {m.abbr}
+                          </span>
+                          <span className="text-[11px] leading-snug mt-1" style={{ color: 'rgba(58,42,24,0.65)', fontFamily: 'Inter, sans-serif' }}>
+                            {m.name}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Elegant closing phrase */}
+                <div className="border-t pt-6 mt-10 flex justify-center"
+                  style={{ borderColor: 'rgba(197,155,39,0.25)' }}
+                >
+                  <span className="text-2xl" style={{ fontFamily: 'Caveat, cursive', color: '#c59b27' }}>
+                    A Record of Trust
+                  </span>
+                </div>
+              </div>
+              {/* Corner fold */}
+              <div className="absolute bottom-0 right-0 w-12 h-12 pointer-events-none opacity-25"
+                style={{ background: 'linear-gradient(135deg, transparent 50%, #d4c3a4 50%)' }}
+              />
             </motion.div>
           </div>
         </section>
