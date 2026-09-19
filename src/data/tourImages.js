@@ -9,14 +9,14 @@ export const tourImages = {
     U('photo-1501785888041-af3ef285b470'), // Alpine lake
   ],
   'int-2': [
-    U('photo-1537225228614-b2fa3a0ff0ff'), // Bali – temples
+    U('photo-1512100356356-de1b84283e18'), // Bali – temples
     U('photo-1537996194471-e657df975ab4'), // Bali – rice terraces
     U('photo-1514282401047-d79a71a590e8'), // Tropical resort
     U('photo-1582967788606-a171c1080cb0'), // Marine / snorkelling
     U('photo-1507525428034-b723cf961d3e'), // Paradise beach
   ],
   'int-3': [
-    U('photo-1512453395758-6b78f76b7f0e'), // Dubai skyline
+    U('photo-1518684079-3c830dcef090'), // Dubai skyline
     U('photo-1521133573892-e44906baee46'), // Desert dunes
     U('photo-1469854523086-cc02fe5d8800'), // Desert highway drive
   ],
@@ -34,8 +34,8 @@ export const tourImages = {
 
   // Domestic
   'dom-1': [
-    U('photo-1597074866923-dc0589150a32'), // Kashmir – lakes
-    U('photo-1583249598640-3cae04577837'), // Kashmir – mountains
+    U('photo-1476514525535-07fb3b4ae5f1'), // Kashmir – lakes
+    U('photo-1610041321327-b794c052db27'), // Kashmir – mountains
     U('photo-1464822759023-fed622ff2c3b'), // Himalayan snow peaks
     U('photo-1470071459604-3b5ec3a7fe05'), // Misty valley
     U('photo-1476514525535-07fb3b4ae5f1'), // Hill-side lake
@@ -59,7 +59,7 @@ export const tourImages = {
     U('photo-1500530855697-b586d89ba3ee'), // Highland trail
   ],
   'dom-5': [
-    U('photo-1597074866923-dc0589150a32'), // Himachal lakeside
+    U('photo-1476514525535-07fb3b4ae5f1'), // Himachal lakeside
     U('photo-1483728642387-6c3bdd6c93e5'), // Snowy hill station
     U('photo-1464822759023-fed622ff2c3b'), // Himalayan peaks
     U('photo-1470071459604-3b5ec3a7fe05'), // Misty valleys
@@ -100,7 +100,7 @@ export const tourImages = {
     U('photo-1464822759023-fed622ff2c3b'), // Himalayan backdrop
   ],
   'adv-2': [
-    U('photo-1530866495561-507c83749968'), // Bungee jump
+    U('photo-1501555088652-021faa106b9b'), // Bungee jump
     U('photo-1551632811-561732d1e306'), // Thrill activities
     U('photo-1454496522488-7a8e488e8606'), // Valley ridge views
     U('photo-1470071459604-3b5ec3a7fe05'), // Valley mist
@@ -166,7 +166,7 @@ export const tourImages = {
 
   // data.js tours (rendered via TourCard on TravelMood, keyed by numeric id)
   '1': [
-    U('photo-1537225228614-b2fa3a0ff0ff'), // Bali – temples
+    U('photo-1512100356356-de1b84283e18'), // Bali – temples
     U('photo-1537996194471-e657df975ab4'), // Bali – rice terraces
     U('photo-1514282401047-d79a71a590e8'), // Tropical resort
     U('photo-1582967788606-a171c1080cb0'), // Marine / snorkelling

@@ -44,21 +44,21 @@ const showcaseDestinations = [
   {
     name: 'Kashmir',
     tag: 'Valleys of Heaven',
-    image: 'https://images.unsplash.com/photo-1597074866923-dc0589150a32?w=1400&h=1400&fit=crop',
+    image: 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=1400&h=1400&fit=crop',
     to: '/services/domestic',
     layout: 'col-span-2 row-span-2',
   },
   {
     name: 'Dubai',
     tag: 'Ultra Luxury',
-    image: 'https://images.unsplash.com/photo-1512453395758-6b78f76b7f0e?w=900&h=900&fit=crop',
+    image: 'https://images.unsplash.com/photo-1518684079-3c830dcef090?w=900&h=900&fit=crop',
     to: '/services/international',
     layout: 'col-span-1 row-span-1',
   },
   {
     name: 'Bali',
     tag: 'Tropical Escape',
-    image: 'https://images.unsplash.com/photo-1537225228614-b2fa3a0ff0ff?w=900&h=900&fit=crop',
+    image: 'https://images.unsplash.com/photo-1512100356356-de1b84283e18?w=900&h=900&fit=crop',
     to: '/services/international',
     layout: 'col-span-1 row-span-1',
   },
@@ -157,9 +157,16 @@ export default function Home() {
       <section className="relative h-[92vh] min-h-[660px] overflow-hidden">
         <motion.div style={{ y: heroY }} className="absolute inset-0 -bottom-24">
           <img
-            src="https://images.unsplash.com/photo-1509316785289-025f5b846b35?auto=format&fit=crop&w=3840&q=95"
+            src="https://images.unsplash.com/photo-1509316785289-025f5b846b35?auto=format&fit=crop&w=1920&q=80"
+            srcSet="https://images.unsplash.com/photo-1509316785289-025f5b846b35?auto=format&fit=crop&w=640&q=75 640w,
+              https://images.unsplash.com/photo-1509316785289-025f5b846b35?auto=format&fit=crop&w=960&q=78 960w,
+              https://images.unsplash.com/photo-1509316785289-025f5b846b35?auto=format&fit=crop&w=1280&q=80 1280w,
+              https://images.unsplash.com/photo-1509316785289-025f5b846b35?auto=format&fit=crop&w=1920&q=80 1920w"
+            sizes="100vw"
             alt="A scenic road winding through red-orange desert canyons beneath a clear blue sky"
             className="w-full h-full object-cover"
+            fetchPriority="high"
+            decoding="async"
           />
           {/* Subtle dark navy gradient from left behind hero text fading smoothly into the natural landscape */}
           <div className="absolute inset-0" style={{ background: 'linear-gradient(to right, rgba(11,42,91,0.65) 0%, rgba(11,42,91,0.4) 28%, rgba(11,42,91,0.15) 55%, transparent 80%)' }} />

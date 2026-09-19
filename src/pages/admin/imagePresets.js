@@ -4,7 +4,7 @@ export const IMAGE_PRESETS = {
   international: [
     { label: 'Bali', url: U('photo-1537996194471-e657df975ab4') },
     { label: 'Maldives', url: U('photo-1514282401047-d79a71a590e8') },
-    { label: 'Dubai', url: U('photo-1512453395758-6b78f76b7f0e') },
+    { label: 'Dubai', url: U('photo-1518684079-3c830dcef090') },
     { label: 'Thailand', url: U('photo-1528181304800-259b08848526') },
     { label: 'Europe', url: U('photo-1499856871958-5b9627545d1a') },
     { label: 'Vietnam', url: U('photo-1528127269322-539801943592') },
@@ -12,7 +12,7 @@ export const IMAGE_PRESETS = {
     { label: 'Sri Lanka', url: U('photo-1552465011-b4e21bf6e79a') },
   ],
   domestic: [
-    { label: 'Kashmir', url: U('photo-1583249598640-3cae04577837') },
+    { label: 'Kashmir', url: U('photo-1610041321327-b794c052db27') },
     { label: 'Goa', url: U('photo-1512343879784-a960bf40e7f2') },
     { label: 'Kerala', url: U('photo-1602216056096-3b40cc0c9944') },
     { label: 'Andaman', url: U('photo-1544735716-392fe2489ffa') },
