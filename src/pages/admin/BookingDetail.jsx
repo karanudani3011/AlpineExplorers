@@ -255,7 +255,7 @@ export default function BookingDetail() {
         subtitle={`${booking.tour_name} · ${booking.number_of_travelers} Traveler${booking.number_of_travelers > 1 ? 's' : ''}`}
         actions={
           <div className="flex flex-wrap items-center gap-2">
-            <Link to="/admin/bookings" className="flex items-center gap-1.5 px-3 sm:px-4 py-2 min-h-[44px] rounded-full text-xs font-bold uppercase tracking-wider transition" style={{ border: '1px solid rgba(0,26,77,0.2)', color: NAVY }}>
+            <Link to="/admin/bookings" className="flex items-center gap-1.5 px-3 sm:px-4 py-2 min-h-[44px] rounded-full text-xs font-bold uppercase tracking-wider transition" style={{ border: '1px solid rgb(var(--ae-navy-rgb) /0.2)', color: NAVY }}>
               <ArrowLeft size={14} /> Back
             </Link>
             {hasPermission('bookings.edit') && (
@@ -379,7 +379,7 @@ export default function BookingDetail() {
                   onChange={(e) => handleStatusChange(e.target.value)}
                   disabled={updatingStatus}
                   className="rounded-full text-[10px] font-bold uppercase px-2 py-1 border outline-none"
-                  style={{ background: '#fff', borderColor: 'rgba(0,26,77,0.2)', color: NAVY, fontFamily: font.body }}
+                  style={{ background: '#fff', borderColor: 'rgb(var(--ae-navy-rgb) /0.2)', color: NAVY, fontFamily: font.body }}
                 >
                   {STATUSES.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
                 </select>
@@ -461,7 +461,7 @@ export default function BookingDetail() {
         </div>
 
         {travelers.length === 0 ? (
-          <p className="text-center py-8" style={{ color: 'rgba(58,42,24,0.6)', fontFamily: font.body }}>No travelers found for this booking</p>
+          <p className="text-center py-8" style={{ color: 'rgb(var(--ae-ink-rgb) /0.6)', fontFamily: font.body }}>No travelers found for this booking</p>
         ) : (
           <div className="space-y-6">
             {travelers.map((traveler, index) => (
@@ -541,7 +541,7 @@ export default function BookingDetail() {
 function DetailRow({ label, value, icon: Icon }) {
   return (
     <div>
-      <div className="text-[10px] font-bold uppercase tracking-wide mb-0.5" style={{ color: 'rgba(0,26,77,0.45)', fontFamily: font.body }}>
+      <div className="text-[10px] font-bold uppercase tracking-wide mb-0.5" style={{ color: 'rgb(var(--ae-navy-rgb) /0.45)', fontFamily: font.body }}>
         {Icon && <Icon size={12} className="inline-block mr-1" style={{ color: GOLD }} />} {label}
       </div>
       <div className="font-semibold text-sm" style={{ color: NAVY, fontFamily: font.body }}>
@@ -576,16 +576,16 @@ function TravelerCard({ traveler, index, booking, onView, onDownloadPdf, onDownl
   const age = traveler.date_of_birth ? calculateAge(traveler.date_of_birth) : traveler.age
 
   return (
-    <div className="rounded-xl border overflow-hidden" style={{ borderColor: `rgba(197,155,39,0.3)`, background: '#fff' }}>
+    <div className="rounded-xl border overflow-hidden" style={{ borderColor: `rgb(var(--ae-gold-rgb) /0.3)`, background: '#fff' }}>
       {/* Traveler Header */}
-      <div className="px-5 py-4 flex items-center justify-between" style={{ background: `linear-gradient(135deg, ${NAVY}, #0d3a80)` }}>
+      <div className="px-5 py-4 flex items-center justify-between" style={{ background: `linear-gradient(135deg, ${NAVY}, var(--ae-navy-mid))` }}>
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold" style={{ background: 'rgba(255,255,255,0.15)', color: '#fff' }}>
             {index + 1}
           </div>
           <div>
             <p className="text-white font-bold text-sm uppercase tracking-wider">Traveler {index + 1}</p>
-            {traveler.full_name && <p className="text-xs mt-0.5" style={{ color: 'rgba(250,245,234,0.75)' }}>{traveler.full_name}</p>}
+            {traveler.full_name && <p className="text-xs mt-0.5" style={{ color: 'rgb(var(--ae-cream-rgb) /0.75)' }}>{traveler.full_name}</p>}
           </div>
         </div>
         <div className="flex items-center gap-1 sm:gap-2">
@@ -694,7 +694,7 @@ function TravelerCard({ traveler, index, booking, onView, onDownloadPdf, onDownl
               onClick={handleDownloadPdf}
               disabled={pdfLoading}
               className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition"
-              style={{ background: 'rgba(197,155,39,0.15)', color: NAVY, border: '1px solid rgba(197,155,39,0.4)' }}
+              style={{ background: 'rgb(var(--ae-gold-rgb) /0.15)', color: NAVY, border: '1px solid rgb(var(--ae-gold-rgb) /0.4)' }}
             >
               {pdfLoading ? <Loader2 size={13} className="animate-spin" /> : <FileText size={13} />}
               Download PDF

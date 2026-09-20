@@ -133,9 +133,9 @@ export default function CrudPage({ config }) {
           <div className="flex-1 min-w-[200px] relative">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 opacity-40" />
             <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={`Search ${config.title.toLowerCase()}…`}
-              style={{ ...fonts, padding: '9px 12px 9px 34px', borderRadius: 10, border: '1px solid rgba(0,26,77,0.15)', width: '100%', fontSize: 13, outline: 'none' }} />
+              style={{ ...fonts, padding: '9px 12px 9px 34px', borderRadius: 10, border: '1px solid rgb(var(--ae-navy-rgb) /0.15)', width: '100%', fontSize: 13, outline: 'none' }} />
           </div>
-          <span className="text-[11px] font-semibold" style={{ color: 'rgba(0,26,77,0.5)' }}>{filtered.length} record{filtered.length !== 1 ? 's' : ''}</span>
+          <span className="text-[11px] font-semibold" style={{ color: 'rgb(var(--ae-navy-rgb) /0.5)' }}>{filtered.length} record{filtered.length !== 1 ? 's' : ''}</span>
         </div>
 
         {loading ? <Spinner /> : (
@@ -191,7 +191,7 @@ function StarIcon({ active }) {
 }
 function StarSvg({ active }) {
   return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill={active ? '#c59b27' : 'none'} stroke={active ? '#c59b27' : '#c9bda4'} strokeWidth="2">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill={active ? 'var(--ae-gold)' : 'none'} stroke={active ? 'var(--ae-gold)' : '#c9bda4'} strokeWidth="2">
       <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.86L12 17.77l-6.18 3.23L7 14.14 2 9.27l6.91-1.01L12 2z" />
     </svg>
   )

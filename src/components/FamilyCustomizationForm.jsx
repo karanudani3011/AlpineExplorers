@@ -2,9 +2,9 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Users, MapPin, Calendar, Clock, Banknote, MessageSquare, Send, CheckCircle2 } from 'lucide-react'
 
-const NAVY = '#001a4d'
-const GOLD = '#c59b27'
-const BROWN = '#3a2a18'
+const NAVY = 'var(--ae-navy)'
+const GOLD = 'var(--ae-gold)'
+const BROWN = 'var(--ae-ink)'
 
 const destinations = [
   'Europe', 'Bali', 'Dubai', 'Singapore', 'Thailand',
@@ -112,7 +112,7 @@ export default function FamilyCustomizationForm() {
       <div className="flex items-center gap-3 mb-2">
         <div
           className="w-10 h-10 rounded-xl flex items-center justify-center"
-          style={{ background: `linear-gradient(135deg, ${GOLD}, ${GOLD})`, boxShadow: '0 3px 10px rgba(197,155,39,0.3)' }}
+          style={{ background: `linear-gradient(135deg, ${GOLD}, ${GOLD})`, boxShadow: '0 3px 10px rgb(var(--ae-gold-rgb) /0.3)' }}
         >
           <Users size={20} className="text-white" />
         </div>
@@ -120,7 +120,7 @@ export default function FamilyCustomizationForm() {
           <h3 className="text-lg font-bold" style={{ fontFamily: 'Cinzel, serif', color: NAVY }}>
             Customize Your Family Tour
           </h3>
-          <p className="text-[11px]" style={{ color: 'rgba(58,42,24,0.6)' }}>
+          <p className="text-[11px]" style={{ color: 'rgb(var(--ae-ink-rgb) /0.6)' }}>
             Tell us your preferences and we'll create the perfect trip
           </p>
         </div>
@@ -304,13 +304,13 @@ export default function FamilyCustomizationForm() {
       <button
         type="submit"
         className="w-full py-3.5 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition flex items-center justify-center gap-2 text-sm"
-        style={{ background: `linear-gradient(135deg, ${NAVY}, #0d3a80)` }}
+        style={{ background: `linear-gradient(135deg, ${NAVY}, var(--ae-navy-mid))` }}
       >
         <Send size={16} />
         <span>Customize My Tour</span>
       </button>
 
-      <p className="text-center text-[10px]" style={{ color: 'rgba(58,42,24,0.5)' }}>
+      <p className="text-center text-[10px]" style={{ color: 'rgb(var(--ae-ink-rgb) /0.5)' }}>
         Your request will be sent via WhatsApp. Our team responds within 30 minutes during business hours.
       </p>
     </motion.form>

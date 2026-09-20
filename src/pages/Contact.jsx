@@ -12,12 +12,12 @@ import {
 
 /* ────────────────────────── Design tokens ────────────────────────── */
 
-const NAVY = '#001a4d'
+const NAVY = 'var(--ae-navy)'
 const NAVY_DARK = '#0d2137'
-const GOLD = '#c59b27'
-const GOLD2 = '#d4af37'
-const CREAM = '#faf5ea'
-const BROWN = '#3a2a18'
+const GOLD = 'var(--ae-gold)'
+const GOLD2 = 'var(--ae-gold2)'
+const CREAM = 'var(--ae-cream)'
+const BROWN = 'var(--ae-ink)'
 const RED = '#8b2518'
 
 const font = {
@@ -83,8 +83,8 @@ function HandRoute({ className = '', tone = 0.5 }) {
     <svg viewBox="0 0 500 40" className={className} fill="none" style={{ opacity: tone }}>
       <path d="M20 30 C80 5, 160 38, 250 15 S400 38, 480 12" stroke="#8c5828" strokeWidth="2.5" strokeDasharray="6 6" strokeLinecap="round" />
       <circle cx="20" cy="30" r="4" fill="#ba3322" />
-      <circle cx="200" cy="22" r="3.5" fill="#1e3a5f" />
-      <circle cx="350" cy="18" r="3.5" fill="#1e3a5f" />
+      <circle cx="200" cy="22" r="3.5" style={{ fill: 'var(--ae-navy-soft)' }} />
+      <circle cx="350" cy="18" r="3.5" style={{ fill: 'var(--ae-navy-soft)' }} />
       <circle cx="480" cy="12" r="5" fill="#ba3322" stroke="#ffffff" strokeWidth="1.5" />
     </svg>
   )
@@ -107,7 +107,7 @@ function SectionHeading({ eyebrow, title, tagline, rotate = 0 }) {
       </h2>
       <div className="flex items-center justify-center gap-3">
         <div className="h-[1.5px] w-12" style={{ background: `linear-gradient(to right, transparent, ${GOLD})` }} />
-        <p className="italic text-base md:text-lg" style={{ ...font.display, color: 'rgba(58,42,24,0.7)' }}>
+        <p className="italic text-base md:text-lg" style={{ ...font.display, color: 'rgb(var(--ae-ink-rgb) /0.7)' }}>
           {tagline}
         </p>
         <div className="h-[1.5px] w-12" style={{ background: `linear-gradient(to left, transparent, ${GOLD})` }} />
@@ -137,8 +137,8 @@ function CompassRose({ size = 90, tone = 0.5 }) {
           transform={`rotate(${a} 50 50)`} />
       ))}
       <polygon points="50,14 56,44 50,38 44,44" fill="#ba3322" />
-      <polygon points="50,86 43,56 50,62 57,56" fill="#1e3a5f" />
-      <circle cx="50" cy="50" r="4" fill="#c59b27" />
+      <polygon points="50,86 43,56 50,62 57,56" style={{ fill: 'var(--ae-navy-soft)' }} />
+      <circle cx="50" cy="50" r="4" style={{ fill: 'var(--ae-gold)' }} />
     </svg>
   )
 }
@@ -150,7 +150,7 @@ function Stamp({ text = 'SINCE 1998', sub = 'ALPINE EXPLORERS', size = 96 }) {
       style={{
         width: size, height: size, border: '2px dashed rgba(139,37,24,0.7)', color: RED,
         transform: 'rotate(-8deg)', boxShadow: '0 4px 14px rgba(60,40,20,0.15)',
-        backgroundColor: 'rgba(250,245,234,0.85)',
+        backgroundColor: 'rgb(var(--ae-cream-rgb) /0.85)',
       }}
     >
       <svg width="30" height="24" viewBox="0 0 34 28" fill="none">
@@ -171,7 +171,7 @@ const NavyBtn = ({ children, href, onClick, className = '', type = 'button' }) =
     whileHover={{ y: -2 }}
     whileTap={{ scale: 0.97 }}
     className={`group inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full text-xs tracking-widest uppercase font-bold ${className}`}
-    style={{ backgroundColor: NAVY, color: '#fff', ...font.vintage, boxShadow: '0 8px 24px rgba(0,26,77,0.28)' }}
+    style={{ backgroundColor: NAVY, color: '#fff', ...font.vintage, boxShadow: '0 8px 24px rgb(var(--ae-navy-rgb) /0.28)' }}
   >
     {children}
   </motion.a>
@@ -186,7 +186,7 @@ const GoldBtn = ({ children, href, onClick } = {}) => (
     className="group inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-full text-xs tracking-widest uppercase font-bold"
     style={{
       backgroundColor: GOLD, color: NAVY, ...font.vintage,
-      boxShadow: '0 8px 26px rgba(197,155,39,0.4)',
+      boxShadow: '0 8px 26px rgb(var(--ae-gold-rgb) /0.4)',
       animation: 'goldGlow 3.2s ease-in-out infinite',
     }}
   >
@@ -206,13 +206,13 @@ const Input = ({ label, required, icon: Icon, children, ...props }) => (
         </span>
         <input {...props} className="w-full pl-11 pr-4 py-3 rounded-xl text-sm bg-white border outline-none transition focus:ring-2"
           style={{ borderColor: 'rgba(180,160,130,0.45)', color: BROWN, ...font.body, boxShadow: '0 2px 8px rgba(60,40,20,0.05)' }}
-          onFocus={(e) => { e.target.style.borderColor = GOLD; e.target.style.boxShadow = `0 0 0 3px rgba(197,155,39,0.18)` }}
+          onFocus={(e) => { e.target.style.borderColor = GOLD; e.target.style.boxShadow = `0 0 0 3px rgb(var(--ae-gold-rgb) /0.18)` }}
           onBlur={(e) => { e.target.style.borderColor = 'rgba(180,160,130,0.45)'; e.target.style.boxShadow = '0 2px 8px rgba(60,40,20,0.05)' }} />
       </div>
     ) : (
       <input {...props} className="w-full px-4 py-3 rounded-xl text-sm bg-white border outline-none transition focus:ring-2"
         style={{ borderColor: 'rgba(180,160,130,0.45)', color: BROWN, ...font.body, boxShadow: '0 2px 8px rgba(60,40,20,0.05)' }}
-        onFocus={(e) => { e.target.style.borderColor = GOLD; e.target.style.boxShadow = `0 0 0 3px rgba(197,155,39,0.18)` }}
+        onFocus={(e) => { e.target.style.borderColor = GOLD; e.target.style.boxShadow = `0 0 0 3px rgb(var(--ae-gold-rgb) /0.18)` }}
         onBlur={(e) => { e.target.style.borderColor = 'rgba(180,160,130,0.45)'; e.target.style.boxShadow = '0 2px 8px rgba(60,40,20,0.05)' }} />
     )}
     {props.error && (
@@ -228,7 +228,7 @@ const Select = ({ label, required, children, value, onChange, error }) => (
     </label>
     <select value={value} onChange={onChange}
       className="w-full px-4 py-3 rounded-xl text-sm bg-white border outline-none cursor-pointer transition"
-      style={{ borderColor: 'rgba(180,160,130,0.45)', color: value ? BROWN : 'rgba(58,42,24,0.5)', ...font.body, boxShadow: '0 2px 8px rgba(60,40,20,0.05)' }}>
+      style={{ borderColor: 'rgba(180,160,130,0.45)', color: value ? BROWN : 'rgb(var(--ae-ink-rgb) /0.5)', ...font.body, boxShadow: '0 2px 8px rgba(60,40,20,0.05)' }}>
       {children}
     </select>
     {error && <p className="text-[11px] font-semibold mt-1" style={{ color: RED, ...font.body }}>{error}</p>}
@@ -243,7 +243,7 @@ const Textarea = ({ label, required, error, ...props }) => (
     <textarea {...props}
       className="w-full px-4 py-3 rounded-xl text-sm bg-white border outline-none transition resize-none"
       style={{ borderColor: 'rgba(180,160,130,0.45)', color: BROWN, ...font.body, boxShadow: '0 2px 8px rgba(60,40,20,0.05)' }}
-      onFocus={(e) => { e.target.style.borderColor = GOLD; e.target.style.boxShadow = `0 0 0 3px rgba(197,155,39,0.18)` }}
+      onFocus={(e) => { e.target.style.borderColor = GOLD; e.target.style.boxShadow = `0 0 0 3px rgb(var(--ae-gold-rgb) /0.18)` }}
       onBlur={(e) => { e.target.style.borderColor = 'rgba(180,160,130,0.45)'; e.target.style.boxShadow = '0 2px 8px rgba(60,40,20,0.05)' }} />
     {error && <p className="text-[11px] font-semibold mt-1" style={{ color: RED, ...font.body }}>{error}</p>}
   </div>
@@ -276,8 +276,8 @@ function StylizedMap() {
         <g transform="translate(528, 352) scale(0.9)">
           <circle cx="0" cy="0" r="26" stroke="#8c5828" strokeWidth="1.4" strokeDasharray="4 4" />
           <polygon points="0,-19 5,-4 0,0 -5,-4" fill="#ba3322" />
-          <polygon points="0,19 -5,4 0,0 5,4" fill="#1e3a5f" />
-          <circle cx="0" cy="0" r="2.5" fill="#c59b27" />
+          <polygon points="0,19 -5,4 0,0 5,4" style={{ fill: 'var(--ae-navy-soft)' }} />
+          <circle cx="0" cy="0" r="2.5" style={{ fill: 'var(--ae-gold)' }} />
         </g>
       </svg>
 
@@ -358,7 +358,7 @@ export default function Contact() {
   useEffect(() => {
     window.scrollTo(0, 0)
     const style = document.createElement('style')
-    style.textContent = `@keyframes goldGlow { 0%,100% { box-shadow: 0 8px 26px rgba(197,155,39,0.38); } 50% { box-shadow: 0 10px 34px rgba(212,175,55,0.62); } }`
+    style.textContent = `@keyframes goldGlow { 0%,100% { box-shadow: 0 8px 26px rgb(var(--ae-gold-rgb) /0.38); } 50% { box-shadow: 0 10px 34px rgb(var(--ae-gold2-rgb) /0.62); } }`
     document.head.appendChild(style)
     return () => document.head.removeChild(style)
   }, [])
@@ -419,9 +419,9 @@ export default function Contact() {
   return (
     <div className="min-h-screen relative"
       style={{
-        backgroundColor: '#f5ecd8',
+        backgroundColor: 'var(--ae-bg-paper)',
         backgroundImage: `
-          radial-gradient(circle at 50% 50%, #fbf6ec 0%, #f0e3c5 60%, #e0cda5 100%),
+          radial-gradient(circle at 50% 50%, var(--ae-bg-glow) 0%, var(--ae-bg-mid) 60%, var(--ae-bg-edge) 100%),
           radial-gradient(#c7af85 0.75px, transparent 0.75px)`,
         backgroundSize: '100% 100%, 28px 28px',
         backgroundAttachment: 'fixed',
@@ -475,7 +475,7 @@ export default function Contact() {
                   alt="Himalayan adventure"
                   className="w-full h-full object-cover transition-transform duration-[1.4s] group-hover:scale-105"
                 />
-                <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,26,77,0.5) 0%, transparent 45%)' }} />
+                <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgb(var(--ae-navy-rgb) /0.5) 0%, transparent 45%)' }} />
 
                 {/* corner decorations on the card */}
                 <div className="absolute top-4 left-4" style={{ opacity: 0.85 }}>
@@ -524,7 +524,7 @@ export default function Contact() {
                 <div className="absolute -top-3 left-1/2 w-16 h-5 rounded-sm opacity-60" style={{ backgroundColor: 'rgba(245,230,196,0.9)', transform: 'translateX(-50%) rotate(-1deg)' }} />
 
                 <div className="flex items-center gap-3 mb-7">
-                  <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg, rgba(197,155,39,0.18), rgba(212,175,55,0.08))', border: '1px dashed rgba(197,155,39,0.5)' }}>
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg, rgb(var(--ae-gold-rgb) /0.18), rgb(var(--ae-gold2-rgb) /0.08))', border: '1px dashed rgb(var(--ae-gold-rgb) /0.5)' }}>
                     <Route size={22} style={{ color: GOLD }} />
                   </div>
                   <div>
@@ -548,14 +548,14 @@ export default function Contact() {
                           {b.lines.map((ln, j) =>
                             b.links ? (
                               <a key={j} href={`tel:+${ln.replace(/\D/g, '')}`}
-                                className="block text-[13px] leading-relaxed font-semibold hover:text-[#0d3a80] transition"
-                                style={{ color: '#1e3a5f', ...font.body }}>
+                                className="block text-[13px] leading-relaxed font-semibold hover:text-[color:var(--ae-navy-mid)] transition"
+                                style={{ color: 'var(--ae-navy-soft)', ...font.body }}>
                                 {ln}
                               </a>
                             ) : b.mails ? (
                               <a key={j} href={`mailto:${ln}`}
-                                className="block text-[13px] leading-relaxed font-semibold hover:text-[#0d3a80] transition"
-                                style={{ color: '#1e3a5f', ...font.body }}>
+                                className="block text-[13px] leading-relaxed font-semibold hover:text-[color:var(--ae-navy-mid)] transition"
+                                style={{ color: 'var(--ae-navy-soft)', ...font.body }}>
                                 {ln}
                               </a>
                             ) : (
@@ -568,7 +568,7 @@ export default function Contact() {
                               {b.hrefLabel} <ArrowRight size={13} style={{ color: GOLD }} />
                             </motion.a>
                           )}
-                          {b.sub && <p className="text-[11px] mt-1" style={{ color: 'rgba(58,42,24,0.6)', ...font.script }}>{b.sub}</p>}
+                          {b.sub && <p className="text-[11px] mt-1" style={{ color: 'rgb(var(--ae-ink-rgb) /0.6)', ...font.script }}>{b.sub}</p>}
                         </div>
                       </motion.div>
                     )
@@ -577,7 +577,7 @@ export default function Contact() {
 
                 {/* quote note */}
                 <div className="mt-7 p-4 rounded-xl flex items-start gap-3"
-                  style={{ backgroundColor: 'rgba(197,155,39,0.08)', border: '1px dashed rgba(197,155,39,0.42)' }}>
+                  style={{ backgroundColor: 'rgb(var(--ae-gold-rgb) /0.08)', border: '1px dashed rgb(var(--ae-gold-rgb) /0.42)' }}>
                   <Quote size={16} style={{ color: GOLD, flexShrink: 0 }} />
                   <p className="text-[12px] italic leading-relaxed" style={{ color: BROWN, ...font.display }}>
                     "A journey is best measured in friends, not miles."
@@ -592,12 +592,12 @@ export default function Contact() {
                 <div className="absolute -top-3 left-10 w-14 h-5 rounded-sm opacity-60" style={{ backgroundColor: 'rgba(245,230,196,0.9)', transform: 'rotate(2deg)' }} />
 
                 <div className="flex items-center gap-3 mb-2">
-                  <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg, rgba(197,155,39,0.18), rgba(212,175,55,0.08))', border: '1px dashed rgba(197,155,39,0.5)' }}>
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg, rgb(var(--ae-gold-rgb) /0.18), rgb(var(--ae-gold2-rgb) /0.08))', border: '1px dashed rgb(var(--ae-gold-rgb) /0.5)' }}>
                     <Send size={20} style={{ color: GOLD }} />
                   </div>
                   <div>
                     <h3 className="text-2xl font-bold" style={{ ...font.vintage, color: NAVY }}>Send Us a Message</h3>
-                    <p className="text-xs italic" style={{ color: 'rgba(58,42,24,0.7)', ...font.display }}>
+                    <p className="text-xs italic" style={{ color: 'rgb(var(--ae-ink-rgb) /0.7)', ...font.display }}>
                       Tell us about your dream trip and our team will get back to you.
                     </p>
                   </div>
@@ -606,7 +606,7 @@ export default function Contact() {
                 {status === 'sent' ? (
                   <motion.div initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }} className="py-14 text-center">
                     <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 200, damping: 12 }} className="mx-auto mb-5">
-                      <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto" style={{ backgroundColor: 'rgba(197,155,39,0.12)', border: '2px dashed rgba(197,155,39,0.55)' }}>
+                      <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto" style={{ backgroundColor: 'rgb(var(--ae-gold-rgb) /0.12)', border: '2px dashed rgb(var(--ae-gold-rgb) /0.55)' }}>
                         <CheckCircle2 size={40} style={{ color: GOLD }} />
                       </div>
                     </motion.div>
@@ -657,7 +657,7 @@ export default function Contact() {
                         whileTap={{ scale: 0.97 }}
                         disabled={status === 'sending'}
                         className="group w-full inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full text-xs sm:text-sm tracking-widest uppercase font-bold disabled:opacity-70"
-                        style={{ backgroundColor: NAVY, color: '#fff', ...font.vintage, boxShadow: '0 10px 28px rgba(0,26,77,0.3)', animation: 'goldGlow 3.2s ease-in-out infinite' }}
+                        style={{ backgroundColor: NAVY, color: '#fff', ...font.vintage, boxShadow: '0 10px 28px rgb(var(--ae-navy-rgb) /0.3)', animation: 'goldGlow 3.2s ease-in-out infinite' }}
                       >
                         {status === 'sending' ? (
                           <>Sending…</>
@@ -665,7 +665,7 @@ export default function Contact() {
                           <>Send Message <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" /></>
                         )}
                       </motion.button>
-                      <p className="text-center text-[11px] mt-3" style={{ color: 'rgba(58,42,24,0.55)', ...font.body }}>
+                      <p className="text-center text-[11px] mt-3" style={{ color: 'rgb(var(--ae-ink-rgb) /0.55)', ...font.body }}>
                         We usually reply within 24 hours.
                       </p>
                     </div>
@@ -688,14 +688,14 @@ export default function Contact() {
             <motion.div variants={item} className="h-full">
               <PaperCard className="p-7 text-center h-full flex flex-col items-center" style={{ overflow: 'visible' }}>
                 <div className="absolute -top-5 left-1/2 -translate-x-1/2 w-14 h-14 rounded-full flex items-center justify-center z-10"
-                  style={{ backgroundColor: NAVY, boxShadow: '0 8px 20px rgba(0,26,77,0.35)' }}>
+                  style={{ backgroundColor: NAVY, boxShadow: '0 8px 20px rgb(var(--ae-navy-rgb) /0.35)' }}>
                   <Phone size={22} style={{ color: GOLD2 }} />
                 </div>
                 <span className="mt-8 text-lg" style={{ ...font.script, color: GOLD }}>CALL US</span>
                 <h3 className="text-xl font-bold mb-2 mt-1" style={{ ...font.vintage, color: NAVY }}>Talk to Our Experts</h3>
                 <p className="text-[13px] mb-5" style={{ color: BROWN, ...font.body }}>Talk directly with our travel experts</p>
                 <div className="flex-1" />
-                <a href="tel:+919979883339" className="text-xl font-bold mb-4 break-all" style={{ color: '#1e3a5f', ...font.vintage }}>{c.phone}</a>
+                <a href="tel:+919979883339" className="text-xl font-bold mb-4 break-all" style={{ color: 'var(--ae-navy-soft)', ...font.vintage }}>{c.phone}</a>
                 <motion.a href="tel:+919979883339" whileHover={{ y: -2 }} whileTap={{ scale: 0.97 }}
                   className="group inline-flex items-center gap-2 px-6 py-3 rounded-full text-xs uppercase font-bold tracking-widest mb-5"
                   style={{ backgroundColor: NAVY, color: '#fff', ...font.vintage }}>
@@ -715,8 +715,8 @@ export default function Contact() {
                 <h3 className="text-xl font-bold mb-2 mt-1" style={{ ...font.vintage, color: NAVY }}>Quick Chat</h3>
                 <p className="text-[13px] mb-5" style={{ color: BROWN, ...font.body }}>Quick assistance for your travel plans</p>
                 <div className="flex-1" />
-                <span className="text-[15px] font-bold mb-1 break-all" style={{ color: '#1e3a5f', ...font.body }}>{c.whatsapp}</span>
-                <span className="text-[13px] mb-4" style={{ color: 'rgba(58,42,24,0.7)', ...font.body }}>
+                <span className="text-[15px] font-bold mb-1 break-all" style={{ color: 'var(--ae-navy-soft)', ...font.body }}>{c.whatsapp}</span>
+                <span className="text-[13px] mb-4" style={{ color: 'rgb(var(--ae-ink-rgb) /0.7)', ...font.body }}>
                   Typically responds in a few minutes
                 </span>
                 <motion.a href={`https://wa.me/${c.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" whileHover={{ y: -2 }} whileTap={{ scale: 0.97 }}
@@ -731,16 +731,16 @@ export default function Contact() {
             <motion.div variants={item} className="h-full">
               <PaperCard className="p-7 text-center h-full flex flex-col items-center" style={{ overflow: 'visible' }}>
                 <div className="absolute -top-5 left-1/2 -translate-x-1/2 w-14 h-14 rounded-full flex items-center justify-center z-10"
-                  style={{ backgroundColor: GOLD, boxShadow: '0 8px 20px rgba(197,155,39,0.45)' }}>
+                  style={{ backgroundColor: GOLD, boxShadow: '0 8px 20px rgb(var(--ae-gold-rgb) /0.45)' }}>
                   <Mail size={22} style={{ color: NAVY }} />
                 </div>
                 <span className="mt-8 text-lg" style={{ ...font.script, color: GOLD }}>EMAIL US</span>
                 <h3 className="text-xl font-bold mb-2 mt-1" style={{ ...font.vintage, color: NAVY }}>Write To Us</h3>
                 <div className="flex-1" />
-                <a href="mailto:alpine_explorers@yahoo.co.in" className="text-sm font-bold mb-4 leading-relaxed break-all" style={{ color: '#1e3a5f', ...font.body }}>alpine_explorers@yahoo.co.in</a>
+                <a href="mailto:alpine_explorers@yahoo.co.in" className="text-sm font-bold mb-4 leading-relaxed break-all" style={{ color: 'var(--ae-navy-soft)', ...font.body }}>alpine_explorers@yahoo.co.in</a>
                 <motion.a href="mailto:alpine_explorers@yahoo.co.in" whileHover={{ y: -2 }} whileTap={{ scale: 0.97 }}
                   className="group inline-flex items-center gap-2 px-6 py-3 rounded-full text-xs uppercase font-bold tracking-widest mb-5"
-                  style={{ backgroundColor: GOLD, color: NAVY, ...font.vintage, boxShadow: '0 8px 22px rgba(197,155,39,0.35)' }}>
+                  style={{ backgroundColor: GOLD, color: NAVY, ...font.vintage, boxShadow: '0 8px 22px rgb(var(--ae-gold-rgb) /0.35)' }}>
                   Email Us <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
                 </motion.a>
               </PaperCard>
@@ -759,7 +759,7 @@ export default function Contact() {
               {/* Left — address */}
               <motion.div variants={container} initial="hidden" whileInView="visible" viewport={{ once: true }}>
                 <motion.div variants={item} className="flex items-center gap-3 mb-6">
-                  <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg, rgba(197,155,39,0.18), rgba(212,175,55,0.08))', border: '1px dashed rgba(197,155,39,0.5)' }}>
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg, rgb(var(--ae-gold-rgb) /0.18), rgb(var(--ae-gold2-rgb) /0.08))', border: '1px dashed rgb(var(--ae-gold-rgb) /0.5)' }}>
                     <MapPin size={22} style={{ color: RED }} />
                   </div>
                   <h3 className="text-2xl font-bold" style={{ ...font.vintage, color: NAVY }}>Alpine Explorers</h3>
@@ -780,7 +780,7 @@ export default function Contact() {
                   <a href="tel:+919979883339" className="inline-flex items-center gap-2 text-sm font-bold" style={{ color: NAVY, ...font.body }}>
                     <Phone size={16} style={{ color: GOLD }} /> +91 99798 83339
                   </a>
-                  <span className="hidden sm:inline text-sm" style={{ color: 'rgba(58,42,24,0.4)' }}>|</span>
+                  <span className="hidden sm:inline text-sm" style={{ color: 'rgb(var(--ae-ink-rgb) /0.4)' }}>|</span>
                   <a href="mailto:alpine_explorers@yahoo.co.in" className="inline-flex items-center gap-2 text-sm font-bold" style={{ color: NAVY, ...font.body }}>
                     <Mail size={16} style={{ color: GOLD }} /> alpine_explorers@yahoo.co.in
                   </a>
@@ -822,7 +822,7 @@ export default function Contact() {
                   alt="Mountain adventure"
                   className="absolute inset-0 w-full h-full object-cover"
                 />
-                <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,26,77,0.72) 0%, rgba(0,26,77,0.35) 55%, rgba(0,26,77,0.5) 100%)' }} />
+                <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgb(var(--ae-navy-rgb) /0.72) 0%, rgb(var(--ae-navy-rgb) /0.35) 55%, rgb(var(--ae-navy-rgb) /0.5) 100%)' }} />
 
                 {/* decorative overlays */}
                 <CompassRose size={90} tone={0.35} className="absolute left-6 top-6 pointer-events-none hidden sm:block" />
@@ -839,7 +839,7 @@ export default function Contact() {
                   <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 text-white" style={{ ...font.vintage }}>
                     Your Adventure Starts With a Conversation
                   </h2>
-                  <p className="text-sm sm:text-base leading-relaxed mb-8" style={{ color: 'rgba(250,245,234,0.9)', ...font.body }}>
+                  <p className="text-sm sm:text-base leading-relaxed mb-8" style={{ color: 'rgb(var(--ae-cream-rgb) /0.9)', ...font.body }}>
                     From international holidays to Himalayan expeditions and customized family adventures, we're ready to create your perfect journey.
                   </p>
                   <div className="flex flex-col sm:flex-row items-center justify-center gap-4">

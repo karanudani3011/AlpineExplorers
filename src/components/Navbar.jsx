@@ -7,12 +7,13 @@ import UserProfileModal from './UserProfileModal'
 import InquiryModal from './InquiryModal'
 import ServicesMegaMenu from './ServicesMegaMenu'
 import { useSupabaseAuth } from '../hooks/useSupabaseAuth'
+import ThemeSwitcher from '../theme/ThemeSwitcher'
 
-const NAVY = '#001a4d'
-const NAVY_MID = '#0d3a80'
-const GOLD = '#c59b27'
-const GOLD2 = '#d4af37'
-const BROWN = '#3a2a18'
+const NAVY = 'var(--ae-navy)'
+const NAVY_MID = 'var(--ae-navy-mid)'
+const GOLD = 'var(--ae-gold)'
+const GOLD2 = 'var(--ae-gold2)'
+const BROWN = 'var(--ae-ink)'
 
 const serviceSubLinks = [
   { name: 'International', slug: 'international', icon: Globe, tagline: 'Explore the world beyond borders' },
@@ -70,7 +71,7 @@ export default function Navbar() {
         animate={{ y: 0 }}
         transition={{ duration: 0.4 }}
         className="sticky top-0 z-40 border-b shadow-sm backdrop-blur-md"
-        style={{ backgroundColor: 'rgba(250,245,234,0.95)', borderColor: 'rgba(180,160,130,0.3)' }}
+        style={{ backgroundColor: 'rgb(var(--ae-cream-rgb) /0.95)', borderColor: 'rgba(180,160,130,0.3)' }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
@@ -170,20 +171,22 @@ export default function Navbar() {
               {/* <button
                 onClick={() => setInquiryOpen(true)}
                 className="px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition"
-                style={{ border: '1px solid rgba(197,155,39,0.6)', color: NAVY, backgroundColor: 'rgba(212,175,55,0.12)' }}
+                style={{ border: '1px solid rgb(var(--ae-gold-rgb) /0.6)', color: NAVY, backgroundColor: 'rgb(var(--ae-gold2-rgb) /0.12)' }}
                 onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = GOLD; e.currentTarget.style.color = '#fff' }}
-                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(212,175,55,0.12)'; e.currentTarget.style.color = NAVY }}
+                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgb(var(--ae-gold2-rgb) /0.12)'; e.currentTarget.style.color = NAVY }}
                 title="Open WhatsApp Inquire flow"
               >
                 <MessageSquare size={14} style={{ color: GOLD }} />
                 <span>Inquire</span>
               </button> */}
 
+              <ThemeSwitcher />
+
               <button
                 onClick={() => setSearchOpen(true)}
                 className="p-2.5 rounded-xl transition"
                 style={{ color: BROWN }}
-                onMouseEnter={(e) => { e.currentTarget.style.color = NAVY; e.currentTarget.style.backgroundColor = 'rgba(197,155,39,0.12)' }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = NAVY; e.currentTarget.style.backgroundColor = 'rgb(var(--ae-gold-rgb) /0.12)' }}
                 onMouseLeave={(e) => { e.currentTarget.style.color = BROWN; e.currentTarget.style.backgroundColor = 'transparent' }}
                 aria-label="Search"
                 title="Search destinations & tours"
@@ -195,7 +198,7 @@ export default function Navbar() {
                 onClick={() => setProfileOpen(true)}
                 className="p-2.5 rounded-xl transition relative"
                 style={{ color: BROWN }}
-                onMouseEnter={(e) => { e.currentTarget.style.color = NAVY; e.currentTarget.style.backgroundColor = 'rgba(197,155,39,0.12)' }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = NAVY; e.currentTarget.style.backgroundColor = 'rgb(var(--ae-gold-rgb) /0.12)' }}
                 onMouseLeave={(e) => { e.currentTarget.style.color = BROWN; e.currentTarget.style.backgroundColor = 'transparent' }}
                 aria-label="User Profile"
                 title={user ? `Logged in as ${user.email}` : "User profile & saved tours"}
@@ -221,6 +224,7 @@ export default function Navbar() {
               >
                 <Search size={20} />
               </button>
+              <ThemeSwitcher />
               <button
                 className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center focus:outline-none"
                 onClick={() => setIsOpen(!isOpen)}
@@ -252,7 +256,7 @@ export default function Navbar() {
                           }`}
                           style={{
                             color: isServicesActive ? NAVY : BROWN,
-                            backgroundColor: isServicesActive ? 'rgba(212,175,55,0.14)' : 'transparent',
+                            backgroundColor: isServicesActive ? 'rgb(var(--ae-gold2-rgb) /0.14)' : 'transparent',
                           }}
                         >
                           <span>{link.name}</span>
@@ -277,7 +281,7 @@ export default function Navbar() {
                                   to={link.path}
                                   onClick={handleNavigate}
                                   className="block py-2 px-3 rounded-lg text-xs font-bold transition"
-                                  style={{ color: GOLD, backgroundColor: 'rgba(197,155,39,0.08)' }}
+                                  style={{ color: GOLD, backgroundColor: 'rgb(var(--ae-gold-rgb) /0.08)' }}
                                 >
                                   Browse All Services
                                 </Link>
@@ -299,7 +303,7 @@ export default function Navbar() {
                                       </div>
                                       <div>
                                         <span className="font-semibold text-xs block">{sub.name}</span>
-                                        <span className="text-[10px]" style={{ color: 'rgba(58,42,24,0.5)' }}>
+                                        <span className="text-[10px]" style={{ color: 'rgb(var(--ae-ink-rgb) /0.5)' }}>
                                           {sub.tagline}
                                         </span>
                                       </div>
@@ -323,7 +327,7 @@ export default function Navbar() {
                       }`}
                       style={{
                         color: isActive(link.path) ? NAVY : BROWN,
-                        backgroundColor: isActive(link.path) ? 'rgba(212,175,55,0.14)' : 'transparent',
+                        backgroundColor: isActive(link.path) ? 'rgb(var(--ae-gold2-rgb) /0.14)' : 'transparent',
                       }}
                       onClick={handleNavigate}
                     >
@@ -338,7 +342,7 @@ export default function Navbar() {
                       to="/my-bookings"
                       onClick={() => setIsOpen(false)}
                       className="w-full py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition text-white"
-                      style={{ backgroundColor: NAVY, border: '1px solid rgba(212,175,55,0.4)', fontFamily: 'Cinzel, serif' }}
+                      style={{ backgroundColor: NAVY, border: '1px solid rgb(var(--ae-gold2-rgb) /0.4)', fontFamily: 'Cinzel, serif' }}
                     >
                       <Ticket size={14} style={{ color: GOLD2 }} /> My Bookings
                     </Link>

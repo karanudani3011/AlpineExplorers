@@ -1,0 +1,145 @@
+:root {
+  --ae-navy: #001a4d;
+  --ae-navy-mid: #0d3a80;
+  --ae-navy-deep: #0b2b5c;
+  --ae-navy-dark: #122b49;
+  --ae-navy-soft: #1e3a5f;
+  --ae-navy-black: #030914;
+  --ae-gold: #c59b27;
+  --ae-gold2: #d4af37;
+  --ae-cream: #faf5ea;
+  --ae-bg-glow: #fbf6ec;
+  --ae-bg-mid: #f0e3c5;
+  --ae-bg-edge: #e0cda5;
+  --ae-bg-paper: #f5ecd8;
+  --ae-bg-hover: #f7eccf;
+  --ae-ink: #3a2a18;
+  --ae-navy-rgb: 0 26 77;
+  --ae-gold-rgb: 197 155 39;
+  --ae-gold2-rgb: 212 175 55;
+  --ae-cream-rgb: 250 245 234;
+  --ae-ink-rgb: 58 42 24;
+}
+
+html[data-theme='blue'] {
+  --ae-navy: #1d4ed8;
+  --ae-navy-mid: #3b82f6;
+  --ae-navy-deep: #1e3a8a;
+  --ae-navy-dark: #172554;
+  --ae-navy-soft: #3b82f6;
+  --ae-navy-black: #0f172a;
+  --ae-gold: #2563eb;
+  --ae-gold2: #60a5fa;
+  --ae-cream: #ffffff;
+  --ae-bg-glow: #f5f8ff;
+  --ae-bg-mid: #e2eaff;
+  --ae-bg-edge: #c7d6ff;
+  --ae-bg-paper: #eef3ff;
+  --ae-bg-hover: #dbe6ff;
+  --ae-ink: #1e3a8a;
+  --ae-navy-rgb: 29 78 216;
+  --ae-gold-rgb: 37 99 235;
+  --ae-gold2-rgb: 96 165 250;
+  --ae-cream-rgb: 255 255 255;
+  --ae-ink-rgb: 30 58 138;
+}
+
+html[data-theme='red'] {
+  --ae-navy: #b91c1c;
+  --ae-navy-mid: #dc2626;
+  --ae-navy-deep: #991b1b;
+  --ae-navy-dark: #7f1d1d;
+  --ae-navy-soft: #dc2626;
+  --ae-navy-black: #450a0a;
+  --ae-gold: #ef4444;
+  --ae-gold2: #f87171;
+  --ae-cream: #ffffff;
+  --ae-bg-glow: #fef2f2;
+  --ae-bg-mid: #fee2e2;
+  --ae-bg-edge: #fecaca;
+  --ae-bg-paper: #fff7f7;
+  --ae-bg-hover: #ffe3e3;
+  --ae-ink: #7f1d1d;
+  --ae-navy-rgb: 185 28 28;
+  --ae-gold-rgb: 239 68 68;
+  --ae-gold2-rgb: 248 113 113;
+  --ae-cream-rgb: 255 255 255;
+  --ae-ink-rgb: 127 29 29;
+}
+
+html[data-theme='yellow-red'] {
+  --ae-navy: #b45309;
+  --ae-navy-mid: #d97706;
+  --ae-navy-deep: #92400e;
+  --ae-navy-dark: #78350f;
+  --ae-navy-soft: #d97706;
+  --ae-navy-black: #451a03;
+  --ae-gold: #dc2626;
+  --ae-gold2: #ef4444;
+  --ae-cream: #ffffff;
+  --ae-bg-glow: #fffbeb;
+  --ae-bg-mid: #fef3c7;
+  --ae-bg-edge: #fde68a;
+  --ae-bg-paper: #fff7ed;
+  --ae-bg-hover: #fdf3d8;
+  --ae-ink: #78350f;
+  --ae-navy-rgb: 180 83 9;
+  --ae-gold-rgb: 220 38 38;
+  --ae-gold2-rgb: 239 68 68;
+  --ae-cream-rgb: 255 255 255;
+  --ae-ink-rgb: 120 53 15;
+}
+
+html[data-theme='purple'] {
+  --ae-navy: #7c3aed;
+  --ae-navy-mid: #8b5cf6;
+  --ae-navy-deep: #6d28d9;
+  --ae-navy-dark: #5b21b6;
+  --ae-navy-soft: #8b5cf6;
+  --ae-navy-black: #2e1065;
+  --ae-gold: #a78bfa;
+  --ae-gold2: #c4b5fd;
+  --ae-cream: #ffffff;
+  --ae-bg-glow: #faf5ff;
+  --ae-bg-mid: #f3e8ff;
+  --ae-bg-edge: #e9d5ff;
+  --ae-bg-paper: #f8f6ff;
+  --ae-bg-hover: #ede9fe;
+  --ae-ink: #6d28d9;
+  --ae-navy-rgb: 124 58 237;
+  --ae-gold-rgb: 167 139 250;
+  --ae-gold2-rgb: 196 181 253;
+  --ae-cream-rgb: 255 255 255;
+  --ae-ink-rgb: 109 40 217;
+}
+
+html[data-theme='yellow'] {
+  --ae-navy: #b45309;
+  --ae-navy-mid: #d97706;
+  --ae-navy-deep: #92400e;
+  --ae-navy-dark: #78350f;
+  --ae-navy-soft: #d97706;
+  --ae-navy-black: #451a03;
+  --ae-gold: #eab308;
+  --ae-gold2: #facc15;
+  --ae-cream: #ffffff;
+  --ae-bg-glow: #fffbeb;
+  --ae-bg-mid: #fef3c7;
+  --ae-bg-edge: #fde68a;
+  --ae-bg-paper: #fffbeb;
+  --ae-bg-hover: #fef9c3;
+  --ae-ink: #78350f;
+  --ae-navy-rgb: 180 83 9;
+  --ae-gold-rgb: 234 179 8;
+  --ae-gold2-rgb: 250 204 21;
+  --ae-cream-rgb: 255 255 255;
+  --ae-ink-rgb: 120 53 15;
+}
+
+html.ae-theme-anim,
+html.ae-theme-anim *,
+html.ae-theme-anim *::before,
+html.ae-theme-anim *::after {
+  transition: background-color 0.5s ease, border-color 0.5s ease, color 0.5s ease,
+    box-shadow 0.5s ease, fill 0.5s ease, stroke 0.5s ease;
+}

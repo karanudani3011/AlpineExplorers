@@ -1,8 +1,8 @@
 import { useRef } from 'react'
 import { Upload, X, RefreshCw } from 'lucide-react'
 
-const NAVY = '#001a4d'
-const GOLD = '#c59b27'
+const NAVY = 'var(--ae-navy)'
+const GOLD = 'var(--ae-gold)'
 
 /**
  * Reusable photo upload box.
@@ -44,7 +44,7 @@ export default function PhotoUpload({ id, value, onChange, error }) {
         className="relative w-28 h-36 rounded-xl overflow-hidden flex flex-col items-center justify-center cursor-pointer transition-all"
         style={{
           border: `2px dashed ${error ? '#dc2626' : value ? GOLD : '#cbd5e1'}`,
-          backgroundColor: value ? 'transparent' : 'rgba(0,26,77,0.03)',
+          backgroundColor: value ? 'transparent' : 'rgb(var(--ae-navy-rgb) /0.03)',
           boxShadow: error ? '0 0 0 3px rgba(220,38,38,0.08)' : 'none',
         }}
         onClick={trigger}

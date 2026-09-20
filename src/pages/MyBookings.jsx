@@ -11,11 +11,11 @@ import Footer from '../components/Footer'
 import { useSupabaseAuth } from '../hooks/useSupabaseAuth'
 import { supabase } from '../services/supabaseClient'
 
-const NAVY = '#001a4d'
-const NAVY_MID = '#0d3a80'
-const GOLD = '#c59b27'
-const GOLD2 = '#d4af37'
-const BROWN = '#3a2a18'
+const NAVY = 'var(--ae-navy)'
+const NAVY_MID = 'var(--ae-navy-mid)'
+const GOLD = 'var(--ae-gold)'
+const GOLD2 = 'var(--ae-gold2)'
+const BROWN = 'var(--ae-ink)'
 
 function formatINR(amount) {
   if (!amount || amount <= 0) return null
@@ -38,7 +38,7 @@ function formatDate(dateStr) {
 function StatusBadge({ status }) {
   const s = (status || 'pending').toLowerCase()
   const styles = {
-    pending: { bg: 'rgba(212,175,55,0.15)', text: '#92400e', border: 'rgba(212,175,55,0.4)', label: 'Pending' },
+    pending: { bg: 'rgb(var(--ae-gold2-rgb) /0.15)', text: '#92400e', border: 'rgb(var(--ae-gold2-rgb) /0.4)', label: 'Pending' },
     confirmed: { bg: 'rgba(16,185,129,0.12)', text: '#047857', border: 'rgba(16,185,129,0.35)', label: 'Confirmed' },
     cancelled: { bg: 'rgba(220,38,38,0.1)', text: '#b91c1c', border: 'rgba(220,38,38,0.3)', label: 'Cancelled' },
     completed: { bg: 'rgba(14,116,144,0.12)', text: '#0e7490', border: 'rgba(14,116,144,0.35)', label: 'Completed' },
@@ -99,7 +99,7 @@ export default function MyBookings() {
 
       <main className="flex-1 w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-xs mb-4" style={{ color: 'rgba(58,42,24,0.6)' }}>
+        <div className="flex items-center gap-2 text-xs mb-4" style={{ color: 'rgb(var(--ae-ink-rgb) /0.6)' }}>
           <Link to="/home" className="hover:underline" style={{ color: NAVY }}>Home</Link>
           <span>›</span>
           <span>My Bookings</span>
@@ -124,7 +124,7 @@ export default function MyBookings() {
             onClick={fetchBookings}
             disabled={loading}
             className="self-start sm:self-auto inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold border transition cursor-pointer"
-            style={{ borderColor: 'rgba(0,26,77,0.2)', color: NAVY, backgroundColor: '#ffffff' }}
+            style={{ borderColor: 'rgb(var(--ae-navy-rgb) /0.2)', color: NAVY, backgroundColor: '#ffffff' }}
           >
             <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
             <span>Refresh</span>
@@ -161,11 +161,11 @@ export default function MyBookings() {
         ) : filteredBookings.length === 0 ? (
           <div
             className="rounded-2xl p-12 text-center bg-white border"
-            style={{ borderColor: 'rgba(180,160,130,0.3)', boxShadow: '0 4px 20px rgba(0,26,77,0.05)' }}
+            style={{ borderColor: 'rgba(180,160,130,0.3)', boxShadow: '0 4px 20px rgb(var(--ae-navy-rgb) /0.05)' }}
           >
             <div
               className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4"
-              style={{ backgroundColor: 'rgba(0,26,77,0.06)', color: NAVY }}
+              style={{ backgroundColor: 'rgb(var(--ae-navy-rgb) /0.06)', color: NAVY }}
             >
               <Ticket size={28} />
             </div>
@@ -199,7 +199,7 @@ export default function MyBookings() {
                   <div className="flex items-center gap-3">
                     <div
                       className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                      style={{ backgroundColor: 'rgba(0,26,77,0.08)', color: NAVY }}
+                      style={{ backgroundColor: 'rgb(var(--ae-navy-rgb) /0.08)', color: NAVY }}
                     >
                       <Ticket size={20} />
                     </div>
@@ -222,7 +222,7 @@ export default function MyBookings() {
                         setSelectedBooking(b)
                       }}
                       className="px-3 py-1.5 rounded-xl text-xs font-bold border transition flex items-center gap-1"
-                      style={{ borderColor: 'rgba(0,26,77,0.2)', color: NAVY }}
+                      style={{ borderColor: 'rgb(var(--ae-navy-rgb) /0.2)', color: NAVY }}
                     >
                       <Eye size={13} /> Details
                     </button>
@@ -272,12 +272,12 @@ export default function MyBookings() {
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 10 }}
                 className="relative w-full max-w-xl bg-white rounded-2xl overflow-hidden shadow-2xl my-auto"
-                style={{ border: '1px solid rgba(212,175,55,0.4)' }}
+                style={{ border: '1px solid rgb(var(--ae-gold2-rgb) /0.4)' }}
               >
                 {/* Header */}
                 <div
                   className="px-6 py-5 text-white flex items-center justify-between"
-                  style={{ background: `linear-gradient(135deg, ${NAVY}, ${NAVY_MID})`, borderBottom: '2px solid rgba(212,175,55,0.5)' }}
+                  style={{ background: `linear-gradient(135deg, ${NAVY}, ${NAVY_MID})`, borderBottom: '2px solid rgb(var(--ae-gold2-rgb) /0.5)' }}
                 >
                   <div>
                     <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: GOLD2 }}>

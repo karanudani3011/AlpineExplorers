@@ -92,7 +92,7 @@ export default function TourCard({ tour }) {
         <div className="p-5 flex-1 flex flex-col justify-between">
           <div>
             <Link to={`/tour/${tour.id}`}>
-              <h3 className="font-display font-bold text-lg sm:text-xl text-[#001a4d] group-hover:text-[#c59b27] transition line-clamp-1 mb-2">
+              <h3 className="font-display font-bold text-lg sm:text-xl text-[color:var(--ae-navy)] group-hover:text-[color:var(--ae-gold)] transition line-clamp-1 mb-2">
                 {tour.title}
               </h3>
             </Link>
@@ -104,11 +104,11 @@ export default function TourCard({ tour }) {
             {/* Quick Metrics Grid */}
             <div className="grid grid-cols-2 gap-2 pb-4 mb-4 border-b border-gray-100 text-xs text-gray-500 font-medium">
               <div className="flex items-center gap-1.5">
-                <Clock size={14} className="text-[#c59b27] flex-shrink-0" />
+                <Clock size={14} className="text-[color:var(--ae-gold)] flex-shrink-0" />
                 <span>{tour.duration}</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <Calendar size={14} className="text-[#c59b27] flex-shrink-0" />
+                <Calendar size={14} className="text-[color:var(--ae-gold)] flex-shrink-0" />
                 <span>{new Date(tour.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
               </div>
             </div>
@@ -122,14 +122,14 @@ export default function TourCard({ tour }) {
                 <div className="flex items-baseline gap-2">
                   {tour.price > 0 ? (
                     <>
-                      <span className="text-2xl font-bold text-[#001a4d]">${tour.price}</span>
+                      <span className="text-2xl font-bold text-[color:var(--ae-navy)]">${tour.price}</span>
                       {tour.originalPrice > tour.price && (
                         <span className="text-xs text-gray-600 line-through">${tour.originalPrice}</span>
                       )}
                       <span className="text-[10px] text-gray-600 font-semibold">/ guest</span>
                     </>
                   ) : (
-                    <span className="text-xl font-bold text-[#001a4d]">On Request</span>
+                    <span className="text-xl font-bold text-[color:var(--ae-navy)]">On Request</span>
                   )}
                 </div>
               </div>
@@ -158,7 +158,7 @@ export default function TourCard({ tour }) {
               <button
                 type="button"
                 onClick={handleBookNow}
-                className="w-full py-2.5 bg-[#001a4d] hover:bg-[#0d3a80] text-white font-bold rounded-xl text-xs text-center shadow-md transition cursor-pointer"
+                className="w-full py-2.5 bg-[color:var(--ae-navy)] hover:bg-[color:var(--ae-navy-mid)] text-white font-bold rounded-xl text-xs text-center shadow-md transition cursor-pointer"
               >
                 Book Now
               </button>

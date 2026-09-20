@@ -5,7 +5,7 @@ import { useToasts } from '../../components/admin/useToasts'
 import { PageHeader, Btn, Card, Spinner, FieldLabel, NAVY, GOLD } from '../../components/admin/admin-ui'
 import { Field, TextInput, Toggle, ImageUpload } from '../../components/admin/FormFields'
 
-const inp = { width: '100%', padding: '10px 12px', borderRadius: 10, border: '1px solid rgba(0,26,77,0.18)', fontSize: 13, outline: 'none', fontFamily: "'Inter'" }
+const inp = { width: '100%', padding: '10px 12px', borderRadius: 10, border: '1px solid rgb(var(--ae-navy-rgb) /0.18)', fontSize: 13, outline: 'none', fontFamily: "'Inter'" }
 
 export default function SettingsAdmin() {
   const { toasts, addToast, dismiss, ToastHost } = useToasts()

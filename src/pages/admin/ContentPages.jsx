@@ -9,7 +9,7 @@ const Thumb = ({ src, alt }) => src
 const PRICE = (r) => r.price ? <span className="font-bold">₹{(+r.price).toLocaleString('en-IN')}</span> : <span className="opacity-40">—</span>
 
 const T = (v, c = NAVYc) => <span style={c}>{v}</span>
-const NAVYc = { color: '#001a4d', fontFamily: "'Inter'" }
+const NAVYc = { color: 'var(--ae-navy)', fontFamily: "'Inter'" }
 
 export function InternationalPage() {
   return (
@@ -177,7 +177,7 @@ export function BlogPage() {
         { key: 'title', label: 'Title', render: (r) => <div style={NAVYc}><div className="font-bold max-w-[220px] truncate">{r.title}</div><div className="text-[10px] opacity-60">{r.category} · {r.author}</div></div> },
         { key: 'publish_date', label: 'Publish Date', render: (r) => T(r.publish_date || '—') },
         { key: 'status', label: 'Status', render: (r) => <StatusBadge s={r.status} /> },
-        { key: 'featured', label: 'Featured', render: (r) => (r.featured ? <span style={{ color: '#c59b27' }}>★</span> : <span className="opacity-30">☆</span>) },
+        { key: 'featured', label: 'Featured', render: (r) => (r.featured ? <span style={{ color: 'var(--ae-gold)' }}>★</span> : <span className="opacity-30">☆</span>) },
       ],
       fields: [
         { name: 'title', label: 'Title', type: 'text', required: true, span: 2 },

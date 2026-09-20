@@ -7,10 +7,10 @@ import Footer from './Footer'
 import TourGrid from './TourGrid'
 import { serviceCategories, serviceTours } from '../data/servicesData'
 
-const NAVY = '#001a4d'
-const GOLD = '#c59b27'
-const CREAM = '#faf5ea'
-const BROWN = '#3a2a18'
+const NAVY = 'var(--ae-navy)'
+const GOLD = 'var(--ae-gold)'
+const CREAM = 'var(--ae-cream)'
+const BROWN = 'var(--ae-ink)'
 
 const font = {
   vintage: { fontFamily: 'Cinzel, serif' },
@@ -92,7 +92,7 @@ export default function ServicePage() {
                 className="w-12 h-12 rounded-xl flex items-center justify-center"
                 style={{
                   background: `linear-gradient(135deg, ${GOLD}, ${GOLD.replace('#', '##')})`,
-                  boxShadow: '0 4px 15px rgba(197,155,39,0.4)',
+                  boxShadow: '0 4px 15px rgb(var(--ae-gold-rgb) /0.4)',
                 }}
               >
                 {Icon && <Icon size={24} className="text-white" />}
@@ -159,7 +159,7 @@ export default function ServicePage() {
       </section>
 
       {/* CTA Banner */}
-      <section className="py-16" style={{ background: `linear-gradient(135deg, ${NAVY}, #0d3a80)` }}>
+      <section className="py-16" style={{ background: `linear-gradient(135deg, ${NAVY}, var(--ae-navy-mid))` }}>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4" style={font.vintage}>
             Can't Find What You're Looking For?

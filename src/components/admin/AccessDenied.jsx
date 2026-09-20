@@ -11,7 +11,7 @@ export default function AccessDenied({ message, backTo = '/admin/dashboard' }) {
       <div
         className="max-w-md w-full rounded-3xl p-8 text-center shadow-xl border relative overflow-hidden"
         style={{
-          background: 'linear-gradient(180deg, #faf5ea, #f1e4c6)',
+          background: 'linear-gradient(180deg, var(--ae-cream), #f1e4c6)',
           borderColor: 'rgba(180, 160, 130, 0.35)',
         }}
       >
@@ -34,7 +34,7 @@ export default function AccessDenied({ message, backTo = '/admin/dashboard' }) {
 
         <p
           className="text-sm font-medium mb-6"
-          style={{ color: 'rgba(0, 26, 77, 0.65)', fontFamily: "'Inter', sans-serif" }}
+          style={{ color: 'rgb(var(--ae-navy-rgb) / 0.65)', fontFamily: "'Inter', sans-serif" }}
         >
           {message || "You don't have permission to access this section."}
         </p>

@@ -14,12 +14,12 @@ import {
   Shield, ArrowRight, CheckCircle2
 } from 'lucide-react'
 
-const NAVY = '#001a4d'
-const NAVY_MID = '#0d3a80'
-const GOLD = '#c59b27'
-const GOLD2 = '#d4af37'
-const CREAM = '#faf5ea'
-const BROWN = '#3a2a18'
+const NAVY = 'var(--ae-navy)'
+const NAVY_MID = 'var(--ae-navy-mid)'
+const GOLD = 'var(--ae-gold)'
+const GOLD2 = 'var(--ae-gold2)'
+const CREAM = 'var(--ae-cream)'
+const BROWN = 'var(--ae-ink)'
 
 const font = {
   vintage: { fontFamily: 'Cinzel, serif' },
@@ -182,7 +182,7 @@ export default function TourDetailsPage() {
               <div className="flex flex-wrap items-center gap-2">
                 {category && (
                   <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider"
-                    style={{ backgroundColor: 'rgba(197,155,39,0.9)' }}>
+                    style={{ backgroundColor: 'rgb(var(--ae-gold-rgb) /0.9)' }}>
                     {category.shortName}
                   </span>
                 )}
@@ -292,7 +292,7 @@ export default function TourDetailsPage() {
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 {tour.highlights.map((h, i) => (
-                  <div key={i} className="flex items-start gap-2.5 p-2.5 rounded-xl" style={{ backgroundColor: 'rgba(197,155,39,0.06)' }}>
+                  <div key={i} className="flex items-start gap-2.5 p-2.5 rounded-xl" style={{ backgroundColor: 'rgb(var(--ae-gold-rgb) /0.06)' }}>
                     <CheckCircle size={16} style={{ color: GOLD }} className="flex-shrink-0 mt-0.5" />
                     <span className="text-xs sm:text-sm font-medium text-slate-800">{h}</span>
                   </div>
@@ -332,8 +332,8 @@ export default function TourDetailsPage() {
                         onClick={() => setExpandedDay(isExpanded ? null : i)}
                         className="w-full p-3.5 sm:p-4 flex items-center justify-between text-left transition"
                         style={{
-                          backgroundColor: isExpanded ? 'rgba(197,155,39,0.06)' : 'white',
-                          borderBottom: isExpanded ? '1px solid rgba(197,155,39,0.15)' : 'none',
+                          backgroundColor: isExpanded ? 'rgb(var(--ae-gold-rgb) /0.06)' : 'white',
+                          borderBottom: isExpanded ? '1px solid rgb(var(--ae-gold-rgb) /0.15)' : 'none',
                         }}
                       >
                         <div className="flex items-center gap-3">
@@ -344,7 +344,7 @@ export default function TourDetailsPage() {
                                 ? `linear-gradient(135deg, ${GOLD}, ${GOLD2})`
                                 : '#f3f4f6',
                               color: isExpanded ? 'white' : '#6b7280',
-                              boxShadow: isExpanded ? '0 3px 8px rgba(197,155,39,0.3)' : 'none',
+                              boxShadow: isExpanded ? '0 3px 8px rgb(var(--ae-gold-rgb) /0.3)' : 'none',
                             }}
                           >
                             D{day.day}

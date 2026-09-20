@@ -34,10 +34,10 @@ export default function Login() {
       }} />
       <div className="relative w-full max-w-md">
         <div className="rounded-3xl overflow-hidden shadow-2xl"
-          style={{ background: 'linear-gradient(180deg,#faf5ea,#f1e4c6)', border: '1px solid rgba(180,160,130,0.3)' }}>
+          style={{ background: 'linear-gradient(180deg,var(--ae-cream),#f1e4c6)', border: '1px solid rgba(180,160,130,0.3)' }}>
           <div className="px-8 pt-8 pb-7 text-center relative">
             <div className="w-20 h-20 mx-auto rounded-2xl flex items-center justify-center mb-4"
-              style={{ background: `linear-gradient(135deg, ${NAVY_DARK}, #17315e)`, boxShadow: '0 14px 34px rgba(0,26,77,0.35)' }}>
+              style={{ background: `linear-gradient(135deg, ${NAVY_DARK}, #17315e)`, boxShadow: '0 14px 34px rgb(var(--ae-navy-rgb) /0.35)' }}>
               <ShieldCheck size={36} style={{ color: GOLD }} />
             </div>
             <h1 className="text-2xl font-bold" style={{ fontFamily: 'Cinzel', color: NAVY }}>Alpine Explorers</h1>
@@ -59,7 +59,7 @@ export default function Login() {
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
                   className="w-full pl-10 pr-4 py-3 rounded-xl outline-none"
-                  style={{ border: '1px solid rgba(0,26,77,0.18)', background: '#fff', fontFamily: 'Inter', fontSize: 14 }}
+                  style={{ border: '1px solid rgb(var(--ae-navy-rgb) /0.18)', background: '#fff', fontFamily: 'Inter', fontSize: 14 }}
                   placeholder="Enter email or username"
                   autoFocus
                   autoComplete="username"
@@ -75,7 +75,7 @@ export default function Login() {
                   value={form.password}
                   onChange={(e) => setForm({ ...form, password: e.target.value })}
                   className="w-full pl-10 pr-10 py-3 rounded-xl outline-none"
-                  style={{ border: '1px solid rgba(0,26,77,0.18)', background: '#fff', fontFamily: 'Inter', fontSize: 14 }}
+                  style={{ border: '1px solid rgb(var(--ae-navy-rgb) /0.18)', background: '#fff', fontFamily: 'Inter', fontSize: 14 }}
                   placeholder="Enter password"
                   autoComplete="current-password"
                 />
@@ -86,7 +86,7 @@ export default function Login() {
             </div>
             <button type="submit" disabled={loading}
               className="w-full py-3 rounded-xl text-sm font-bold uppercase tracking-widest transition-all hover:opacity-90 disabled:opacity-60"
-              style={{ fontFamily: 'Cinzel', background: `linear-gradient(90deg, ${GOLD}, #e0c05a)`, color: NAVY, boxShadow: '0 10px 26px rgba(197,155,39,0.4)' }}>
+              style={{ fontFamily: 'Cinzel', background: `linear-gradient(90deg, ${GOLD}, #e0c05a)`, color: NAVY, boxShadow: '0 10px 26px rgb(var(--ae-gold-rgb) /0.4)' }}>
               {loading ? 'Signing in…' : 'Sign In'}
             </button>
           </form>

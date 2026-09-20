@@ -92,10 +92,10 @@ export default function MediaLibrary() {
           <div className="flex-1 min-w-[200px] relative">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 opacity-40" />
             <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && applyFilters()}
-              placeholder="Search images…" style={{ ...fonts, padding: '9px 12px 9px 34px', borderRadius: 10, border: '1px solid rgba(0,26,77,0.15)', width: '100%', fontSize: 13, outline: 'none' }} />
+              placeholder="Search images…" style={{ ...fonts, padding: '9px 12px 9px 34px', borderRadius: 10, border: '1px solid rgb(var(--ae-navy-rgb) /0.15)', width: '100%', fontSize: 13, outline: 'none' }} />
           </div>
           <select value={category} onChange={(e) => { setCategory(e.target.value); load({ search, category: e.target.value }) }}
-            style={{ ...fonts, padding: '9px 12px', borderRadius: 10, border: '1px solid rgba(0,26,77,0.15)', fontSize: 13, outline: 'none', background: '#fff' }}>
+            style={{ ...fonts, padding: '9px 12px', borderRadius: 10, border: '1px solid rgb(var(--ae-navy-rgb) /0.15)', fontSize: 13, outline: 'none', background: '#fff' }}>
             <option value="">All Categories</option>
             {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
@@ -114,12 +114,12 @@ export default function MediaLibrary() {
                     <button onClick={() => setEditing(m)} className="p-1.5 rounded-lg bg-white/90" title="Edit / Replace"><RefreshCw size={14} /></button>
                     <button onClick={() => onDelete(m)} className="p-1.5 rounded-lg bg-white/90" title="Delete"><Trash2 size={14} color="#8b2518" /></button>
                   </div>
-                  <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider text-white" style={{ background: 'rgba(0,26,77,0.7)' }}>{m.category}</span>
+                  <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider text-white" style={{ background: 'rgb(var(--ae-navy-rgb) /0.7)' }}>{m.category}</span>
                 </div>
                 <div className="p-2">
                   <div className="text-[11px] font-bold truncate" style={{ color: NAVY }}>{m.title || m.filename}</div>
                   <div className="flex items-center justify-between mt-1">
-                    <span className="text-[9px]" style={{ color: 'rgba(0,26,77,0.5)' }}>{m.type?.split('/')[1]?.toUpperCase()} {(m.size / 1024).toFixed(0)}K</span>
+                    <span className="text-[9px]" style={{ color: 'rgb(var(--ae-navy-rgb) /0.5)' }}>{m.type?.split('/')[1]?.toUpperCase()} {(m.size / 1024).toFixed(0)}K</span>
                     <a href={fullUrl(m.url)} download target="_blank" rel="noreferrer"><Download size={12} className="opacity-50 hover:opacity-100" /></a>
                   </div>
                 </div>
@@ -148,7 +148,7 @@ export default function MediaLibrary() {
             <div className="mb-5">
               <FieldLabel>Replace Image</FieldLabel>
               <label className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase cursor-pointer"
-                style={{ background: 'rgba(197,155,39,0.15)', color: NAVY }}>
+                style={{ background: 'rgb(var(--ae-gold-rgb) /0.15)', color: NAVY }}>
                 <Upload size={13} /> Choose file
                 <input type="file" accept="image/*" hidden onChange={(e) => onReplace(e.target.files[0])} />
               </label>
@@ -165,4 +165,4 @@ export default function MediaLibrary() {
   )
 }
 
-const inp = { width: '100%', padding: '9px 12px', borderRadius: 10, border: '1px solid rgba(0,26,77,0.18)', fontSize: 13, outline: 'none' }
+const inp = { width: '100%', padding: '9px 12px', borderRadius: 10, border: '1px solid rgb(var(--ae-navy-rgb) /0.18)', fontSize: 13, outline: 'none' }

@@ -10,7 +10,7 @@ export function Field({ id, label, required, children, hint }) {
     <div className="mb-4">
       <FieldLabel required={required}>{label}</FieldLabel>
       {children}
-      {hint && <p className="text-[10px] mt-1" style={{ color: 'rgba(58,42,24,0.55)' }}>{hint}</p>}
+      {hint && <p className="text-[10px] mt-1" style={{ color: 'rgb(var(--ae-ink-rgb) /0.55)' }}>{hint}</p>}
     </div>
   )
 }
@@ -59,7 +59,7 @@ export function TagPicker({ value = [], onChange, suggestions = [] }) {
         <div className="flex flex-wrap gap-1.5 items-center">
           {value.map((v) => (
             <span key={v} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold"
-              style={{ background: 'rgba(197,155,39,0.15)', color: NAVY }}>
+              style={{ background: 'rgb(var(--ae-gold-rgb) /0.15)', color: NAVY }}>
               {v}
               <button type="button" onClick={() => onChange(value.filter((x) => x !== v))}><X size={11} /></button>
             </span>
@@ -71,7 +71,7 @@ export function TagPicker({ value = [], onChange, suggestions = [] }) {
         <div className="flex flex-wrap gap-1.5 mt-2">
           {suggestions.filter((s) => !value.includes(s)).map((s) => (
             <button key={s} type="button" onClick={() => add(s)} className="px-2 py-0.5 rounded-full text-[11px] hover:opacity-70"
-              style={{ background: 'rgba(0,26,77,0.06)', color: NAVY }}>
+              style={{ background: 'rgb(var(--ae-navy-rgb) /0.06)', color: NAVY }}>
               <Plus size={10} className="inline mr-0.5" />{s}
             </button>
           ))}
@@ -115,7 +115,7 @@ export function ImageUpload({ value = '', onChange, label = 'Image', preset }) {
   return (
     <div className="flex items-start gap-4">
       <div className="w-24 h-20 rounded-lg overflow-hidden border flex items-center justify-center shrink-0"
-        style={{ borderColor: 'rgba(0,26,77,0.15)', background: '#f8f5ee' }}>
+        style={{ borderColor: 'rgb(var(--ae-navy-rgb) /0.15)', background: '#f8f5ee' }}>
         {value
           ? <img src={value} alt="preview" className="w-full h-full object-cover" />
           : <span className="text-[10px] text-center px-1" style={{ color: '#999' }}>No image</span>}
@@ -128,12 +128,12 @@ export function ImageUpload({ value = '', onChange, label = 'Image', preset }) {
         </div>
         {preset && (
           <div>
-            <div className="text-[10px] uppercase tracking-wide mt-2 mb-1" style={{ color: 'rgba(58,42,24,0.5)', fontFamily: 'Inter' }}>Or pick presets</div>
+            <div className="text-[10px] uppercase tracking-wide mt-2 mb-1" style={{ color: 'rgb(var(--ae-ink-rgb) /0.5)', fontFamily: 'Inter' }}>Or pick presets</div>
             <div className="flex gap-1.5 flex-wrap max-h-16 overflow-y-auto">
               {preset.map((p) => (
                 <button key={p.url} type="button" onClick={() => onChange(p.url)} title={p.label}
                   className={cls('w-10 h-8 rounded border overflow-hidden', value === p.url && 'ring-2')}
-                  style={{ borderColor: 'rgba(0,26,77,0.15)', ['--tw-ring-color']: GOLD }}>
+                  style={{ borderColor: 'rgb(var(--ae-navy-rgb) /0.15)', ['--tw-ring-color']: GOLD }}>
                   <img src={p.url} alt={p.label} className="w-full h-full object-cover" />
                 </button>
               ))}
@@ -171,7 +171,7 @@ export function ListEditor({ value = [], onChange, placeholder = 'Add item…' }
         <ul className="mt-2 space-y-1">
           {value.map((v, i) => (
             <li key={i} className="flex items-center justify-between px-3 py-1.5 rounded-lg text-[12px]"
-              style={{ background: 'rgba(0,26,77,0.04)' }}>
+              style={{ background: 'rgb(var(--ae-navy-rgb) /0.04)' }}>
               <span style={{ color: NAVY }}>{displayItem(v)}</span>
               <button type="button" onClick={() => onChange(value.filter((_, x) => x !== i))} className="opacity-50 hover:opacity-100"><X size={13} /></button>
             </li>

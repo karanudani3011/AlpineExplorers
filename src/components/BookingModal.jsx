@@ -409,16 +409,16 @@ export default function BookingModal({ item, isOpen, onClose }) {
             className="relative w-full h-[100dvh] sm:h-auto flex flex-col
               sm:max-h-[90vh] sm:max-w-[960px] sm:rounded-2xl
               rounded-none outline-none overflow-hidden"
-            style={{ backgroundColor: CREAM, boxShadow: '0 30px 80px rgba(0,10,30,0.5)', border: '1px solid rgba(212,175,55,0.35)' }}
+            style={{ backgroundColor: CREAM, boxShadow: '0 30px 80px rgba(0,10,30,0.5)', border: '1px solid rgb(var(--ae-gold2-rgb) /0.35)' }}
           >
             {/* Header */}
-            <div className="shrink-0 px-5 sm:px-7 pt-6 pb-4" style={{ background: 'linear-gradient(135deg, #001a4d, #0d3a80 70%)', borderBottom: '2px solid rgba(212,175,55,0.5)' }}>
+            <div className="shrink-0 px-5 sm:px-7 pt-6 pb-4" style={{ background: 'linear-gradient(135deg, var(--ae-navy), var(--ae-navy-mid) 70%)', borderBottom: '2px solid rgb(var(--ae-gold2-rgb) /0.5)' }}>
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <h3 id="booking-modal-title" className="text-xl sm:text-2xl font-bold text-white" style={font.vintage}>
                     Book Your Trip
                   </h3>
-                  <p className="text-[11px] sm:text-xs mt-1.5 leading-relaxed" style={{ color: 'rgba(250,245,234,0.85)', ...font.body }}>
+                  <p className="text-[11px] sm:text-xs mt-1.5 leading-relaxed" style={{ color: 'rgb(var(--ae-cream-rgb) /0.85)', ...font.body }}>
                     Complete the application details for your selected trip.
                   </p>
                 </div>
@@ -435,11 +435,11 @@ export default function BookingModal({ item, isOpen, onClose }) {
                 </button>
               </div>
 
-              <div className="mt-4 rounded-xl px-4 py-3" style={{ backgroundColor: 'rgba(250,245,234,0.1)', border: '1px solid rgba(212,175,55,0.35)' }}>
+              <div className="mt-4 rounded-xl px-4 py-3" style={{ backgroundColor: 'rgb(var(--ae-cream-rgb) /0.1)', border: '1px solid rgb(var(--ae-gold2-rgb) /0.35)' }}>
                 <span className="text-[9px] font-bold uppercase tracking-[0.2em]" style={{ color: GOLD2 }}>Selected Trip</span>
                 <div className="text-white font-bold text-sm mt-0.5" style={font.vintage}>{trip.title}</div>
                 {trip.fields.length > 0 && (
-                  <div className="text-[11px] mt-1 leading-relaxed" style={{ color: 'rgba(250,245,234,0.8)' }}>
+                  <div className="text-[11px] mt-1 leading-relaxed" style={{ color: 'rgb(var(--ae-cream-rgb) /0.8)' }}>
                     {trip.fields.map(([, value]) => (
                       <div key={value}>{value}</div>
                     ))}
@@ -452,19 +452,19 @@ export default function BookingModal({ item, isOpen, onClose }) {
             <div ref={bodyRef} className="flex-1 overflow-y-auto overscroll-contain px-5 sm:px-7 py-5" style={{ ...font.body, color: BROWN }}>
               {view === 'success' ? (
                 <div className="text-center py-10">
-                  <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5" style={{ backgroundColor: 'rgba(212,175,55,0.18)', color: GOLD }}>
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5" style={{ backgroundColor: 'rgb(var(--ae-gold2-rgb) /0.18)', color: GOLD }}>
                     <CheckCircle2 size={36} />
                   </div>
                   <h4 className="text-xl sm:text-2xl font-bold mb-2" style={{ color: NAVY, ...font.vintage }}>
                     Application Submitted!
                   </h4>
                   {submittedBookingId && (
-                    <div className="inline-block px-4 py-2 rounded-xl mb-4" style={{ backgroundColor: 'rgba(0,26,77,0.06)', border: '1px solid rgba(197,155,39,0.3)' }}>
+                    <div className="inline-block px-4 py-2 rounded-xl mb-4" style={{ backgroundColor: 'rgb(var(--ae-navy-rgb) /0.06)', border: '1px solid rgb(var(--ae-gold-rgb) /0.3)' }}>
                       <span className="text-[10px] uppercase tracking-wider font-bold block" style={{ color: GOLD }}>Booking ID</span>
                       <span className="text-base sm:text-lg font-bold" style={{ color: NAVY, fontFamily: 'Cinzel, serif' }}>{submittedBookingId}</span>
                     </div>
                   )}
-                  <p className="text-sm leading-relaxed mb-8 mx-auto max-w-md" style={{ color: 'rgba(58,42,24,0.8)' }}>
+                  <p className="text-sm leading-relaxed mb-8 mx-auto max-w-md" style={{ color: 'rgb(var(--ae-ink-rgb) /0.8)' }}>
                     Thank you for your application for <strong>{trip.title}</strong>.
                     <br />
                     Our Alpine Explorers team will review your application and contact you shortly to confirm availability and payment details.
@@ -495,7 +495,7 @@ export default function BookingModal({ item, isOpen, onClose }) {
                           onClick={() => goStep(s.idx)}
                           className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[11px] font-bold whitespace-nowrap transition cursor-pointer ${s.idx >= count ? 'hidden sm:inline-flex' : ''}`}
                           style={{
-                            backgroundColor: active ? NAVY : done || travelerOk ? 'rgba(197,155,39,0.14)' : '#ffffff',
+                            backgroundColor: active ? NAVY : done || travelerOk ? 'rgb(var(--ae-gold-rgb) /0.14)' : '#ffffff',
                             color: active ? '#ffffff' : NAVY,
                             border: `1px solid ${active ? NAVY : done || travelerOk ? GOLD : 'rgba(180,160,130,0.5)'}`,
                           }}
@@ -509,12 +509,12 @@ export default function BookingModal({ item, isOpen, onClose }) {
 
                   {/* Traveler count */}
                   {view === 'forms' && (
-                    <div className="mt-4 rounded-xl px-4 py-3 flex items-center justify-between gap-4" style={{ backgroundColor: '#ffffff', border: '1px solid rgba(212,175,55,0.45)' }}>
+                    <div className="mt-4 rounded-xl px-4 py-3 flex items-center justify-between gap-4" style={{ backgroundColor: '#ffffff', border: '1px solid rgb(var(--ae-gold2-rgb) /0.45)' }}>
                       <div style={font.body}>
                         <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: NAVY }}>
                           Number of Travelers<span style={{ color: '#b45309' }}> *</span>
                         </span>
-                        <p className="text-[11px] mt-0.5" style={{ color: 'rgba(58,42,24,0.6)' }}>
+                        <p className="text-[11px] mt-0.5" style={{ color: 'rgb(var(--ae-ink-rgb) /0.6)' }}>
                           Each traveler fills their own independent application.
                         </p>
                       </div>
@@ -550,7 +550,7 @@ export default function BookingModal({ item, isOpen, onClose }) {
                   {/* Forms */}
                   {view === 'forms' && (
                     <div className="mt-5">
-                      <div className="rounded-xl p-4" style={{ backgroundColor: 'rgba(0,26,77,0.06)', border: '1px solid rgba(212,175,55,0.5)' }}>
+                      <div className="rounded-xl p-4" style={{ backgroundColor: 'rgb(var(--ae-navy-rgb) /0.06)', border: '1px solid rgb(var(--ae-gold2-rgb) /0.5)' }}>
                         <h4 className="text-lg sm:text-xl font-bold" style={{ color: NAVY, ...font.vintage }}>
                           Traveler {activeTraveler + 1} <span className="text-sm font-semibold" style={{ color: GOLD, fontFamily: 'Inter, sans-serif' }}>/ APPLICATION FORM</span>
                         </h4>
@@ -574,9 +574,9 @@ export default function BookingModal({ item, isOpen, onClose }) {
                   {/* Review */}
                   {view === 'review' && (
                     <div className="mt-5 space-y-5">
-                      <div className="rounded-xl p-4" style={{ backgroundColor: 'rgba(0,26,77,0.06)', border: '1px solid rgba(212,175,55,0.5)' }}>
+                      <div className="rounded-xl p-4" style={{ backgroundColor: 'rgb(var(--ae-navy-rgb) /0.06)', border: '1px solid rgb(var(--ae-gold2-rgb) /0.5)' }}>
                         <h4 className="text-lg sm:text-xl font-bold" style={{ color: NAVY, ...font.vintage }}>Review Application</h4>
-                        <p className="text-xs mt-1" style={{ color: 'rgba(58,42,24,0.65)', ...font.body }}>
+                        <p className="text-xs mt-1" style={{ color: 'rgb(var(--ae-ink-rgb) /0.65)', ...font.body }}>
                           Verify all traveler applications below before continuing to payment.
                         </p>
                       </div>
@@ -586,7 +586,7 @@ export default function BookingModal({ item, isOpen, onClose }) {
                           <div key={`review-${i}`} className="rounded-xl p-4 sm:p-5" style={{ backgroundColor: '#ffffff', border: '1px solid rgba(180,160,130,0.5)' }}>
                             <div className="flex items-center justify-between gap-3 flex-wrap">
                               <div className="flex items-center gap-3">
-                                <span className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black" style={{ backgroundColor: 'rgba(0,26,77,0.08)', color: NAVY }}>
+                                <span className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black" style={{ backgroundColor: 'rgb(var(--ae-navy-rgb) /0.08)', color: NAVY }}>
                                   {i + 1}
                                 </span>
                                 <div>
@@ -602,9 +602,9 @@ export default function BookingModal({ item, isOpen, onClose }) {
                                 type="button"
                                 onClick={() => editTraveler(i)}
                                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-[11px] font-bold transition cursor-pointer"
-                                style={{ color: NAVY, backgroundColor: 'rgba(212,175,55,0.14)', border: '1px solid rgba(212,175,55,0.55)' }}
+                                style={{ color: NAVY, backgroundColor: 'rgb(var(--ae-gold2-rgb) /0.14)', border: '1px solid rgb(var(--ae-gold2-rgb) /0.55)' }}
                                 onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = GOLD; e.currentTarget.style.color = NAVY }}
-                                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(212,175,55,0.14)'; e.currentTarget.style.color = NAVY }}
+                                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgb(var(--ae-gold2-rgb) /0.14)'; e.currentTarget.style.color = NAVY }}
                               >
                                 <Pencil size={12} aria-hidden="true" />
                                 Edit Traveler {i + 1}
@@ -612,7 +612,7 @@ export default function BookingModal({ item, isOpen, onClose }) {
                             </div>
 
                             <div className="flex gap-4 mt-4">
-                              <div className="w-16 h-20 shrink-0 rounded-lg overflow-hidden" style={{ border: '1px solid rgba(180,160,130,0.5)', backgroundColor: 'rgba(250,245,234,0.6)' }}>
+                              <div className="w-16 h-20 shrink-0 rounded-lg overflow-hidden" style={{ border: '1px solid rgba(180,160,130,0.5)', backgroundColor: 'rgb(var(--ae-cream-rgb) /0.6)' }}>
                                 {t.photo ? (
                                   <img src={t.photo.dataUrl} alt={`${t.fullName || `Traveler ${i + 1}`} photograph`} className="w-full h-full object-cover" />
                                 ) : (
@@ -620,28 +620,28 @@ export default function BookingModal({ item, isOpen, onClose }) {
                                 )}
                               </div>
                               <div className="flex-1 min-w-0 grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2 text-[11px]" style={{ ...font.body, color: BROWN }}>
-                                <div><span style={{ color: 'rgba(58,42,24,0.55)' }}>Name of Course</span><br /><span style={{ color: NAVY, fontWeight: 600 }}>{t.courseName}</span></div>
-                                <div><span style={{ color: 'rgba(58,42,24,0.55)' }}>Full Name</span><br /><span style={{ color: NAVY, fontWeight: 600 }}>{t.fullName}</span></div>
-                                <div><span style={{ color: 'rgba(58,42,24,0.55)' }}>Age / Sex</span><br /><span style={{ color: NAVY, fontWeight: 600 }}>{age || '—'} · {t.sex}</span></div>
-                                <div><span style={{ color: 'rgba(58,42,24,0.55)' }}>Blood Group</span><br /><span style={{ color: NAVY, fontWeight: 600 }}>{t.bloodGroup}</span></div>
-                                <div><span style={{ color: 'rgba(58,42,24,0.55)' }}>Contact</span><br /><span style={{ color: NAVY, fontWeight: 600 }}>{t.contact}</span></div>
-                                <div><span style={{ color: 'rgba(58,42,24,0.55)' }}>Education</span><br /><span style={{ color: NAVY, fontWeight: 600 }}>{t.education}</span></div>
-                                <div className="col-span-2 sm:col-span-3"><span style={{ color: 'rgba(58,42,24,0.55)' }}>School / College</span><br /><span style={{ color: NAVY, fontWeight: 600 }}>{t.school}{t.schoolAddress ? ` — ${t.schoolAddress}` : ''}</span></div>
-                                <div className="col-span-2 sm:col-span-3"><span style={{ color: 'rgba(58,42,24,0.55)' }}>Address</span><br /><span style={{ color: NAVY, fontWeight: 600 }}>{t.address}</span></div>
-                                <div className="sm:col-span-3"><span style={{ color: 'rgba(58,42,24,0.55)' }}>Hobbies</span><br /><span style={{ color: NAVY, fontWeight: 600 }}>{t.hobbies || '—'}</span></div>
+                                <div><span style={{ color: 'rgb(var(--ae-ink-rgb) /0.55)' }}>Name of Course</span><br /><span style={{ color: NAVY, fontWeight: 600 }}>{t.courseName}</span></div>
+                                <div><span style={{ color: 'rgb(var(--ae-ink-rgb) /0.55)' }}>Full Name</span><br /><span style={{ color: NAVY, fontWeight: 600 }}>{t.fullName}</span></div>
+                                <div><span style={{ color: 'rgb(var(--ae-ink-rgb) /0.55)' }}>Age / Sex</span><br /><span style={{ color: NAVY, fontWeight: 600 }}>{age || '—'} · {t.sex}</span></div>
+                                <div><span style={{ color: 'rgb(var(--ae-ink-rgb) /0.55)' }}>Blood Group</span><br /><span style={{ color: NAVY, fontWeight: 600 }}>{t.bloodGroup}</span></div>
+                                <div><span style={{ color: 'rgb(var(--ae-ink-rgb) /0.55)' }}>Contact</span><br /><span style={{ color: NAVY, fontWeight: 600 }}>{t.contact}</span></div>
+                                <div><span style={{ color: 'rgb(var(--ae-ink-rgb) /0.55)' }}>Education</span><br /><span style={{ color: NAVY, fontWeight: 600 }}>{t.education}</span></div>
+                                <div className="col-span-2 sm:col-span-3"><span style={{ color: 'rgb(var(--ae-ink-rgb) /0.55)' }}>School / College</span><br /><span style={{ color: NAVY, fontWeight: 600 }}>{t.school}{t.schoolAddress ? ` — ${t.schoolAddress}` : ''}</span></div>
+                                <div className="col-span-2 sm:col-span-3"><span style={{ color: 'rgb(var(--ae-ink-rgb) /0.55)' }}>Address</span><br /><span style={{ color: NAVY, fontWeight: 600 }}>{t.address}</span></div>
+                                <div className="sm:col-span-3"><span style={{ color: 'rgb(var(--ae-ink-rgb) /0.55)' }}>Hobbies</span><br /><span style={{ color: NAVY, fontWeight: 600 }}>{t.hobbies || '—'}</span></div>
                                 <div className="sm:col-span-3">
-                                  <span style={{ color: 'rgba(58,42,24,0.55)' }}>Adventure / Cultural Experience</span><br />
+                                  <span style={{ color: 'rgb(var(--ae-ink-rgb) /0.55)' }}>Adventure / Cultural Experience</span><br />
                                   <span style={{ color: NAVY, fontWeight: 600 }}>{t.experienceYesNo}{t.experienceYesNo === 'Yes' && t.experienceDetails ? ` — ${t.experienceDetails}` : ''}</span>
                                 </div>
                                 {t.participantType === 'minor' && (
                                   <div className="sm:col-span-3">
-                                    <span style={{ color: 'rgba(58,42,24,0.55)' }}>Parent / Guardian</span><br />
+                                    <span style={{ color: 'rgb(var(--ae-ink-rgb) /0.55)' }}>Parent / Guardian</span><br />
                                     <span style={{ color: NAVY, fontWeight: 600 }}>{t.guardianName} · {t.guardianContact}</span>
                                   </div>
                                 )}
                                 <div className="sm:col-span-3 flex flex-wrap gap-4">
-                                  <span style={{ color: 'rgba(58,42,24,0.55)' }}>Applicant Signature: {t.signature ? <strong style={{ color: NAVY }}>Signed · {t.sigPlace} · {t.sigDate}</strong> : <strong style={{ color: ERR }}>Not signed</strong>}</span>
-                                  <span style={{ color: 'rgba(58,42,24,0.55)' }}>Risk Certificate: {t.riskSignature ? <strong style={{ color: NAVY }}>Signed · {t.riskPlace} · {t.riskDate}</strong> : <strong style={{ color: ERR }}>Not signed</strong>}</span>
+                                  <span style={{ color: 'rgb(var(--ae-ink-rgb) /0.55)' }}>Applicant Signature: {t.signature ? <strong style={{ color: NAVY }}>Signed · {t.sigPlace} · {t.sigDate}</strong> : <strong style={{ color: ERR }}>Not signed</strong>}</span>
+                                  <span style={{ color: 'rgb(var(--ae-ink-rgb) /0.55)' }}>Risk Certificate: {t.riskSignature ? <strong style={{ color: NAVY }}>Signed · {t.riskPlace} · {t.riskDate}</strong> : <strong style={{ color: ERR }}>Not signed</strong>}</span>
                                 </div>
                               </div>
                             </div>
@@ -654,30 +654,30 @@ export default function BookingModal({ item, isOpen, onClose }) {
                   {/* Payment / Summary */}
                   {view === 'payment' && (
                     <div className="mt-5 space-y-5">
-                      <div className="rounded-xl p-4" style={{ backgroundColor: 'rgba(0,26,77,0.06)', border: '1px solid rgba(212,175,55,0.5)' }}>
+                      <div className="rounded-xl p-4" style={{ backgroundColor: 'rgb(var(--ae-navy-rgb) /0.06)', border: '1px solid rgb(var(--ae-gold2-rgb) /0.5)' }}>
                         <h4 className="text-lg sm:text-xl font-bold" style={{ color: NAVY, ...font.vintage }}>Booking Summary</h4>
-                        <p className="text-xs mt-1" style={{ color: 'rgba(58,42,24,0.65)', ...font.body }}>
+                        <p className="text-xs mt-1" style={{ color: 'rgb(var(--ae-ink-rgb) /0.65)', ...font.body }}>
                           Review your booking details and confirm before proceeding to payment.
                         </p>
                       </div>
 
                       <div className="rounded-xl overflow-hidden" style={{ border: '1px solid rgba(180,160,130,0.5)', backgroundColor: '#ffffff' }}>
-                        <div className="px-5 py-4" style={{ background: 'linear-gradient(135deg, #001a4d, #0d3a80 70%)' }}>
+                        <div className="px-5 py-4" style={{ background: 'linear-gradient(135deg, var(--ae-navy), var(--ae-navy-mid) 70%)' }}>
                           <span className="text-[9px] font-bold uppercase tracking-[0.2em]" style={{ color: GOLD2 }}>Selected Trip</span>
                           <div className="text-white font-bold text-base mt-0.5" style={font.vintage}>{trip.title}</div>
                           {trip.fields.length > 0 && (
-                            <div className="text-[11px] mt-1 leading-relaxed" style={{ color: 'rgba(250,245,234,0.8)' }}>
+                            <div className="text-[11px] mt-1 leading-relaxed" style={{ color: 'rgb(var(--ae-cream-rgb) /0.8)' }}>
                               {trip.fields.map(([, value]) => <div key={value}>{value}</div>)}
                             </div>
                           )}
                         </div>
                         <div className="px-5 py-4 divide-y divide-[rgba(180,160,130,0.25)]" style={font.body}>
                           <div className="py-2.5 flex items-center justify-between gap-4">
-                            <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'rgba(58,42,24,0.6)' }}>Travelers</span>
+                            <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'rgb(var(--ae-ink-rgb) /0.6)' }}>Travelers</span>
                             <span className="text-sm font-bold" style={{ color: NAVY }}>{count}</span>
                           </div>
                           <div className="py-2.5 flex items-center justify-between gap-4">
-                            <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'rgba(58,42,24,0.6)' }}>Price per Person</span>
+                            <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'rgb(var(--ae-ink-rgb) /0.6)' }}>Price per Person</span>
                             <span className="text-sm font-bold" style={{ color: NAVY }}>{perPerson ? `${perPerson} / person` : 'On Request'}</span>
                           </div>
                           <div className="py-3.5 flex items-center justify-between gap-4">
@@ -692,7 +692,7 @@ export default function BookingModal({ item, isOpen, onClose }) {
                           type="checkbox"
                           checked={confirmed}
                           onChange={(e) => { setConfirmed(e.target.checked); if (e.target.checked) setErrorMsg('') }}
-                          className="mt-0.5 w-4 h-4 cursor-pointer accent-[#001a4d]"
+                          className="mt-0.5 w-4 h-4 cursor-pointer accent-[color:var(--ae-navy)]"
                         />
                         <span className="text-xs leading-relaxed" style={{ color: BROWN }}>
                           I confirm that all information provided for every traveler is correct.<span style={{ color: '#b45309' }}> *</span>
@@ -723,7 +723,7 @@ export default function BookingModal({ item, isOpen, onClose }) {
                           onClick={backFromTraveler}
                           disabled={activeTraveler === 0}
                           className="inline-flex items-center gap-1.5 px-5 py-3 rounded-xl text-xs font-bold transition cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
-                          style={{ color: NAVY, backgroundColor: 'rgba(197,155,39,0.1)', border: '1px solid rgba(197,155,39,0.5)' }}
+                          style={{ color: NAVY, backgroundColor: 'rgb(var(--ae-gold-rgb) /0.1)', border: '1px solid rgb(var(--ae-gold-rgb) /0.5)' }}
                         >
                           <ChevronLeft size={14} aria-hidden="true" />
                           Back
@@ -733,7 +733,7 @@ export default function BookingModal({ item, isOpen, onClose }) {
                           type="button"
                           onClick={backToFormsLast}
                           className="inline-flex items-center gap-1.5 px-5 py-3 rounded-xl text-xs font-bold transition cursor-pointer"
-                          style={{ color: NAVY, backgroundColor: 'rgba(197,155,39,0.1)', border: '1px solid rgba(197,155,39,0.5)' }}
+                          style={{ color: NAVY, backgroundColor: 'rgb(var(--ae-gold-rgb) /0.1)', border: '1px solid rgb(var(--ae-gold-rgb) /0.5)' }}
                         >
                           <ChevronLeft size={14} aria-hidden="true" />
                           Back to Traveler {count}
@@ -743,9 +743,9 @@ export default function BookingModal({ item, isOpen, onClose }) {
                           type="button"
                           onClick={() => setView('review')}
                           className="inline-flex items-center gap-1.5 px-5 py-3 rounded-xl text-xs font-bold transition cursor-pointer"
-                          style={{ color: NAVY, backgroundColor: 'rgba(197,155,39,0.1)', border: '1px solid rgba(197,155,39,0.5)' }}
+                          style={{ color: NAVY, backgroundColor: 'rgb(var(--ae-gold-rgb) /0.1)', border: '1px solid rgb(var(--ae-gold-rgb) /0.5)' }}
                           onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = GOLD; e.currentTarget.style.color = NAVY }}
-                          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(197,155,39,0.1)'; e.currentTarget.style.color = NAVY }}
+                          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgb(var(--ae-gold-rgb) /0.1)'; e.currentTarget.style.color = NAVY }}
                         >
                           <ChevronLeft size={14} aria-hidden="true" />
                           Back to Review

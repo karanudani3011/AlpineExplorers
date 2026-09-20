@@ -424,7 +424,7 @@ export default function UsersAdmin() {
       )
     }
     return (
-      <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ background: 'rgba(197,155,39,0.15)', color: NAVY }}>
+      <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ background: 'rgb(var(--ae-gold-rgb) /0.15)', color: NAVY }}>
         {perms.length} Permissions ({modules.slice(0, 2).join(', ')}…)
       </span>
     )
@@ -570,16 +570,16 @@ export default function UsersAdmin() {
             <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left border-collapse" style={fonts}>
                 <thead>
-                  <tr style={{ borderBottom: '2px solid rgba(197,155,39,0.35)', background: 'rgba(0,26,77,0.02)' }}>
-                    <th className="py-3 px-4 text-[10px] uppercase tracking-wider font-bold" style={{ color: 'rgba(0,26,77,0.55)' }}>Avatar</th>
-                    <th className="py-3 px-4 text-[10px] uppercase tracking-wider font-bold" style={{ color: 'rgba(0,26,77,0.55)' }}>Full Name</th>
-                    <th className="py-3 px-4 text-[10px] uppercase tracking-wider font-bold" style={{ color: 'rgba(0,26,77,0.55)' }}>Email</th>
-                    <th className="py-3 px-4 text-[10px] uppercase tracking-wider font-bold" style={{ color: 'rgba(0,26,77,0.55)' }}>Phone</th>
-                    <th className="py-3 px-4 text-[10px] uppercase tracking-wider font-bold" style={{ color: 'rgba(0,26,77,0.55)' }}>Role</th>
-                    <th className="py-3 px-4 text-[10px] uppercase tracking-wider font-bold" style={{ color: 'rgba(0,26,77,0.55)' }}>Status</th>
-                    <th className="py-3 px-4 text-[10px] uppercase tracking-wider font-bold" style={{ color: 'rgba(0,26,77,0.55)' }}>Created</th>
-                    <th className="py-3 px-4 text-[10px] uppercase tracking-wider font-bold" style={{ color: 'rgba(0,26,77,0.55)' }}>Permissions</th>
-                    <th className="py-3 px-4 text-[10px] uppercase tracking-wider font-bold text-right" style={{ color: 'rgba(0,26,77,0.55)' }}>Actions</th>
+                  <tr style={{ borderBottom: '2px solid rgb(var(--ae-gold-rgb) /0.35)', background: 'rgb(var(--ae-navy-rgb) /0.02)' }}>
+                    <th className="py-3 px-4 text-[10px] uppercase tracking-wider font-bold" style={{ color: 'rgb(var(--ae-navy-rgb) /0.55)' }}>Avatar</th>
+                    <th className="py-3 px-4 text-[10px] uppercase tracking-wider font-bold" style={{ color: 'rgb(var(--ae-navy-rgb) /0.55)' }}>Full Name</th>
+                    <th className="py-3 px-4 text-[10px] uppercase tracking-wider font-bold" style={{ color: 'rgb(var(--ae-navy-rgb) /0.55)' }}>Email</th>
+                    <th className="py-3 px-4 text-[10px] uppercase tracking-wider font-bold" style={{ color: 'rgb(var(--ae-navy-rgb) /0.55)' }}>Phone</th>
+                    <th className="py-3 px-4 text-[10px] uppercase tracking-wider font-bold" style={{ color: 'rgb(var(--ae-navy-rgb) /0.55)' }}>Role</th>
+                    <th className="py-3 px-4 text-[10px] uppercase tracking-wider font-bold" style={{ color: 'rgb(var(--ae-navy-rgb) /0.55)' }}>Status</th>
+                    <th className="py-3 px-4 text-[10px] uppercase tracking-wider font-bold" style={{ color: 'rgb(var(--ae-navy-rgb) /0.55)' }}>Created</th>
+                    <th className="py-3 px-4 text-[10px] uppercase tracking-wider font-bold" style={{ color: 'rgb(var(--ae-navy-rgb) /0.55)' }}>Permissions</th>
+                    <th className="py-3 px-4 text-[10px] uppercase tracking-wider font-bold text-right" style={{ color: 'rgb(var(--ae-navy-rgb) /0.55)' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y" style={{ borderColor: 'rgba(180,160,130,0.15)' }}>
@@ -739,7 +739,7 @@ export default function UsersAdmin() {
                 onChange={(e) => setCreateForm({ ...createForm, status: e.target.value })}
                 className="w-full px-3.5 py-2.5 rounded-xl border outline-none text-sm font-semibold"
                 style={{
-                  borderColor: 'rgba(0,26,77,0.18)',
+                  borderColor: 'rgb(var(--ae-navy-rgb) /0.18)',
                   background: '#fff',
                   color: NAVY,
                   fontFamily: "'Inter', sans-serif",
@@ -759,7 +759,7 @@ export default function UsersAdmin() {
                   placeholder="Enter password (min 8 chars)"
                   className="w-full px-3.5 py-2.5 pr-10 rounded-xl border outline-none text-sm"
                   style={{
-                    borderColor: 'rgba(0,26,77,0.18)',
+                    borderColor: 'rgb(var(--ae-navy-rgb) /0.18)',
                     background: '#fff',
                     color: NAVY,
                   }}
@@ -783,7 +783,7 @@ export default function UsersAdmin() {
                   placeholder="Confirm password"
                   className="w-full px-3.5 py-2.5 pr-10 rounded-xl border outline-none text-sm"
                   style={{
-                    borderColor: 'rgba(0,26,77,0.18)',
+                    borderColor: 'rgb(var(--ae-navy-rgb) /0.18)',
                     background: '#fff',
                     color: NAVY,
                   }}
@@ -851,7 +851,7 @@ export default function UsersAdmin() {
                 onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
                 className="w-full px-3.5 py-2.5 rounded-xl border outline-none text-sm font-semibold"
                 style={{
-                  borderColor: 'rgba(0,26,77,0.18)',
+                  borderColor: 'rgb(var(--ae-navy-rgb) /0.18)',
                   background: '#fff',
                   color: NAVY,
                 }}
@@ -906,7 +906,7 @@ export default function UsersAdmin() {
                 type="button"
                 onClick={handleDeselectAll}
                 className="px-3 py-1.5 rounded-lg text-xs font-bold transition hover:bg-black/5 text-gray-600 border"
-                style={{ borderColor: 'rgba(0,26,77,0.15)' }}
+                style={{ borderColor: 'rgb(var(--ae-navy-rgb) /0.15)' }}
               >
                 Deselect All
               </button>
@@ -923,8 +923,8 @@ export default function UsersAdmin() {
                   key={mod.id}
                   className="rounded-2xl border p-4 transition-all"
                   style={{
-                    borderColor: someModSelected ? 'rgba(197,155,39,0.5)' : 'rgba(0,26,77,0.12)',
-                    background: someModSelected ? 'rgba(197,155,39,0.03)' : '#fff',
+                    borderColor: someModSelected ? 'rgb(var(--ae-gold-rgb) /0.5)' : 'rgb(var(--ae-navy-rgb) /0.12)',
+                    background: someModSelected ? 'rgb(var(--ae-gold-rgb) /0.03)' : '#fff',
                   }}
                 >
                   <div className="flex items-center justify-between pb-2 mb-3 border-b border-gray-100">
@@ -958,7 +958,7 @@ export default function UsersAdmin() {
                             className="w-5 h-5 rounded-md flex items-center justify-center transition"
                             style={{
                               background: checked ? GOLD : '#fff',
-                              border: `1.5px solid ${checked ? GOLD : 'rgba(0,26,77,0.25)'}`,
+                              border: `1.5px solid ${checked ? GOLD : 'rgb(var(--ae-navy-rgb) /0.25)'}`,
                               color: checked ? NAVY : 'transparent',
                             }}
                           >
@@ -977,7 +977,7 @@ export default function UsersAdmin() {
           </div>
 
           <div className="flex items-center justify-between mt-6 pt-4 border-t" style={{ borderColor: 'rgba(180,160,130,0.2)' }}>
-            <span className="text-xs font-semibold" style={{ color: 'rgba(0,26,77,0.6)' }}>
+            <span className="text-xs font-semibold" style={{ color: 'rgb(var(--ae-navy-rgb) /0.6)' }}>
               {selectedPermissions.length} of {ALL_PERMISSION_KEYS.length} permissions granted
             </span>
 
@@ -1014,7 +1014,7 @@ export default function UsersAdmin() {
                 placeholder="New password (min 8 chars)"
                 className="w-full px-3.5 py-2.5 pr-10 rounded-xl border outline-none text-sm"
                 style={{
-                  borderColor: 'rgba(0,26,77,0.18)',
+                  borderColor: 'rgb(var(--ae-navy-rgb) /0.18)',
                   background: '#fff',
                   color: NAVY,
                 }}
@@ -1037,7 +1037,7 @@ export default function UsersAdmin() {
               placeholder="Confirm new password"
               className="w-full px-3.5 py-2.5 rounded-xl border outline-none text-sm"
               style={{
-                borderColor: 'rgba(0,26,77,0.18)',
+                borderColor: 'rgb(var(--ae-navy-rgb) /0.18)',
                 background: '#fff',
                 color: NAVY,
               }}

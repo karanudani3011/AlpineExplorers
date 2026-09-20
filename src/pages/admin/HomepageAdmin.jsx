@@ -6,7 +6,7 @@ import { PageHeader, Btn, Card, Spinner, FieldLabel, NAVY, GOLD } from '../../co
 import { Field, TextInput, Toggle, ImageUpload, ListEditor } from '../../components/admin/FormFields'
 
 const fonts = { fontFamily: "'Inter'" }
-const inp = { width: '100%', padding: '10px 12px', borderRadius: 10, border: '1px solid rgba(0,26,77,0.18)', fontSize: 13, outline: 'none', fontFamily: "'Inter'" }
+const inp = { width: '100%', padding: '10px 12px', borderRadius: 10, border: '1px solid rgb(var(--ae-navy-rgb) /0.18)', fontSize: 13, outline: 'none', fontFamily: "'Inter'" }
 
 const SECTIONS = [
   ['hero', 'Hero Section'],
@@ -81,7 +81,7 @@ export default function HomepageAdmin() {
               </div>
             ))}
           </div>
-          <p className="text-[11px] mt-3" style={{ color: 'rgba(58,42,24,0.55)' }}>Disabled sections are hidden on the public homepage.</p>
+          <p className="text-[11px] mt-3" style={{ color: 'rgb(var(--ae-ink-rgb) /0.55)' }}>Disabled sections are hidden on the public homepage.</p>
         </Card>
 
         <Card>

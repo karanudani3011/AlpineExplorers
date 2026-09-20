@@ -9,8 +9,8 @@ import TourImageSlider from './TourImageSlider'
 import { tourImages } from '../data/tourImages'
 import { useSupabaseAuth } from '../hooks/useSupabaseAuth'
 
-const NAVY = '#001a4d'
-const GOLD = '#c59b27'
+const NAVY = 'var(--ae-navy)'
+const GOLD = 'var(--ae-gold)'
 
 function formatINR(amount) {
   if (!amount || amount <= 0) return null
@@ -63,7 +63,7 @@ export default function ServiceTourCard({ tour }) {
             {tour.badge && (
               <span
                 className="text-white px-2.5 py-1 rounded-full text-[10px] font-bold shadow-md tracking-wider uppercase"
-                style={{ background: `linear-gradient(135deg, ${NAVY}, #0d3a80)` }}
+                style={{ background: `linear-gradient(135deg, ${NAVY}, var(--ae-navy-mid))` }}
               >
                 {tour.badge}
               </span>
@@ -104,7 +104,7 @@ export default function ServiceTourCard({ tour }) {
           <div>
             <Link to={`/tour/${tour.id}`}>
               <h3
-                className="font-bold text-base sm:text-lg group-hover:text-[#c59b27] transition line-clamp-1 mb-1.5"
+                className="font-bold text-base sm:text-lg group-hover:text-[color:var(--ae-gold)] transition line-clamp-1 mb-1.5"
                 style={{ fontFamily: 'Cinzel, serif', color: NAVY }}
               >
                 {tour.title}
@@ -178,7 +178,7 @@ export default function ServiceTourCard({ tour }) {
                 onOpen={handleBookNow}
                 className="w-full py-2.5 justify-center text-white font-bold rounded-xl text-xs text-center shadow-md"
                 style={{ backgroundColor: NAVY }}
-                hoverStyle={{ backgroundColor: '#0d3a80' }}
+                hoverStyle={{ backgroundColor: 'var(--ae-navy-mid)' }}
               />
             </div>
           </div>

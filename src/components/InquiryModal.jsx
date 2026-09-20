@@ -2,12 +2,12 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, MessageSquare, Send, CheckCircle2, Phone, Calendar, Users, ShieldAlert, Sparkles, User, FileText } from 'lucide-react'
 
-const NAVY = '#001a4d'
-const NAVY_MID = '#0d3a80'
-const GOLD = '#c59b27'
-const GOLD2 = '#d4af37'
-const CREAM = '#faf5ea'
-const BROWN = '#3a2a18'
+const NAVY = 'var(--ae-navy)'
+const NAVY_MID = 'var(--ae-navy-mid)'
+const GOLD = 'var(--ae-gold)'
+const GOLD2 = 'var(--ae-gold2)'
+const CREAM = 'var(--ae-cream)'
+const BROWN = 'var(--ae-ink)'
 
 // Mock inquiries list for admin interface
 const initialAdminInquiries = [
@@ -141,20 +141,20 @@ export default function InquiryModal({ isOpen, onClose, tour = null }) {
           exit={{ opacity: 0, scale: 0.92, y: 20 }}
           transition={{ duration: 0.3, ease: 'easeOut' }}
           className="rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden border flex flex-col max-h-[92vh]"
-          style={{ backgroundColor: CREAM, borderColor: 'rgba(212,175,55,0.4)' }}
+          style={{ backgroundColor: CREAM, borderColor: 'rgb(var(--ae-gold2-rgb) /0.4)' }}
         >
           {/* Header */}
-          <div className="p-4 sm:p-6 text-white relative" style={{ background: 'linear-gradient(135deg, #001a4d, #0d3a80 60%, #123a6e)' }}>
+          <div className="p-4 sm:p-6 text-white relative" style={{ background: 'linear-gradient(135deg, var(--ae-navy), var(--ae-navy-mid) 60%, #123a6e)' }}>
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2.5 sm:gap-3">
-                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(212,175,55,0.2)', border: '1px solid rgba(212,175,55,0.55)', color: GOLD2 }}>
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgb(var(--ae-gold2-rgb) /0.2)', border: '1px solid rgb(var(--ae-gold2-rgb) /0.55)', color: GOLD2 }}>
                   <MessageSquare size={20} />
                 </div>
                 <div>
                   <h3 className="text-lg sm:text-xl font-bold font-display tracking-wide">
                     {activeTab === 'inquire' ? 'Inquire via WhatsApp' : 'Admin Inquiry Management'}
                   </h3>
-                  <p className="text-[11px] sm:text-xs" style={{ color: 'rgba(250,245,234,0.85)' }}>
+                  <p className="text-[11px] sm:text-xs" style={{ color: 'rgb(var(--ae-cream-rgb) /0.85)' }}>
                     {activeTab === 'inquire'
                       ? 'Instant responses within minutes from our Alpine Concierge'
                       : 'Live incoming traveler inquiries and reservation queue'}
@@ -209,11 +209,11 @@ export default function InquiryModal({ isOpen, onClose, tour = null }) {
             {activeTab === 'inquire' ? (
               submitted ? (
                 <div className="text-center py-8">
-                  <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce" style={{ backgroundColor: 'rgba(212,175,55,0.18)', color: GOLD }}>
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce" style={{ backgroundColor: 'rgb(var(--ae-gold2-rgb) /0.18)', color: GOLD }}>
                     <CheckCircle2 size={36} />
                   </div>
-                  <h4 className="text-2xl font-bold mb-2 text-[#001a4d]">Inquiry Dispatched!</h4>
-                  <p className="text-sm max-w-md mx-auto mb-6" style={{ color: 'rgba(58,42,24,0.8)' }}>
+                  <h4 className="text-2xl font-bold mb-2 text-[color:var(--ae-navy)]">Inquiry Dispatched!</h4>
+                  <p className="text-sm max-w-md mx-auto mb-6" style={{ color: 'rgb(var(--ae-ink-rgb) /0.8)' }}>
                     Your inquiry has been generated and queued for Alpine Explorers Concierge. If WhatsApp didn't open automatically, click below:
                   </p>
                   <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -242,10 +242,10 @@ export default function InquiryModal({ isOpen, onClose, tour = null }) {
               ) : (
                 <form onSubmit={handleLocalSubmit} className="space-y-4">
                   {/* Tour selected banner */}
-                  <div className="p-3.5 rounded-xl flex items-center justify-between" style={{ backgroundColor: 'rgba(212,175,55,0.16)', border: '1px solid rgba(197,155,39,0.4)' }}>
+                  <div className="p-3.5 rounded-xl flex items-center justify-between" style={{ backgroundColor: 'rgb(var(--ae-gold2-rgb) /0.16)', border: '1px solid rgb(var(--ae-gold-rgb) /0.4)' }}>
                     <div>
                       <span className="text-xs uppercase font-bold tracking-wider" style={{ color: '#7a5a12' }}>Selected Package</span>
-                      <h4 className="font-bold text-base text-[#001a4d]">{formData.tourName}</h4>
+                      <h4 className="font-bold text-base text-[color:var(--ae-navy)]">{formData.tourName}</h4>
                     </div>
                     <span className="px-2.5 py-1 rounded-full text-xs font-semibold text-white" style={{ backgroundColor: GOLD }}>
                       WhatsApp Quick Concierge
@@ -254,11 +254,11 @@ export default function InquiryModal({ isOpen, onClose, tour = null }) {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider mb-1 text-[#001a4d]">
+                      <label className="block text-xs font-bold uppercase tracking-wider mb-1 text-[color:var(--ae-navy)]">
                         Your Full Name
                       </label>
                       <div className="relative">
-                        <User size={16} className="absolute left-3 top-3" style={{ color: 'rgba(58,42,24,0.5)' }} />
+                        <User size={16} className="absolute left-3 top-3" style={{ color: 'rgb(var(--ae-ink-rgb) /0.5)' }} />
                         <input
                           type="text"
                           required
@@ -267,18 +267,18 @@ export default function InquiryModal({ isOpen, onClose, tour = null }) {
                           onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                           className="w-full pl-9 pr-3 py-2.5 rounded-xl text-sm focus:outline-none"
                           style={{ border: '1px solid rgba(180,160,130,0.45)', backgroundColor: '#fff', color: NAVY }}
-                          onFocus={(e) => { e.currentTarget.style.borderColor = GOLD; e.currentTarget.style.boxShadow = '0 0 0 2px rgba(197,155,39,0.25)'; }}
+                          onFocus={(e) => { e.currentTarget.style.borderColor = GOLD; e.currentTarget.style.boxShadow = '0 0 0 2px rgb(var(--ae-gold-rgb) /0.25)'; }}
                           onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(180,160,130,0.45)'; e.currentTarget.style.boxShadow = 'none'; }}
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider mb-1 text-[#001a4d]">
+                      <label className="block text-xs font-bold uppercase tracking-wider mb-1 text-[color:var(--ae-navy)]">
                         Phone / WhatsApp Number
                       </label>
                       <div className="relative">
-                        <Phone size={16} className="absolute left-3 top-3" style={{ color: 'rgba(58,42,24,0.5)' }} />
+                        <Phone size={16} className="absolute left-3 top-3" style={{ color: 'rgb(var(--ae-ink-rgb) /0.5)' }} />
                         <input
                           type="tel"
                           placeholder="+1 (555) 019-2834"
@@ -286,7 +286,7 @@ export default function InquiryModal({ isOpen, onClose, tour = null }) {
                           onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                           className="w-full pl-9 pr-3 py-2.5 rounded-xl text-sm focus:outline-none"
                           style={{ border: '1px solid rgba(180,160,130,0.45)', backgroundColor: '#fff', color: NAVY }}
-                          onFocus={(e) => { e.currentTarget.style.borderColor = GOLD; e.currentTarget.style.boxShadow = '0 0 0 2px rgba(197,155,39,0.25)'; }}
+                          onFocus={(e) => { e.currentTarget.style.borderColor = GOLD; e.currentTarget.style.boxShadow = '0 0 0 2px rgb(var(--ae-gold-rgb) /0.25)'; }}
                           onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(180,160,130,0.45)'; e.currentTarget.style.boxShadow = 'none'; }}
                         />
                       </div>
@@ -295,29 +295,29 @@ export default function InquiryModal({ isOpen, onClose, tour = null }) {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider mb-1 text-[#001a4d]">
+                      <label className="block text-xs font-bold uppercase tracking-wider mb-1 text-[color:var(--ae-navy)]">
                         Preferred Travel Date
                       </label>
                       <div className="relative">
-                        <Calendar size={16} className="absolute left-3 top-3" style={{ color: 'rgba(58,42,24,0.5)' }} />
+                        <Calendar size={16} className="absolute left-3 top-3" style={{ color: 'rgb(var(--ae-ink-rgb) /0.5)' }} />
                         <input
                           type="date"
                           value={formData.travelDate}
                           onChange={(e) => setFormData({ ...formData, travelDate: e.target.value })}
                           className="w-full pl-9 pr-3 py-2.5 rounded-xl text-sm focus:outline-none"
                           style={{ border: '1px solid rgba(180,160,130,0.45)', backgroundColor: '#fff', color: NAVY }}
-                          onFocus={(e) => { e.currentTarget.style.borderColor = GOLD; e.currentTarget.style.boxShadow = '0 0 0 2px rgba(197,155,39,0.25)'; }}
+                          onFocus={(e) => { e.currentTarget.style.borderColor = GOLD; e.currentTarget.style.boxShadow = '0 0 0 2px rgb(var(--ae-gold-rgb) /0.25)'; }}
                           onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(180,160,130,0.45)'; e.currentTarget.style.boxShadow = 'none'; }}
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider mb-1 text-[#001a4d]">
+                      <label className="block text-xs font-bold uppercase tracking-wider mb-1 text-[color:var(--ae-navy)]">
                         Number of Travelers
                       </label>
                       <div className="relative">
-                        <Users size={16} className="absolute left-3 top-3" style={{ color: 'rgba(58,42,24,0.5)' }} />
+                        <Users size={16} className="absolute left-3 top-3" style={{ color: 'rgb(var(--ae-ink-rgb) /0.5)' }} />
                         <input
                           type="number"
                           min="1"
@@ -326,7 +326,7 @@ export default function InquiryModal({ isOpen, onClose, tour = null }) {
                           onChange={(e) => setFormData({ ...formData, travelers: parseInt(e.target.value) || 1 })}
                           className="w-full pl-9 pr-3 py-2.5 rounded-xl text-sm focus:outline-none"
                           style={{ border: '1px solid rgba(180,160,130,0.45)', backgroundColor: '#fff', color: NAVY }}
-                          onFocus={(e) => { e.currentTarget.style.borderColor = GOLD; e.currentTarget.style.boxShadow = '0 0 0 2px rgba(197,155,39,0.25)'; }}
+                          onFocus={(e) => { e.currentTarget.style.borderColor = GOLD; e.currentTarget.style.boxShadow = '0 0 0 2px rgb(var(--ae-gold-rgb) /0.25)'; }}
                           onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(180,160,130,0.45)'; e.currentTarget.style.boxShadow = 'none'; }}
                         />
                       </div>
@@ -334,7 +334,7 @@ export default function InquiryModal({ isOpen, onClose, tour = null }) {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider mb-1 text-[#001a4d]">
+                    <label className="block text-xs font-bold uppercase tracking-wider mb-1 text-[color:var(--ae-navy)]">
                       Customer Inquiry & Special Requests
                     </label>
                     <textarea
@@ -344,17 +344,17 @@ export default function InquiryModal({ isOpen, onClose, tour = null }) {
                       placeholder="Ask about customized dates, airport transfers, luxury upgrades, dietary requirements, or private guide..."
                       className="w-full p-3 rounded-xl text-sm focus:outline-none resize-none"
                       style={{ border: '1px solid rgba(180,160,130,0.45)', backgroundColor: '#fff', color: NAVY }}
-                      onFocus={(e) => { e.currentTarget.style.borderColor = GOLD; e.currentTarget.style.boxShadow = '0 0 0 2px rgba(197,155,39,0.25)'; }}
+                      onFocus={(e) => { e.currentTarget.style.borderColor = GOLD; e.currentTarget.style.boxShadow = '0 0 0 2px rgb(var(--ae-gold-rgb) /0.25)'; }}
                       onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(180,160,130,0.45)'; e.currentTarget.style.boxShadow = 'none'; }}
                     />
                   </div>
 
                   {/* WhatsApp Message Preview */}
-                  <div className="rounded-xl p-3 text-xs" style={{ backgroundColor: 'rgba(212,175,55,0.14)', border: '1px solid rgba(197,155,39,0.4)' }}>
+                  <div className="rounded-xl p-3 text-xs" style={{ backgroundColor: 'rgb(var(--ae-gold2-rgb) /0.14)', border: '1px solid rgb(var(--ae-gold-rgb) /0.4)' }}>
                     <div className="flex items-center gap-1.5 font-bold mb-1.5 text-[#7a5a12]">
                       <Sparkles size={14} /> WhatsApp Pre-Filled Message Preview:
                     </div>
-                    <p className="whitespace-pre-line font-mono p-2.5 rounded-lg max-h-24 overflow-y-auto" style={{ color: BROWN, backgroundColor: '#fff', border: '1px solid rgba(197,155,39,0.25)' }}>
+                    <p className="whitespace-pre-line font-mono p-2.5 rounded-lg max-h-24 overflow-y-auto" style={{ color: BROWN, backgroundColor: '#fff', border: '1px solid rgb(var(--ae-gold-rgb) /0.25)' }}>
                       {whatsappMessage}
                     </p>
                   </div>
@@ -387,10 +387,10 @@ export default function InquiryModal({ isOpen, onClose, tour = null }) {
               <div className="space-y-4">
                 <div className="flex items-center justify-between pb-3 border-b" style={{ borderColor: 'rgba(180,160,130,0.25)' }}>
                   <div>
-                    <h4 className="font-bold text-base text-[#001a4d]">Alpine Concierge Desk Inquiries</h4>
-                    <p className="text-xs" style={{ color: 'rgba(58,42,24,0.7)' }}>Live feed of inbound traveler leads and WhatsApp conversations</p>
+                    <h4 className="font-bold text-base text-[color:var(--ae-navy)]">Alpine Concierge Desk Inquiries</h4>
+                    <p className="text-xs" style={{ color: 'rgb(var(--ae-ink-rgb) /0.7)' }}>Live feed of inbound traveler leads and WhatsApp conversations</p>
                   </div>
-                  <span className="text-xs font-semibold px-2.5 py-1 rounded-full" style={{ backgroundColor: 'rgba(197,155,39,0.16)', color: '#7a5a12', border: '1px solid rgba(197,155,39,0.4)' }}>
+                  <span className="text-xs font-semibold px-2.5 py-1 rounded-full" style={{ backgroundColor: 'rgb(var(--ae-gold-rgb) /0.16)', color: '#7a5a12', border: '1px solid rgb(var(--ae-gold-rgb) /0.4)' }}>
                     {adminInquiries.length} Active Inquiries
                   </span>
                 </div>
@@ -401,13 +401,13 @@ export default function InquiryModal({ isOpen, onClose, tour = null }) {
                       key={inq.id}
                       className="p-4 rounded-xl border transition space-y-2"
                       style={{ backgroundColor: 'rgba(180,160,130,0.1)', borderColor: 'rgba(180,160,130,0.25)' }}
-                      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(212,175,55,0.14)' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgb(var(--ae-gold2-rgb) /0.14)' }}
                       onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(180,160,130,0.1)' }}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <span className="font-mono text-xs font-bold" style={{ color: 'rgba(58,42,24,0.6)' }}>{inq.id}</span>
-                          <span className="font-bold text-sm text-[#001a4d]">{inq.name}</span>
+                          <span className="font-mono text-xs font-bold" style={{ color: 'rgb(var(--ae-ink-rgb) /0.6)' }}>{inq.id}</span>
+                          <span className="font-bold text-sm text-[color:var(--ae-navy)]">{inq.name}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <span
@@ -415,24 +415,24 @@ export default function InquiryModal({ isOpen, onClose, tour = null }) {
                               inq.status === 'New'
                                 ? 'text-amber-800'
                                 : inq.status === 'Contacted'
-                                ? 'text-[#0d3a80]'
+                                ? 'text-[color:var(--ae-navy-mid)]'
                                 : 'text-emerald-800'
                             }`}
-                            style={{ backgroundColor: inq.status === 'New' ? 'rgba(212,175,55,0.2)' : inq.status === 'Contacted' ? 'rgba(59,130,246,0.15)' : 'rgba(16,185,129,0.15)' }}
+                            style={{ backgroundColor: inq.status === 'New' ? 'rgb(var(--ae-gold2-rgb) /0.2)' : inq.status === 'Contacted' ? 'rgba(59,130,246,0.15)' : 'rgba(16,185,129,0.15)' }}
                           >
                             {inq.status}
                           </span>
-                          <span className="text-xs" style={{ color: 'rgba(58,42,24,0.55)' }}>{inq.time}</span>
+                          <span className="text-xs" style={{ color: 'rgb(var(--ae-ink-rgb) /0.55)' }}>{inq.time}</span>
                         </div>
                       </div>
 
-                      <div className="text-xs flex flex-wrap gap-x-4 gap-y-1" style={{ color: 'rgba(58,42,24,0.75)' }}>
-                        <span><strong className="text-[#001a4d]">Tour:</strong> {inq.tour}</span>
-                        <span><strong className="text-[#001a4d]">Travelers:</strong> {inq.travelers}</span>
-                        <span><strong className="text-[#001a4d]">Date:</strong> {inq.date}</span>
+                      <div className="text-xs flex flex-wrap gap-x-4 gap-y-1" style={{ color: 'rgb(var(--ae-ink-rgb) /0.75)' }}>
+                        <span><strong className="text-[color:var(--ae-navy)]">Tour:</strong> {inq.tour}</span>
+                        <span><strong className="text-[color:var(--ae-navy)]">Travelers:</strong> {inq.travelers}</span>
+                        <span><strong className="text-[color:var(--ae-navy)]">Date:</strong> {inq.date}</span>
                       </div>
 
-                      <p className="text-xs p-2 rounded-lg italic" style={{ color: BROWN, backgroundColor: '#fff', border: '1px solid rgba(197,155,39,0.25)' }}>
+                      <p className="text-xs p-2 rounded-lg italic" style={{ color: BROWN, backgroundColor: '#fff', border: '1px solid rgb(var(--ae-gold-rgb) /0.25)' }}>
                         "{inq.message}"
                       </p>
 
@@ -447,7 +447,7 @@ export default function InquiryModal({ isOpen, onClose, tour = null }) {
                           }}
                           className="px-2.5 py-1 text-xs font-semibold rounded transition"
                           style={{ backgroundColor: '#fff', border: '1px solid rgba(180,160,130,0.5)', color: BROWN }}
-                          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(212,175,55,0.2)' }}
+                          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgb(var(--ae-gold2-rgb) /0.2)' }}
                           onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#fff' }}
                         >
                           Mark Contacted

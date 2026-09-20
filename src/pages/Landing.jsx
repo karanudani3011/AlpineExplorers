@@ -199,9 +199,9 @@ export default function Landing() {
       <div
         className="paper-bg-base absolute inset-0 pointer-events-none"
         style={{
-          backgroundColor: '#f5ecd8',
+          backgroundColor: 'var(--ae-bg-paper)',
           backgroundImage: `
-            radial-gradient(circle at 50% 50%, #fbf6ec 0%, #f0e3c5 60%, #e0cda5 100%),
+            radial-gradient(circle at 50% 50%, var(--ae-bg-glow) 0%, var(--ae-bg-mid) 60%, var(--ae-bg-edge) 100%),
             radial-gradient(#c7af85 0.75px, transparent 0.75px)
           `,
           backgroundSize: '100% 100%, 28px 28px',
@@ -471,7 +471,7 @@ export default function Landing() {
 
           <button
             onClick={handleExploreNow}
-            className="relative px-10 sm:px-14 py-4 sm:py-5 bg-gradient-to-r from-[#2c170a] via-[#43230f] to-[#2c170a] text-amber-100 font-vintage font-bold text-lg sm:text-xl tracking-widest uppercase rounded-full border-2 border-[#d4af37] shadow-[0_12px_30px_rgba(44,23,10,0.45)] hover:shadow-[0_16px_40px_rgba(212,175,55,0.4)] transform hover:scale-105 active:scale-95 transition-all duration-300 flex items-center gap-3 cursor-pointer"
+            className="relative px-10 sm:px-14 py-4 sm:py-5 bg-gradient-to-r from-[#2c170a] via-[#43230f] to-[#2c170a] text-amber-100 font-vintage font-bold text-lg sm:text-xl tracking-widest uppercase rounded-full border-2 border-[color:var(--ae-gold2)] shadow-[0_12px_30px_rgba(44,23,10,0.45)] hover:shadow-[0_16px_40px_rgb(var(--ae-gold2-rgb) /0.4)] transform hover:scale-105 active:scale-95 transition-all duration-300 flex items-center gap-3 cursor-pointer"
           >
             <span>Explore Now</span>
             <div className="w-8 h-8 rounded-full bg-gradient-to-r from-amber-400 to-orange-400 text-stone-950 flex items-center justify-center shadow-md group-hover:translate-x-1.5 transition-transform duration-300">

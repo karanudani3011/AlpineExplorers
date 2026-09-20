@@ -6,12 +6,12 @@ import TourCard from '../components/TourCard'
 import { getCatalog } from '../services/catalog'
 import { ChevronRight, ChevronLeft, Sparkles, RefreshCw, Compass, CheckCircle2, Heart, Award } from 'lucide-react'
 
-const NAVY = '#001a4d'
-const NAVY_MID = '#0d3a80'
-const GOLD = '#c59b27'
-const GOLD2 = '#d4af37'
-const CREAM = '#faf5ea'
-const BROWN = '#3a2a18'
+const NAVY = 'var(--ae-navy)'
+const NAVY_MID = 'var(--ae-navy-mid)'
+const GOLD = 'var(--ae-gold)'
+const GOLD2 = 'var(--ae-gold2)'
+const CREAM = 'var(--ae-cream)'
+const BROWN = 'var(--ae-ink)'
 
 const font = {
   vintage: { fontFamily: 'Cinzel, serif' },
@@ -49,9 +49,9 @@ export default function TravelMood() {
   ]
 
   const budgets = [
-    { id: 'Budget', name: 'Budget', emoji: '💰', range: 'Under $1,000 / guest', desc: 'High-value guided expeditions' },
-    { id: 'Mid Range', name: 'Mid Range', emoji: '💵', range: '$1,000 - $1,500 / guest', desc: 'Premium comfort & scenic rail' },
-    { id: 'Luxury', name: 'Luxury', emoji: '💎', range: '$1,500+ / guest', desc: '5-star resorts & private concierge' },
+    { id: 'Budget', name: 'Budget', emoji: '💰', range: '₹15,000 – ₹25,000 / guest', desc: 'High-value guided expeditions' },
+    { id: 'Mid Range', name: 'Mid Range', emoji: '💵', range: '₹25,000 – ₹50,000 / guest', desc: 'Premium comfort & scenic rail' },
+    { id: 'Luxury', name: 'Luxury', emoji: '💎', range: '₹50,000+ / guest', desc: '5-star resorts & private concierge' },
   ]
 
   const getRecommendedTours = () => {
@@ -78,18 +78,18 @@ export default function TravelMood() {
 
   const optionCardStyle = (isSelected) => ({
     border: `1.5px solid ${isSelected ? NAVY : 'rgba(180,160,130,0.4)'}`,
-    backgroundColor: isSelected ? 'rgba(212,175,55,0.09)' : '#fffdf5',
+    backgroundColor: isSelected ? 'rgb(var(--ae-gold2-rgb) /0.09)' : '#fffdf5',
     boxShadow: isSelected
-      ? '0 0 0 3px rgba(197,155,39,0.22), 0 12px 28px rgba(60,40,20,0.14)'
+      ? '0 0 0 3px rgb(var(--ae-gold-rgb) /0.22), 0 12px 28px rgba(60,40,20,0.14)'
       : '0 6px 16px rgba(60,40,20,0.07)',
   })
 
   return (
     <div className="min-h-screen relative"
       style={{
-        backgroundColor: '#f5ecd8',
+        backgroundColor: 'var(--ae-bg-paper)',
         backgroundImage: `
-          radial-gradient(circle at 50% 50%, #fbf6ec 0%, #f0e3c5 60%, #e0cda5 100%),
+          radial-gradient(circle at 50% 50%, var(--ae-bg-glow) 0%, var(--ae-bg-mid) 60%, var(--ae-bg-edge) 100%),
           radial-gradient(#c7af85 0.75px, transparent 0.75px)`,
         backgroundSize: '100% 100%, 28px 28px',
         backgroundAttachment: 'fixed',
@@ -107,14 +107,14 @@ export default function TravelMood() {
             className="w-full h-full object-cover"
           />
         </div>
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(3,9,20,0.85) 0%, rgba(0,26,77,0.45) 60%, rgba(0,26,77,0.4) 100%)' }} />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(3,9,20,0.85) 0%, rgb(var(--ae-navy-rgb) /0.45) 60%, rgb(var(--ae-navy-rgb) /0.4) 100%)' }} />
 
         {/* decorative compass */}
         <div className="absolute left-6 top-6 opacity-30 pointer-events-none hidden sm:block">
           <svg width="70" height="70" viewBox="0 0 100 100" fill="none">
-            <circle cx="50" cy="50" r="44" stroke="#d4af37" strokeWidth="1.5" strokeDasharray="4 4" />
-            <polygon points="50,14 56,44 50,38 44,44" fill="#d4af37" />
-            <polygon points="50,86 43,56 50,62 57,56" fill="#faf5ea" />
+            <circle cx="50" cy="50" r="44" style={{ stroke: 'var(--ae-gold2)' }} strokeWidth="1.5" strokeDasharray="4 4" />
+            <polygon points="50,14 56,44 50,38 44,44" style={{ fill: 'var(--ae-gold2)' }} />
+            <polygon points="50,86 43,56 50,62 57,56" style={{ fill: 'var(--ae-cream)' }} />
           </svg>
         </div>
         <div className="absolute right-8 bottom-8 opacity-25 pointer-events-none hidden sm:block">
@@ -138,7 +138,7 @@ export default function TravelMood() {
             <Compass size={20} style={{ color: GOLD2 }} />
             <div className="h-[2px] w-16" style={{ background: `linear-gradient(to left, transparent, ${GOLD2})` }} />
           </div>
-          <p className="text-sm sm:text-base max-w-xl mx-auto leading-relaxed" style={{ color: 'rgba(250,245,234,0.92)', ...font.body }}>
+          <p className="text-sm sm:text-base max-w-xl mx-auto leading-relaxed" style={{ color: 'rgb(var(--ae-cream-rgb) /0.92)', ...font.body }}>
             Four simple selections tailored to align your mindset, ideal terrain, and budget with curated world expeditions.
           </p>
         </div>
@@ -153,11 +153,11 @@ export default function TravelMood() {
 
             {/* Step Progress Bar */}
             <div className="mb-10">
-              <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider mb-3 px-1" style={{ color: 'rgba(58,42,24,0.7)', ...font.vintage }}>
-                <span className={step >= 1 ? 'text-[#c59b27]' : ''}>1. Mood</span>
-                <span className={step >= 2 ? 'text-[#c59b27]' : ''}>2. Destination Type</span>
-                <span className={step >= 3 ? 'text-[#c59b27]' : ''}>3. Budget</span>
-                <span className={showResults ? 'text-[#c59b27]' : ''}>4. Results</span>
+              <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider mb-3 px-1" style={{ color: 'rgb(var(--ae-ink-rgb) /0.7)', ...font.vintage }}>
+                <span className={step >= 1 ? 'text-[color:var(--ae-gold)]' : ''}>1. Mood</span>
+                <span className={step >= 2 ? 'text-[color:var(--ae-gold)]' : ''}>2. Destination Type</span>
+                <span className={step >= 3 ? 'text-[color:var(--ae-gold)]' : ''}>3. Budget</span>
+                <span className={showResults ? 'text-[color:var(--ae-gold)]' : ''}>4. Results</span>
               </div>
               <div className="h-2.5 rounded-full overflow-hidden flex gap-1 p-0.5" style={{ backgroundColor: '#e9dcc0' }}>
                 {[1, 2, 3].map((s) => (
@@ -166,7 +166,7 @@ export default function TravelMood() {
                     className="h-full flex-1 rounded-full transition-all duration-500"
                     style={{
                       backgroundColor: s <= step ? GOLD : 'rgba(180,160,130,0.25)',
-                      boxShadow: s <= step ? '0 2px 8px rgba(197,155,39,0.4)' : 'none',
+                      boxShadow: s <= step ? '0 2px 8px rgb(var(--ae-gold-rgb) /0.4)' : 'none',
                     }}
                   />
                 ))}
@@ -186,7 +186,7 @@ export default function TravelMood() {
                   <h2 className="text-2xl sm:text-3xl font-bold mt-1" style={{ ...font.vintage, color: NAVY }}>
                     Choose Your Travel Mood
                   </h2>
-                  <p className="text-sm mt-1" style={{ color: 'rgba(58,42,24,0.7)', ...font.body }}>What kind of emotional journey are you seeking right now?</p>
+                  <p className="text-sm mt-1" style={{ color: 'rgb(var(--ae-ink-rgb) /0.7)', ...font.body }}>What kind of emotional journey are you seeking right now?</p>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -204,7 +204,7 @@ export default function TravelMood() {
                           <h4 className="font-bold text-lg" style={{ ...font.display, color: isSelected ? NAVY : BROWN }}>
                             {mood.name}
                           </h4>
-                          <p className="text-xs mt-1" style={{ color: 'rgba(58,42,24,0.7)', ...font.body }}>{mood.desc}</p>
+                          <p className="text-xs mt-1" style={{ color: 'rgb(var(--ae-ink-rgb) /0.7)', ...font.body }}>{mood.desc}</p>
                         </div>
                       </button>
                     )
@@ -226,7 +226,7 @@ export default function TravelMood() {
                   <h2 className="text-2xl sm:text-3xl font-bold mt-1" style={{ ...font.vintage, color: NAVY }}>
                     Choose Destination Type
                   </h2>
-                  <p className="text-sm mt-1" style={{ color: 'rgba(58,42,24,0.7)', ...font.body }}>Which landscape inspires your wanderlust the most?</p>
+                  <p className="text-sm mt-1" style={{ color: 'rgb(var(--ae-ink-rgb) /0.7)', ...font.body }}>Which landscape inspires your wanderlust the most?</p>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -244,7 +244,7 @@ export default function TravelMood() {
                           <h4 className="font-bold text-xl" style={{ ...font.display, color: isSelected ? NAVY : BROWN }}>
                             {dest.name}
                           </h4>
-                          <p className="text-xs mt-1" style={{ color: 'rgba(58,42,24,0.7)', ...font.body }}>{dest.desc}</p>
+                          <p className="text-xs mt-1" style={{ color: 'rgb(var(--ae-ink-rgb) /0.7)', ...font.body }}>{dest.desc}</p>
                         </div>
                       </button>
                     )
@@ -266,7 +266,7 @@ export default function TravelMood() {
                   <h2 className="text-2xl sm:text-3xl font-bold mt-1" style={{ ...font.vintage, color: NAVY }}>
                     Choose Your Budget
                   </h2>
-                  <p className="text-sm mt-1" style={{ color: 'rgba(58,42,24,0.7)', ...font.body }}>Select an investment tier for your expedition.</p>
+                  <p className="text-sm mt-1" style={{ color: 'rgb(var(--ae-ink-rgb) /0.7)', ...font.body }}>Select an investment tier for your expedition.</p>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -285,7 +285,7 @@ export default function TravelMood() {
                             {budget.name}
                           </h4>
                           <span className="text-xs font-bold block mt-1" style={{ color: GOLD }}>{budget.range}</span>
-                          <p className="text-[11px] mt-1" style={{ color: 'rgba(58,42,24,0.7)', ...font.body }}>{budget.desc}</p>
+                          <p className="text-[11px] mt-1" style={{ color: 'rgb(var(--ae-ink-rgb) /0.7)', ...font.body }}>{budget.desc}</p>
                         </div>
                       </button>
                     )
@@ -315,7 +315,7 @@ export default function TravelMood() {
                     (step === 2 && !selectedDestination)
                   }
                   className="flex-1 py-3 text-white font-bold rounded-full text-xs sm:text-sm transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
-                  style={{ backgroundColor: NAVY, ...font.vintage, boxShadow: '0 10px 24px rgba(0,26,77,0.3)' }}
+                  style={{ backgroundColor: NAVY, ...font.vintage, boxShadow: '0 10px 24px rgb(var(--ae-navy-rgb) /0.3)' }}
                   onMouseEnter={(e) => { if (!e.currentTarget.disabled) e.currentTarget.style.backgroundColor = NAVY_MID }}
                   onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = NAVY }}
                 >
@@ -327,7 +327,7 @@ export default function TravelMood() {
                   onClick={() => setShowResults(true)}
                   disabled={!selectedBudget}
                   className="flex-1 py-3 rounded-full text-xs sm:text-sm font-bold uppercase tracking-widest transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                  style={{ backgroundColor: GOLD, color: NAVY, ...font.vintage, boxShadow: '0 10px 26px rgba(197,155,39,0.45)' }}
+                  style={{ backgroundColor: GOLD, color: NAVY, ...font.vintage, boxShadow: '0 10px 26px rgb(var(--ae-gold-rgb) /0.45)' }}
                   onMouseEnter={(e) => { if (!e.currentTarget.disabled) e.currentTarget.style.backgroundColor = GOLD2 }}
                   onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = GOLD }}
                 >
@@ -347,7 +347,7 @@ export default function TravelMood() {
           >
             {/* Selections Summary Banner */}
             <div className="relative rounded-3xl p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6 overflow-hidden"
-              style={{ backgroundColor: NAVY, backgroundImage: 'linear-gradient(135deg, rgba(212,175,55,0.18), rgba(0,26,77,0) 55%)', boxShadow: '0 18px 44px rgba(0,26,77,0.35)' }}>
+              style={{ backgroundColor: NAVY, backgroundImage: 'linear-gradient(135deg, rgb(var(--ae-gold2-rgb) /0.18), rgb(var(--ae-navy-rgb) /0) 55%)', boxShadow: '0 18px 44px rgb(var(--ae-navy-rgb) /0.35)' }}>
               <div>
                 <span className="text-xl block mb-1" style={{ ...font.script, color: GOLD2 }}>
                   Your Personalized Recommendation

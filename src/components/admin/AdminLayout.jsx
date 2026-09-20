@@ -37,7 +37,7 @@ const linkClass = ({ isActive }) =>
 
 const linkStyle = ({ isActive }) => ({
   fontFamily: "'Inter', sans-serif",
-  background: isActive ? 'linear-gradient(90deg, rgba(197,155,39,0.25), transparent)' : 'transparent',
+  background: isActive ? 'linear-gradient(90deg, rgb(var(--ae-gold-rgb) /0.25), transparent)' : 'transparent',
 })
 
 function GroupItem({ group, onNavigate }) {
@@ -49,7 +49,7 @@ function GroupItem({ group, onNavigate }) {
     <div>
       <button type="button" onClick={() => setOpen(!open)}
         className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-colors ${active ? 'text-white' : 'text-white/70 hover:text-white hover:bg-white/5'}`}
-        style={{ fontFamily: "'Inter', sans-serif", background: active ? 'linear-gradient(90deg, rgba(197,155,39,0.25), transparent)' : 'transparent' }}>
+        style={{ fontFamily: "'Inter', sans-serif", background: active ? 'linear-gradient(90deg, rgb(var(--ae-gold-rgb) /0.25), transparent)' : 'transparent' }}>
         <group.icon size={17} style={{ color: GOLD }} className="shrink-0" />
         <span className="flex-1 text-left">{group.label}</span>
         <ChevronDown size={15} className={`shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} style={{ color: GOLD }} />

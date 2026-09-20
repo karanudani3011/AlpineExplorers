@@ -8,11 +8,11 @@ import {
   Wallet, BadgeCheck, Scale, Mail, ArrowRight, Shield, AlertTriangle,
 } from 'lucide-react'
 
-const NAVY = '#001a4d'
-const GOLD = '#c59b27'
-const GOLD2 = '#d4af37'
-const CREAM = '#faf5ea'
-const BROWN = '#3a2a18'
+const NAVY = 'var(--ae-navy)'
+const GOLD = 'var(--ae-gold)'
+const GOLD2 = 'var(--ae-gold2)'
+const CREAM = 'var(--ae-cream)'
+const BROWN = 'var(--ae-ink)'
 const RED = '#8b2518'
 
 const font = {
@@ -38,7 +38,7 @@ function SectionHeading({ eyebrow, title, tagline }) {
       <h2 className="text-3xl sm:text-4xl font-bold mt-1 mb-2" style={{ ...font.vintage, color: NAVY }}>{title}</h2>
       <div className="flex items-center justify-center gap-3">
         <div className="h-[1.5px] w-12" style={{ background: `linear-gradient(to right, transparent, ${GOLD})` }} />
-        <p className="italic text-base" style={{ ...font.display, color: 'rgba(58,42,24,0.7)' }}>{tagline}</p>
+        <p className="italic text-base" style={{ ...font.display, color: 'rgb(var(--ae-ink-rgb) /0.7)' }}>{tagline}</p>
         <div className="h-[1.5px] w-12" style={{ background: `linear-gradient(to left, transparent, ${GOLD})` }} />
       </div>
     </motion.div>
@@ -49,7 +49,7 @@ function LegalSection({ icon: Icon, title, children }) {
   return (
     <motion.div variants={item} className="flex gap-4 sm:gap-5">
       <div className="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center mt-1"
-        style={{ background: 'linear-gradient(135deg, rgba(197,155,39,0.18), rgba(212,175,55,0.08))', border: '1px dashed rgba(197,155,39,0.5)' }}>
+        style={{ background: 'linear-gradient(135deg, rgb(var(--ae-gold-rgb) /0.18), rgb(var(--ae-gold2-rgb) /0.08))', border: '1px dashed rgb(var(--ae-gold-rgb) /0.5)' }}>
         <Icon size={21} style={{ color: GOLD }} />
       </div>
       <div className="flex-1 pb-8 border-b" style={{ borderColor: 'rgba(180,160,130,0.22)' }}>
@@ -83,9 +83,9 @@ export default function TermsConditions() {
   return (
     <div className="min-h-screen relative"
       style={{
-        backgroundColor: '#f5ecd8',
+        backgroundColor: 'var(--ae-bg-paper)',
         backgroundImage: `
-          radial-gradient(circle at 50% 50%, #fbf6ec 0%, #f0e3c5 60%, #e0cda5 100%),
+          radial-gradient(circle at 50% 50%, var(--ae-bg-glow) 0%, var(--ae-bg-mid) 60%, var(--ae-bg-edge) 100%),
           radial-gradient(#c7af85 0.75px, transparent 0.75px)`,
         backgroundSize: '100% 100%, 28px 28px',
         backgroundAttachment: 'fixed',
@@ -100,7 +100,7 @@ export default function TermsConditions() {
             <div className="inline-flex items-center justify-center mb-6">
               <div className="relative">
                 <div className="w-24 h-24 rounded-full flex items-center justify-center"
-                  style={{ backgroundColor: 'rgba(250,245,234,0.9)', border: '2px dashed rgba(197,155,39,0.6)', boxShadow: '0 10px 30px rgba(60,40,20,0.15)', transform: 'rotate(6deg)' }}>
+                  style={{ backgroundColor: 'rgb(var(--ae-cream-rgb) /0.9)', border: '2px dashed rgb(var(--ae-gold-rgb) /0.6)', boxShadow: '0 10px 30px rgba(60,40,20,0.15)', transform: 'rotate(6deg)' }}>
                   <ScrollText size={40} style={{ color: GOLD }} />
                 </div>
                 <motion.div className="absolute -right-2 -top-2" animate={{ rotate: [0, 10, 0] }} transition={{ duration: 6, repeat: Infinity }}>
@@ -125,7 +125,7 @@ export default function TermsConditions() {
               Please read these terms carefully — they govern your use of our website, booking of tours and travel services with Alpine Explorers.
             </p>
             <p className="mt-4 inline-block px-5 py-2 rounded-full text-xs font-bold tracking-widest"
-              style={{ ...font.vintage, color: NAVY, backgroundColor: 'rgba(197,155,39,0.1)', border: '1px dashed rgba(197,155,39,0.45)' }}>
+              style={{ ...font.vintage, color: NAVY, backgroundColor: 'rgb(var(--ae-gold-rgb) /0.1)', border: '1px dashed rgb(var(--ae-gold-rgb) /0.45)' }}>
               Last updated: 09 September 2026
             </p>
           </motion.div>
@@ -233,7 +233,7 @@ export default function TermsConditions() {
 
             <motion.div variants={item} className="pt-4">
               <Link to="/" className="group inline-flex items-center gap-2 px-6 py-3 rounded-full text-xs uppercase font-bold tracking-widest"
-                style={{ backgroundColor: NAVY, color: '#fff', ...font.vintage, boxShadow: '0 8px 22px rgba(0,26,77,0.25)' }}>
+                style={{ backgroundColor: NAVY, color: '#fff', ...font.vintage, boxShadow: '0 8px 22px rgb(var(--ae-navy-rgb) /0.25)' }}>
                 Back to Home <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform" style={{ color: GOLD2 }} />
               </Link>
             </motion.div>

@@ -35,8 +35,8 @@ export function TravelerDetailModal({ traveler, booking, onClose, onDownloadPdf,
               style={{
                 fontFamily: font.body,
                 color: activeSection === section.id ? '#ffffff' : NAVY,
-                background: activeSection === section.id ? NAVY : 'rgba(0,26,77,0.06)',
-                border: `1px solid ${activeSection === section.id ? NAVY : 'rgba(0,26,77,0.15)'}`
+                background: activeSection === section.id ? NAVY : 'rgb(var(--ae-navy-rgb) /0.06)',
+                border: `1px solid ${activeSection === section.id ? NAVY : 'rgb(var(--ae-navy-rgb) /0.15)'}`
               }}
             >
               <section.icon size={13} style={{ color: activeSection === section.id ? GOLD : NAVY }} />
@@ -79,7 +79,7 @@ export function TravelerDetailModal({ traveler, booking, onClose, onDownloadPdf,
                   {traveler.photo_url ? (
                     <img src={traveler.photo_url} alt={traveler.full_name} className="w-full h-full object-cover" />
                   ) : (
-                    <div className="text-center p-4" style={{ color: 'rgba(58,42,24,0.5)' }}>
+                    <div className="text-center p-4" style={{ color: 'rgb(var(--ae-ink-rgb) /0.5)' }}>
                       <Camera size={36} className="mx-auto mb-2 text-gray-300" />
                       <p className="text-xs font-semibold">No photograph uploaded</p>
                     </div>
@@ -124,7 +124,7 @@ export function TravelerDetailModal({ traveler, booking, onClose, onDownloadPdf,
               <DetailField label="School / College Phone" value={traveler.school_college_phone || '—'} />
               <DetailField label="Hobbies" value={traveler.hobbies || '—'} fullWidth />
             </div>
-            <div className="mt-6 p-4 rounded-xl" style={{ background: 'rgba(0,26,77,0.05)', border: '1px solid rgba(0,26,77,0.15)' }}>
+            <div className="mt-6 p-4 rounded-xl" style={{ background: 'rgb(var(--ae-navy-rgb) /0.05)', border: '1px solid rgb(var(--ae-navy-rgb) /0.15)' }}>
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: GOLD }}>Adventure / Cultural Experience</span>
               </div>
@@ -224,7 +224,7 @@ export function TravelerDetailModal({ traveler, booking, onClose, onDownloadPdf,
         )}
 
         {/* Booking Info at bottom */}
-        <div className="mt-6 pt-6 border-t p-4 rounded-xl" style={{ borderColor: 'rgba(180,160,130,0.15)', background: 'rgba(0,26,77,0.03)' }}>
+        <div className="mt-6 pt-6 border-t p-4 rounded-xl" style={{ borderColor: 'rgba(180,160,130,0.15)', background: 'rgb(var(--ae-navy-rgb) /0.03)' }}>
           <p className="text-[10px] font-bold uppercase tracking-wider mb-3" style={{ color: GOLD, fontFamily: font.body }}>BOOKING INFORMATION</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <DetailField label="Booking ID" value={booking.booking_id} />
@@ -255,7 +255,7 @@ function SectionWrapper({ title, icon: Icon, children }) {
 function DetailField({ label, value, fullWidth }) {
   return (
     <div className={`${fullWidth ? 'sm:col-span-2' : ''}`}>
-      <div className="text-[10px] font-bold uppercase tracking-wide mb-0.5" style={{ color: 'rgba(0,26,77,0.45)', fontFamily: font.body }}>
+      <div className="text-[10px] font-bold uppercase tracking-wide mb-0.5" style={{ color: 'rgb(var(--ae-navy-rgb) /0.45)', fontFamily: font.body }}>
         {label}
       </div>
       <div className="font-semibold text-sm" style={{ color: NAVY, fontFamily: font.body, wordBreak: 'break-word' }}>

@@ -7,12 +7,12 @@ import Footer from '../components/Footer'
 import FamilyCustomizationForm from '../components/FamilyCustomizationForm'
 import { serviceCategories, serviceTours } from '../data/servicesData'
 
-const NAVY = '#001a4d'
-const NAVY_MID = '#0d3a80'
-const GOLD = '#c59b27'
-const GOLD2 = '#d4af37'
-const CREAM = '#faf5ea'
-const BROWN = '#3a2a18'
+const NAVY = 'var(--ae-navy)'
+const NAVY_MID = 'var(--ae-navy-mid)'
+const GOLD = 'var(--ae-gold)'
+const GOLD2 = 'var(--ae-gold2)'
+const CREAM = 'var(--ae-cream)'
+const BROWN = 'var(--ae-ink)'
 
 const font = {
   vintage: { fontFamily: 'Cinzel, serif' },
@@ -151,7 +151,7 @@ export default function Services() {
             <div className="flex items-center gap-3">
               <div
                 className="w-10 h-10 rounded-xl flex items-center justify-center"
-                style={{ background: `linear-gradient(135deg, ${GOLD}, ${GOLD2})`, boxShadow: '0 4px 12px rgba(197,155,39,0.4)' }}
+                style={{ background: `linear-gradient(135deg, ${GOLD}, ${GOLD2})`, boxShadow: '0 4px 12px rgb(var(--ae-gold-rgb) /0.4)' }}
               >
                 <Compass size={20} className="text-white" />
               </div>
@@ -188,7 +188,7 @@ export default function Services() {
           </h2>
           <div className="flex items-center justify-center gap-3 mt-2">
             <div className="h-[1.5px] w-12" style={{ background: `linear-gradient(to right, transparent, ${GOLD})` }} />
-            <p className="italic text-sm" style={{ ...font.display, color: 'rgba(58,42,24,0.6)' }}>
+            <p className="italic text-sm" style={{ ...font.display, color: 'rgb(var(--ae-ink-rgb) /0.6)' }}>
               Six categories, countless memories
             </p>
             <div className="h-[1.5px] w-12" style={{ background: `linear-gradient(to left, transparent, ${GOLD})` }} />
@@ -201,7 +201,7 @@ export default function Services() {
             type="button"
             onClick={prev}
             aria-label="Previous services"
-            className="absolute left-1 sm:left-2 top-1/2 -translate-y-1/2 z-30 w-11 h-11 rounded-full flex items-center justify-center bg-[#faf5ea] border border-[rgba(197,155,39,0.55)] text-[#001a4d] shadow-[0_10px_24px_rgba(0,26,77,0.2)] hover:bg-[#001a4d] hover:text-[#d4af37] hover:border-[#001a4d] hover:scale-105 transition-all duration-300"
+            className="absolute left-1 sm:left-2 top-1/2 -translate-y-1/2 z-30 w-11 h-11 rounded-full flex items-center justify-center bg-[color:var(--ae-cream)] border border-[color:rgb(var(--ae-gold-rgb)/0.55)] text-[color:var(--ae-navy)] shadow-[0_10px_24px_rgb(var(--ae-navy-rgb)/0.2)] hover:bg-[color:var(--ae-navy)] hover:text-[color:var(--ae-gold2)] hover:border-[color:var(--ae-navy)] hover:scale-105 transition-all duration-300"
           >
             <ChevronLeft size={20} />
           </button>
@@ -211,7 +211,7 @@ export default function Services() {
             type="button"
             onClick={next}
             aria-label="Next services"
-            className="absolute right-1 sm:right-2 top-1/2 -translate-y-1/2 z-30 w-11 h-11 rounded-full flex items-center justify-center bg-[#faf5ea] border border-[rgba(197,155,39,0.55)] text-[#001a4d] shadow-[0_10px_24px_rgba(0,26,77,0.2)] hover:bg-[#001a4d] hover:text-[#d4af37] hover:border-[#001a4d] hover:scale-105 transition-all duration-300"
+            className="absolute right-1 sm:right-2 top-1/2 -translate-y-1/2 z-30 w-11 h-11 rounded-full flex items-center justify-center bg-[color:var(--ae-cream)] border border-[color:rgb(var(--ae-gold-rgb)/0.55)] text-[color:var(--ae-navy)] shadow-[0_10px_24px_rgb(var(--ae-navy-rgb)/0.2)] hover:bg-[color:var(--ae-navy)] hover:text-[color:var(--ae-gold2)] hover:border-[color:var(--ae-navy)] hover:scale-105 transition-all duration-300"
           >
             <ChevronRight size={20} />
           </button>
@@ -236,9 +236,9 @@ export default function Services() {
                 const cardStyle = {
                   transform: isActive ? 'scale(1.04)' : 'scale(0.95)',
                   opacity: isActive ? 1 : 0.78,
-                  borderColor: isActive ? 'rgba(197,155,39,0.9)' : 'rgba(180,160,130,0.32)',
+                  borderColor: isActive ? 'rgb(var(--ae-gold-rgb) /0.9)' : 'rgba(180,160,130,0.32)',
                   boxShadow: isActive
-                    ? '0 26px 54px rgba(0,26,77,0.22)'
+                    ? '0 26px 54px rgb(var(--ae-navy-rgb) /0.22)'
                     : '0 10px 24px rgba(60,40,20,0.1)',
                   transition: 'transform 700ms cubic-bezier(0.22, 0.61, 0.36, 1), opacity 700ms ease, border-color 700ms ease, box-shadow 700ms ease',
                 }
@@ -284,7 +284,7 @@ export default function Services() {
                               className="w-11 h-11 rounded-xl flex items-center justify-center transition-transform duration-300 group-hover:scale-110"
                               style={{
                                 background: `linear-gradient(135deg, ${GOLD}, ${GOLD2})`,
-                                boxShadow: '0 4px 12px rgba(197,155,39,0.4)',
+                                boxShadow: '0 4px 12px rgb(var(--ae-gold-rgb) /0.4)',
                               }}
                             >
                               {Icon && <Icon size={22} className="text-white" />}
@@ -295,18 +295,18 @@ export default function Services() {
                         {/* Card Content */}
                         <div className="p-5 flex flex-col flex-1">
                           <h3
-                            className="text-lg font-bold mb-1 group-hover:text-[#c59b27] transition-colors"
+                            className="text-lg font-bold mb-1 group-hover:text-[color:var(--ae-gold)] transition-colors"
                             style={{ fontFamily: 'Cinzel, serif', color: NAVY }}
                           >
                             {cat.name}
                           </h3>
-                          <p className="text-xs leading-relaxed mb-3 line-clamp-2" style={{ color: 'rgba(58,42,24,0.6)' }}>
+                          <p className="text-xs leading-relaxed mb-3 line-clamp-2" style={{ color: 'rgb(var(--ae-ink-rgb) /0.6)' }}>
                             {cat.description}
                           </p>
 
                           {/* Featured tour preview */}
                           {firstTour && (
-                            <div className="flex items-center gap-3 p-2.5 rounded-xl mb-3 mt-auto last:mb-0" style={{ backgroundColor: 'rgba(197,155,39,0.06)' }}>
+                            <div className="flex items-center gap-3 p-2.5 rounded-xl mb-3 mt-auto last:mb-0" style={{ backgroundColor: 'rgb(var(--ae-gold-rgb) /0.06)' }}>
                               <img
                                 src={firstTour.image}
                                 alt={firstTour.title}
@@ -356,7 +356,7 @@ export default function Services() {
                     className="block h-[2px] rounded-full transition-all duration-500"
                     style={{
                       width: isActiveDot ? 28 : 12,
-                      backgroundColor: isActiveDot ? GOLD : 'rgba(197,155,39,0.35)',
+                      backgroundColor: isActiveDot ? GOLD : 'rgb(var(--ae-gold-rgb) /0.35)',
                     }}
                   />
                   <span
@@ -364,9 +364,9 @@ export default function Services() {
                     style={{
                       width: isActiveDot ? 11 : 7,
                       height: isActiveDot ? 11 : 7,
-                      backgroundColor: isActiveDot ? NAVY : 'rgba(0,26,77,0.22)',
+                      backgroundColor: isActiveDot ? NAVY : 'rgb(var(--ae-navy-rgb) /0.22)',
                       border: `2px solid ${isActiveDot ? GOLD : 'transparent'}`,
-                      boxShadow: isActiveDot ? '0 0 0 2px rgba(197,155,39,0.35)' : 'none',
+                      boxShadow: isActiveDot ? '0 0 0 2px rgb(var(--ae-gold-rgb) /0.35)' : 'none',
                     }}
                   />
                 </button>
@@ -391,7 +391,7 @@ export default function Services() {
           <h2 className="text-2xl sm:text-3xl font-bold mt-1" style={{ ...font.vintage, color: NAVY }}>
             Customize Your Family Tour
           </h2>
-          <p className="text-sm mt-2" style={{ color: 'rgba(58,42,24,0.6)' }}>
+          <p className="text-sm mt-2" style={{ color: 'rgb(var(--ae-ink-rgb) /0.6)' }}>
             Tell us your preferences and our travel experts will create the perfect family itinerary
           </p>
         </motion.div>

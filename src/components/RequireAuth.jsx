@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useSupabaseAuth } from '../hooks/useSupabaseAuth'
 import { Loader2 } from 'lucide-react'
 
-const NAVY = '#001a4d'
+const NAVY = 'var(--ae-navy)'
 
 export default function RequireAuth({ children }) {
   const { user, loading, openAuthModal } = useSupabaseAuth()
@@ -24,7 +24,7 @@ export default function RequireAuth({ children }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#faf5ea' }}>
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--ae-cream)' }}>
         <div className="flex flex-col items-center gap-3">
           <Loader2 size={32} className="animate-spin" style={{ color: NAVY }} />
           <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: NAVY }}>
@@ -37,7 +37,7 @@ export default function RequireAuth({ children }) {
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: '#faf5ea' }}>
+      <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: 'var(--ae-cream)' }}>
         <div className="text-center max-w-sm">
           <h2 className="text-lg font-bold mb-2" style={{ color: NAVY, fontFamily: 'Cinzel, serif' }}>
             Authentication Required

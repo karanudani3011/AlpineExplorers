@@ -50,7 +50,7 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #c59b27;
+  background: var(--ae-gold);
   border-radius: 5px;
 }
 
@@ -200,7 +200,7 @@ button, a {
 }
 .service-card-hover:hover {
   transform: translateY(-6px);
-  box-shadow: 0 20px 50px rgba(0,26,77,0.12), 0 8px 20px rgba(0,26,77,0.06);
+  box-shadow: 0 20px 50px rgb(var(--ae-navy-rgb) /0.12), 0 8px 20px rgb(var(--ae-navy-rgb) /0.06);
 }
 
 /* Itinerary timeline line */
@@ -214,7 +214,7 @@ button, a {
   top: 0;
   bottom: 0;
   width: 2px;
-  background: linear-gradient(to bottom, #c59b27, rgba(197,155,39,0.2));
+  background: linear-gradient(to bottom, var(--ae-gold), rgb(var(--ae-gold-rgb) /0.2));
 }
 
 /* Smooth accordion content */
@@ -248,7 +248,7 @@ button, a {
 
 /* Active nav indicator for services */
 .nav-services-active {
-  color: #001a4d;
+  color: var(--ae-navy);
   font-weight: 700;
 }
 
@@ -260,7 +260,7 @@ button, a {
 
 /* Focus visible styles for accessibility */
 a:focus-visible, button:focus-visible {
-  outline: 2px solid #c59b27;
+  outline: 2px solid var(--ae-gold);
   outline-offset: 2px;
   border-radius: 4px;
 }

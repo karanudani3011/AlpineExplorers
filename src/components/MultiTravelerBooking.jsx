@@ -9,10 +9,10 @@ import { api } from '../services/api'
 import TravelerForm from './booking/TravelerForm'
 import ReviewCard from './booking/ReviewCard'
 
-const NAVY = '#001a4d'
-const NAVY_MID = '#0d3a80'
-const GOLD = '#c59b27'
-const GOLD2 = '#d4af37'
+const NAVY = 'var(--ae-navy)'
+const NAVY_MID = 'var(--ae-navy-mid)'
+const GOLD = 'var(--ae-gold)'
+const GOLD2 = 'var(--ae-gold2)'
 const ERR = '#dc2626'
 
 /* ──────────────────────────── Helpers ──────────────────────────── */
@@ -342,7 +342,7 @@ export default function MultiTravelerBooking({ tour }) {
               className="rounded-2xl p-5 mb-6 flex items-center gap-4"
               style={{
                 background: `linear-gradient(135deg, ${NAVY}, ${NAVY_MID})`,
-                boxShadow: '0 4px 20px rgba(0,26,77,0.2)',
+                boxShadow: '0 4px 20px rgb(var(--ae-navy-rgb) /0.2)',
               }}
             >
               <div
@@ -358,7 +358,7 @@ export default function MultiTravelerBooking({ tour }) {
                 <p className="text-white font-bold text-base truncate" style={{ fontFamily: 'Cinzel, serif' }}>
                   {tour.title}
                 </p>
-                <div className="flex flex-wrap gap-3 mt-1.5 text-xs" style={{ color: 'rgba(250,245,234,0.75)' }}>
+                <div className="flex flex-wrap gap-3 mt-1.5 text-xs" style={{ color: 'rgb(var(--ae-cream-rgb) /0.75)' }}>
                   <span className="flex items-center gap-1"><MapPin size={11} /> {tour.location}</span>
                   <span className="flex items-center gap-1"><Clock size={11} /> {tour.duration}</span>
                   {tour.date && (
@@ -384,7 +384,7 @@ export default function MultiTravelerBooking({ tour }) {
             {/* Traveler count selector */}
             <div
               className="rounded-2xl bg-white p-8 text-center"
-              style={{ boxShadow: '0 2px 16px rgba(0,26,77,0.08)', border: `1px solid ${GOLD}20` }}
+              style={{ boxShadow: '0 2px 16px rgb(var(--ae-navy-rgb) /0.08)', border: `1px solid ${GOLD}20` }}
             >
               <h2 className="text-2xl font-bold mb-2" style={{ color: NAVY, fontFamily: 'Cinzel, serif' }}>
                 How many people are traveling?
@@ -477,7 +477,7 @@ export default function MultiTravelerBooking({ tour }) {
                 type="button"
                 onClick={proceedToForms}
                 className="flex items-center justify-center gap-2 mx-auto px-10 py-4 rounded-2xl text-white font-bold text-sm transition"
-                style={{ background: `linear-gradient(135deg, ${NAVY}, ${NAVY_MID})`, boxShadow: '0 4px 16px rgba(0,26,77,0.25)' }}
+                style={{ background: `linear-gradient(135deg, ${NAVY}, ${NAVY_MID})`, boxShadow: '0 4px 16px rgb(var(--ae-navy-rgb) /0.25)' }}
                 onMouseEnter={(e) => { e.currentTarget.style.background = `linear-gradient(135deg, ${GOLD}, ${GOLD2})`; e.currentTarget.style.color = NAVY }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = `linear-gradient(135deg, ${NAVY}, ${NAVY_MID})`; e.currentTarget.style.color = '#ffffff' }}
               >
@@ -501,7 +501,7 @@ export default function MultiTravelerBooking({ tour }) {
             {/* Progress overview */}
             <div
               className="rounded-2xl p-4 flex flex-wrap items-center gap-3"
-              style={{ backgroundColor: 'white', border: `1px solid ${GOLD}25`, boxShadow: '0 1px 8px rgba(0,26,77,0.06)' }}
+              style={{ backgroundColor: 'white', border: `1px solid ${GOLD}25`, boxShadow: '0 1px 8px rgb(var(--ae-navy-rgb) /0.06)' }}
             >
               <Users size={16} style={{ color: GOLD }} />
               <span className="text-sm font-bold" style={{ color: NAVY }}>
@@ -575,7 +575,7 @@ export default function MultiTravelerBooking({ tour }) {
                 type="button"
                 onClick={proceedToReview}
                 className="flex items-center gap-2 px-8 py-3 rounded-xl text-white font-bold text-sm transition"
-                style={{ background: `linear-gradient(135deg, ${NAVY}, ${NAVY_MID})`, boxShadow: '0 4px 14px rgba(0,26,77,0.22)' }}
+                style={{ background: `linear-gradient(135deg, ${NAVY}, ${NAVY_MID})`, boxShadow: '0 4px 14px rgb(var(--ae-navy-rgb) /0.22)' }}
                 onMouseEnter={(e) => { e.currentTarget.style.background = `linear-gradient(135deg, ${GOLD}, ${GOLD2})`; e.currentTarget.style.color = NAVY }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = `linear-gradient(135deg, ${NAVY}, ${NAVY_MID})`; e.currentTarget.style.color = '#ffffff' }}
               >
@@ -713,7 +713,7 @@ export default function MultiTravelerBooking({ tour }) {
                     background: confirmedCorrect && !submitting
                       ? `linear-gradient(135deg, ${NAVY}, ${NAVY_MID})`
                       : '#94a3b8',
-                    boxShadow: confirmedCorrect && !submitting ? '0 4px 14px rgba(0,26,77,0.22)' : 'none',
+                    boxShadow: confirmedCorrect && !submitting ? '0 4px 14px rgb(var(--ae-navy-rgb) /0.22)' : 'none',
                   }}
                   onMouseEnter={(e) => {
                     if (confirmedCorrect && !submitting) {
@@ -752,7 +752,7 @@ export default function MultiTravelerBooking({ tour }) {
             transition={{ duration: 0.4, ease: 'easeOut' }}
             className="text-center"
           >
-            <div className="bg-white rounded-2xl p-8 sm:p-12" style={{ boxShadow: '0 4px 24px rgba(0,26,77,0.10)', border: `1px solid ${GOLD}30` }}>
+            <div className="bg-white rounded-2xl p-8 sm:p-12" style={{ boxShadow: '0 4px 24px rgb(var(--ae-navy-rgb) /0.10)', border: `1px solid ${GOLD}30` }}>
               {/* Success icon */}
               <div
                 className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6"

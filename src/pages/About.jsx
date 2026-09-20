@@ -111,9 +111,9 @@ export default function About() {
     <div
       className="min-h-screen"
       style={{
-        backgroundColor: '#f5ecd8',
+        backgroundColor: 'var(--ae-bg-paper)',
         backgroundImage: `
-          radial-gradient(circle at 50% 50%, #fbf6ec 0%, #f0e3c5 60%, #e0cda5 100%),
+          radial-gradient(circle at 50% 50%, var(--ae-bg-glow) 0%, var(--ae-bg-mid) 60%, var(--ae-bg-edge) 100%),
           radial-gradient(#c7af85 0.75px, transparent 0.75px)
         `,
         backgroundSize: '100% 100%, 28px 28px',
@@ -146,7 +146,7 @@ export default function About() {
               <div
                 className="relative rounded-2xl overflow-hidden"
                 style={{
-                  backgroundColor: '#faf5ea',
+                  backgroundColor: 'var(--ae-cream)',
                   boxShadow: '0 12px 40px rgba(60,40,20,0.15), 0 2px 8px rgba(60,40,20,0.08)',
                   border: '1px solid rgba(180,160,130,0.3)',
                 }}
@@ -173,7 +173,7 @@ export default function About() {
                   <svg viewBox="0 0 200 60" className="w-44" fill="none">
                     <path d="M10 50 C40 10, 80 55, 120 20 S170 50, 190 15" stroke="#8c5828" strokeWidth="2" strokeDasharray="5 5" strokeLinecap="round" />
                     <circle cx="10" cy="50" r="3" fill="#ba3322" />
-                    <circle cx="190" cy="15" r="3" fill="#1e3a5f" />
+                    <circle cx="190" cy="15" r="3" style={{ fill: 'var(--ae-navy-soft)' }} />
                   </svg>
                 </div>
 
@@ -182,8 +182,8 @@ export default function About() {
                   <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-6"
                     style={{ backgroundColor: 'rgba(18,43,73,0.05)', border: '1px solid rgba(18,43,73,0.15)' }}
                   >
-                    <Compass size={14} className="text-[#c59b27] animate-spin" style={{ animationDuration: '14s' }} />
-                    <span className="text-xs font-bold uppercase tracking-[0.25em] text-[#001a4d]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                    <Compass size={14} className="text-[color:var(--ae-gold)] animate-spin" style={{ animationDuration: '14s' }} />
+                    <span className="text-xs font-bold uppercase tracking-[0.25em] text-[color:var(--ae-navy)]" style={{ fontFamily: 'Inter, sans-serif' }}>
                       Est. 1998 · Rajkot, Gujarat
                     </span>
                   </div>
@@ -191,33 +191,33 @@ export default function About() {
                   {/* Title */}
                   <h1
                     className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight mb-2"
-                    style={{ fontFamily: 'Cinzel, serif', color: '#001a4d' }}
+                    style={{ fontFamily: 'Cinzel, serif', color: 'var(--ae-navy)' }}
                   >
                     Our Legacy
                   </h1>
 
                   {/* Subtitle with gold dividers */}
                   <div className="flex items-center gap-3 mt-2 mb-8">
-                    <div className="h-[1.5px] w-10" style={{ background: 'linear-gradient(to right, transparent, rgba(197,155,39,0.7))' }} />
+                    <div className="h-[1.5px] w-10" style={{ background: 'linear-gradient(to right, transparent, rgb(var(--ae-gold-rgb) /0.7))' }} />
                     <p className="italic text-lg sm:text-xl md:text-2xl font-semibold tracking-wide"
-                      style={{ fontFamily: 'Playfair Display, serif', color: '#c59b27' }}
+                      style={{ fontFamily: 'Playfair Display, serif', color: 'var(--ae-gold)' }}
                     >
                       Pioneers of Adventure Tourism in Gujarat
                     </p>
-                    <div className="h-[1.5px] w-10" style={{ background: 'linear-gradient(to left, transparent, rgba(197,155,39,0.7))' }} />
+                    <div className="h-[1.5px] w-10" style={{ background: 'linear-gradient(to left, transparent, rgb(var(--ae-gold-rgb) /0.7))' }} />
                   </div>
 
                   {/* Body */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
-                    <p className="text-[15px] leading-relaxed" style={{ color: '#3a2a18', fontFamily: 'Inter, sans-serif' }}>
+                    <p className="text-[15px] leading-relaxed" style={{ color: 'var(--ae-ink)', fontFamily: 'Inter, sans-serif' }}>
                       Established in 1998 by pioneering adventure enthusiast{' '}
-                      <span className="font-bold" style={{ color: '#001a4d' }}>Amit Lakhani</span>, Alpine Explorers was born
+                      <span className="font-bold" style={{ color: 'var(--ae-navy)' }}>Amit Lakhani</span>, Alpine Explorers was born
                       out of a profound passion for mountaineering and the great outdoors. Over the past{' '}
-                      <span className="font-bold" style={{ color: '#c59b27' }}>28 years</span>, we have grown from a local
+                      <span className="font-bold" style={{ color: 'var(--ae-gold)' }}>28 years</span>, we have grown from a local
                       trekking club in Rajkot into a nationally recognized tourism brand, organizing premium high-altitude
                       expeditions, family camps, and global travel itineraries.
                     </p>
-                    <p className="text-[15px] leading-relaxed" style={{ color: '#3a2a18', fontFamily: 'Inter, sans-serif' }}>
+                    <p className="text-[15px] leading-relaxed" style={{ color: 'var(--ae-ink)', fontFamily: 'Inter, sans-serif' }}>
                       We believe adventure is not just about facing the peak; it is about self-discovery, building resilience,
                       and reconnecting with nature. Our journeys are meticulously designed with a double-layered focus on safety,
                       learning, and environmental conservation, ensuring each traveler returns home transformed.
@@ -243,7 +243,7 @@ export default function About() {
                         style={{ borderRadius: '2px' }}
                       />
                       <div className="absolute bottom-3 left-0 right-0 text-center">
-                        <span className="text-base tracking-wide" style={{ fontFamily: 'Caveat, cursive', color: '#3a2a18' }}>
+                        <span className="text-base tracking-wide" style={{ fontFamily: 'Caveat, cursive', color: 'var(--ae-ink)' }}>
                           Into the mountains we go
                         </span>
                       </div>
@@ -270,8 +270,8 @@ export default function About() {
               <svg viewBox="0 0 500 40" className="w-full max-w-lg" fill="none">
                 <path d="M20 30 C80 5, 160 38, 250 15 S400 38, 480 12" stroke="#8c5828" strokeWidth="2.5" strokeDasharray="6 6" strokeLinecap="round" opacity="0.5" />
                 <circle cx="20" cy="30" r="4" fill="#ba3322" />
-                <circle cx="200" cy="22" r="3.5" fill="#1e3a5f" />
-                <circle cx="350" cy="18" r="3.5" fill="#1e3a5f" />
+                <circle cx="200" cy="22" r="3.5" style={{ fill: 'var(--ae-navy-soft)' }} />
+                <circle cx="350" cy="18" r="3.5" style={{ fill: 'var(--ae-navy-soft)' }} />
                 <circle cx="480" cy="12" r="5" fill="#ba3322" stroke="#ffffff" strokeWidth="1.5" />
               </svg>
             </div>
@@ -290,7 +290,7 @@ export default function About() {
                   whileHover={{ y: -5 }}
                   className="relative rounded-2xl p-7 text-center"
                   style={{
-                    backgroundColor: '#faf5ea',
+                    backgroundColor: 'var(--ae-cream)',
                     boxShadow: '0 8px 28px rgba(60,40,20,0.12), 0 2px 6px rgba(60,40,20,0.06)',
                     border: '1px solid rgba(180,160,130,0.25)',
                   }}
@@ -299,26 +299,26 @@ export default function About() {
                   <div className="absolute top-3 right-3 opacity-15 pointer-events-none">
                     <svg viewBox="0 0 40 40" className="w-8 h-8" fill="none">
                       <path d="M5 35 L35 5" stroke="#8c5828" strokeWidth="1" strokeDasharray="3 3" />
-                      <circle cx="35" cy="5" r="2" fill="#c59b27" />
-                      <circle cx="5" cy="35" r="2" fill="#c59b27" />
+                      <circle cx="35" cy="5" r="2" style={{ fill: 'var(--ae-gold)' }} />
+                      <circle cx="5" cy="35" r="2" style={{ fill: 'var(--ae-gold)' }} />
                     </svg>
                   </div>
 
                   <div className="inline-flex items-center justify-center w-14 h-14 rounded-full mb-4"
-                    style={{ background: 'linear-gradient(135deg, rgba(197,155,39,0.15), rgba(212,175,55,0.10))' }}
+                    style={{ background: 'linear-gradient(135deg, rgb(var(--ae-gold-rgb) /0.15), rgb(var(--ae-gold2-rgb) /0.10))' }}
                   >
-                    <s.icon size={26} style={{ color: '#c59b27' }} strokeWidth={2.2} />
+                    <s.icon size={26} style={{ color: 'var(--ae-gold)' }} strokeWidth={2.2} />
                   </div>
 
-                  <div className="text-3xl md:text-4xl font-bold mb-1" style={{ fontFamily: 'Cinzel, serif', color: '#001a4d' }}>
+                  <div className="text-3xl md:text-4xl font-bold mb-1" style={{ fontFamily: 'Cinzel, serif', color: 'var(--ae-navy)' }}>
                     <Counter to={s.value} suffix={s.suffix} />
                   </div>
-                  <p className="text-sm font-semibold uppercase tracking-wider" style={{ color: '#3a2a18', fontFamily: 'Inter, sans-serif' }}>
+                  <p className="text-sm font-semibold uppercase tracking-wider" style={{ color: 'var(--ae-ink)', fontFamily: 'Inter, sans-serif' }}>
                     {s.label}
                   </p>
 
                   <div className="absolute bottom-0 left-1/4 right-1/4 h-[2px] rounded-full"
-                    style={{ background: 'linear-gradient(to right, transparent, rgba(197,155,39,0.3), transparent)' }}
+                    style={{ background: 'linear-gradient(to right, transparent, rgb(var(--ae-gold-rgb) /0.3), transparent)' }}
                   />
                 </motion.div>
               ))}
@@ -341,20 +341,20 @@ export default function About() {
               viewport={{ once: true }}
               className="text-center mb-14"
             >
-              <span className="text-lg tracking-wide" style={{ fontFamily: 'Caveat, cursive', color: '#c59b27' }}>
+              <span className="text-lg tracking-wide" style={{ fontFamily: 'Caveat, cursive', color: 'var(--ae-gold)' }}>
                 Trusted by the Nation
               </span>
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mt-1 mb-3"
-                style={{ fontFamily: 'Cinzel, serif', color: '#001a4d' }}
+                style={{ fontFamily: 'Cinzel, serif', color: 'var(--ae-navy)' }}
               >
                 Credentials & Badges
               </h2>
               <div className="flex items-center justify-center gap-3">
-                <div className="h-[1.5px] w-12" style={{ background: 'linear-gradient(to right, transparent, rgba(197,155,39,0.6))' }} />
-                <p className="italic text-base md:text-lg" style={{ fontFamily: 'Playfair Display, serif', color: 'rgba(58,42,24,0.7)' }}>
+                <div className="h-[1.5px] w-12" style={{ background: 'linear-gradient(to right, transparent, rgb(var(--ae-gold-rgb) /0.6))' }} />
+                <p className="italic text-base md:text-lg" style={{ fontFamily: 'Playfair Display, serif', color: 'rgb(var(--ae-ink-rgb) /0.7)' }}>
                   National Recognition
                 </p>
-                <div className="h-[1.5px] w-12" style={{ background: 'linear-gradient(to left, transparent, rgba(197,155,39,0.6))' }} />
+                <div className="h-[1.5px] w-12" style={{ background: 'linear-gradient(to left, transparent, rgb(var(--ae-gold-rgb) /0.6))' }} />
               </div>
             </motion.div>
 
@@ -373,7 +373,7 @@ export default function About() {
                   }}
                 />
                 <div className="rounded px-2.5 py-1 text-center font-bold tracking-widest text-xs flex items-center justify-between relative"
-                  style={{ backgroundColor: '#122b49', color: '#fef9ee' }}
+                  style={{ backgroundColor: 'var(--ae-navy-dark)', color: '#fef9ee' }}
                 >
                   <span>PAR AVION</span>
                   <span className="text-[9px] opacity-75">1st CLASS</span>
@@ -400,38 +400,38 @@ export default function About() {
                 whileHover={{ y: -4 }}
                 className="relative rounded-2xl overflow-hidden flex flex-col"
                 style={{
-                  backgroundColor: '#faf5ea',
+                  backgroundColor: 'var(--ae-cream)',
                   boxShadow: '0 10px 36px rgba(60,40,20,0.13), 0 2px 8px rgba(60,40,20,0.06)',
                   border: '1px solid rgba(180,160,130,0.28)',
                 }}
               >
-                <div className="h-1.5" style={{ background: 'linear-gradient(to right, #c59b27, #d4af37, #c59b27)' }} />
+                <div className="h-1.5" style={{ background: 'linear-gradient(to right, var(--ae-gold), var(--ae-gold2), var(--ae-gold))' }} />
                 <div className="p-6 md:p-8 flex flex-col flex-1">
                   <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-5"
-                    style={{ background: 'linear-gradient(135deg, rgba(0,26,77,0.08), rgba(0,26,77,0.03))', border: '1px solid rgba(0,26,77,0.10)' }}
+                    style={{ background: 'linear-gradient(135deg, rgb(var(--ae-navy-rgb) /0.08), rgb(var(--ae-navy-rgb) /0.03))', border: '1px solid rgb(var(--ae-navy-rgb) /0.10)' }}
                   >
-                    <Award size={30} style={{ color: '#001a4d' }} strokeWidth={1.8} />
+                    <Award size={30} style={{ color: 'var(--ae-navy)' }} strokeWidth={1.8} />
                   </div>
                   <h3 className="text-lg lg:text-xl font-bold mb-1"
-                    style={{ fontFamily: 'Cinzel, serif', color: '#001a4d' }}
+                    style={{ fontFamily: 'Cinzel, serif', color: 'var(--ae-navy)' }}
                   >
                     Presidential Honors
                   </h3>
-                  <p className="italic text-sm mb-4" style={{ fontFamily: 'Playfair Display, serif', color: '#c59b27' }}>
+                  <p className="italic text-sm mb-4" style={{ fontFamily: 'Playfair Display, serif', color: 'var(--ae-gold)' }}>
                     Highest National Distinction
                   </p>
-                  <p className="text-[13px] md:text-[14px] leading-relaxed flex-1" style={{ color: '#3a2a18', fontFamily: 'Inter, sans-serif' }}>
+                  <p className="text-[13px] md:text-[14px] leading-relaxed flex-1" style={{ color: 'var(--ae-ink)', fontFamily: 'Inter, sans-serif' }}>
                     Awarded for pioneering achievements in adventure sports by the hands of{' '}
-                    <span className="font-bold" style={{ color: '#001a4d' }}>President Shri K.R. Narayanan</span>.
+                    <span className="font-bold" style={{ color: 'var(--ae-navy)' }}>President Shri K.R. Narayanan</span>.
                   </p>
-                  <div className="mt-5 pt-4" style={{ borderTop: '1px dashed rgba(197,155,39,0.3)' }}>
+                  <div className="mt-5 pt-4" style={{ borderTop: '1px dashed rgb(var(--ae-gold-rgb) /0.3)' }}>
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-                        style={{ backgroundColor: 'rgba(197,155,39,0.10)' }}
+                        style={{ backgroundColor: 'rgb(var(--ae-gold-rgb) /0.10)' }}
                       >
-                        <CheckCircle size={16} style={{ color: '#c59b27' }} />
+                        <CheckCircle size={16} style={{ color: 'var(--ae-gold)' }} />
                       </div>
-                      <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: 'rgba(58,42,24,0.6)', fontFamily: 'Inter, sans-serif' }}>
+                      <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: 'rgb(var(--ae-ink-rgb) /0.6)', fontFamily: 'Inter, sans-serif' }}>
                         Verified Government Recognition
                       </span>
                     </div>
@@ -449,38 +449,38 @@ export default function About() {
                 whileHover={{ y: -4 }}
                 className="relative rounded-2xl overflow-hidden flex flex-col"
                 style={{
-                  backgroundColor: '#faf5ea',
+                  backgroundColor: 'var(--ae-cream)',
                   boxShadow: '0 10px 36px rgba(60,40,20,0.13), 0 2px 8px rgba(60,40,20,0.06)',
                   border: '1px solid rgba(180,160,130,0.28)',
                 }}
               >
-                <div className="h-1.5" style={{ background: 'linear-gradient(to right, #c59b27, #d4af37, #c59b27)' }} />
+                <div className="h-1.5" style={{ background: 'linear-gradient(to right, var(--ae-gold), var(--ae-gold2), var(--ae-gold))' }} />
                 <div className="p-6 md:p-8 flex flex-col flex-1">
                   <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-5"
-                    style={{ background: 'linear-gradient(135deg, rgba(0,26,77,0.08), rgba(0,26,77,0.03))', border: '1px solid rgba(0,26,77,0.10)' }}
+                    style={{ background: 'linear-gradient(135deg, rgb(var(--ae-navy-rgb) /0.08), rgb(var(--ae-navy-rgb) /0.03))', border: '1px solid rgb(var(--ae-navy-rgb) /0.10)' }}
                   >
-                    <Flag size={30} style={{ color: '#001a4d' }} strokeWidth={1.8} />
+                    <Flag size={30} style={{ color: 'var(--ae-navy)' }} strokeWidth={1.8} />
                   </div>
                   <h3 className="text-lg lg:text-xl font-bold mb-1"
-                    style={{ fontFamily: 'Cinzel, serif', color: '#001a4d' }}
+                    style={{ fontFamily: 'Cinzel, serif', color: 'var(--ae-navy)' }}
                   >
                     Prime Ministerial Honors
                   </h3>
-                  <p className="italic text-sm mb-4" style={{ fontFamily: 'Playfair Display, serif', color: '#c59b27' }}>
+                  <p className="italic text-sm mb-4" style={{ fontFamily: 'Playfair Display, serif', color: 'var(--ae-gold)' }}>
                     Highest National Distinction
                   </p>
-                  <p className="text-[13px] md:text-[14px] leading-relaxed flex-1" style={{ color: '#3a2a18', fontFamily: 'Inter, sans-serif' }}>
+                  <p className="text-[13px] md:text-[14px] leading-relaxed flex-1" style={{ color: 'var(--ae-ink)', fontFamily: 'Inter, sans-serif' }}>
                     Awarded for pioneering achievements in adventure sports by the hands of{' '}
-                    <span className="font-bold" style={{ color: '#001a4d' }}>Prime Minister Shri A.B. Vajpayee</span>.
+                    <span className="font-bold" style={{ color: 'var(--ae-navy)' }}>Prime Minister Shri A.B. Vajpayee</span>.
                   </p>
-                  <div className="mt-5 pt-4" style={{ borderTop: '1px dashed rgba(197,155,39,0.3)' }}>
+                  <div className="mt-5 pt-4" style={{ borderTop: '1px dashed rgb(var(--ae-gold-rgb) /0.3)' }}>
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-                        style={{ backgroundColor: 'rgba(197,155,39,0.10)' }}
+                        style={{ backgroundColor: 'rgb(var(--ae-gold-rgb) /0.10)' }}
                       >
-                        <CheckCircle size={16} style={{ color: '#c59b27' }} />
+                        <CheckCircle size={16} style={{ color: 'var(--ae-gold)' }} />
                       </div>
-                      <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: 'rgba(58,42,24,0.6)', fontFamily: 'Inter, sans-serif' }}>
+                      <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: 'rgb(var(--ae-ink-rgb) /0.6)', fontFamily: 'Inter, sans-serif' }}>
                         National Appreciation
                       </span>
                     </div>
@@ -497,38 +497,38 @@ export default function About() {
                 whileHover={{ y: -4 }}
                 className="relative rounded-2xl overflow-hidden flex flex-col"
                 style={{
-                  backgroundColor: '#faf5ea',
+                  backgroundColor: 'var(--ae-cream)',
                   boxShadow: '0 10px 36px rgba(60,40,20,0.13), 0 2px 8px rgba(60,40,20,0.06)',
                   border: '1px solid rgba(180,160,130,0.28)',
                 }}
               >
-                <div className="h-1.5" style={{ background: 'linear-gradient(to right, #001a4d, #1a3a6d, #001a4d)' }} />
+                <div className="h-1.5" style={{ background: 'linear-gradient(to right, var(--ae-navy), #1a3a6d, var(--ae-navy))' }} />
                 <div className="p-6 md:p-8 flex flex-col flex-1">
                   <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-5"
-                    style={{ background: 'linear-gradient(135deg, rgba(0,26,77,0.08), rgba(0,26,77,0.03))', border: '1px solid rgba(0,26,77,0.10)' }}
+                    style={{ background: 'linear-gradient(135deg, rgb(var(--ae-navy-rgb) /0.08), rgb(var(--ae-navy-rgb) /0.03))', border: '1px solid rgb(var(--ae-navy-rgb) /0.10)' }}
                   >
-                    <Mountain size={30} style={{ color: '#001a4d' }} strokeWidth={1.8} />
+                    <Mountain size={30} style={{ color: 'var(--ae-navy)' }} strokeWidth={1.8} />
                   </div>
                   <h3 className="text-lg lg:text-xl font-bold mb-1"
-                    style={{ fontFamily: 'Cinzel, serif', color: '#001a4d' }}
+                    style={{ fontFamily: 'Cinzel, serif', color: 'var(--ae-navy)' }}
                   >
                     NIM
                   </h3>
-                  <p className="italic text-sm mb-4" style={{ fontFamily: 'Playfair Display, serif', color: '#c59b27' }}>
+                  <p className="italic text-sm mb-4" style={{ fontFamily: 'Playfair Display, serif', color: 'var(--ae-gold)' }}>
                     Nehru Institute of Mountaineering
                   </p>
-                  <p className="text-[13px] md:text-[14px] leading-relaxed flex-1" style={{ color: '#3a2a18', fontFamily: 'Inter, sans-serif' }}>
+                  <p className="text-[13px] md:text-[14px] leading-relaxed flex-1" style={{ color: 'var(--ae-ink)', fontFamily: 'Inter, sans-serif' }}>
                     Our treks are curated and led by veteran mountaineers certified from India&apos;s{' '}
-                    <span className="font-bold" style={{ color: '#001a4d' }}>elite mountaineering institution NIM Uttarkashi</span>.
+                    <span className="font-bold" style={{ color: 'var(--ae-navy)' }}>elite mountaineering institution NIM Uttarkashi</span>.
                   </p>
-                  <div className="mt-5 pt-4" style={{ borderTop: '1px dashed rgba(197,155,39,0.3)' }}>
+                  <div className="mt-5 pt-4" style={{ borderTop: '1px dashed rgb(var(--ae-gold-rgb) /0.3)' }}>
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-                        style={{ backgroundColor: 'rgba(197,155,39,0.10)' }}
+                        style={{ backgroundColor: 'rgb(var(--ae-gold-rgb) /0.10)' }}
                       >
-                        <Shield size={16} style={{ color: '#c59b27' }} />
+                        <Shield size={16} style={{ color: 'var(--ae-gold)' }} />
                       </div>
-                      <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: 'rgba(58,42,24,0.6)', fontFamily: 'Inter, sans-serif' }}>
+                      <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: 'rgb(var(--ae-ink-rgb) /0.6)', fontFamily: 'Inter, sans-serif' }}>
                         Elite Mountaineering Institution
                       </span>
                     </div>
@@ -545,38 +545,38 @@ export default function About() {
                 whileHover={{ y: -4 }}
                 className="relative rounded-2xl overflow-hidden flex flex-col"
                 style={{
-                  backgroundColor: '#faf5ea',
+                  backgroundColor: 'var(--ae-cream)',
                   boxShadow: '0 10px 36px rgba(60,40,20,0.13), 0 2px 8px rgba(60,40,20,0.06)',
                   border: '1px solid rgba(180,160,130,0.28)',
                 }}
               >
-                <div className="h-1.5" style={{ background: 'linear-gradient(to right, #001a4d, #1a3a6d, #001a4d)' }} />
+                <div className="h-1.5" style={{ background: 'linear-gradient(to right, var(--ae-navy), #1a3a6d, var(--ae-navy))' }} />
                 <div className="p-6 md:p-8 flex flex-col flex-1">
                   <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-5"
-                    style={{ background: 'linear-gradient(135deg, rgba(0,26,77,0.08), rgba(0,26,77,0.03))', border: '1px solid rgba(0,26,77,0.10)' }}
+                    style={{ background: 'linear-gradient(135deg, rgb(var(--ae-navy-rgb) /0.08), rgb(var(--ae-navy-rgb) /0.03))', border: '1px solid rgb(var(--ae-navy-rgb) /0.10)' }}
                   >
-                    <Shield size={30} style={{ color: '#001a4d' }} strokeWidth={1.8} />
+                    <Shield size={30} style={{ color: 'var(--ae-navy)' }} strokeWidth={1.8} />
                   </div>
                   <h3 className="text-lg lg:text-xl font-bold mb-1"
-                    style={{ fontFamily: 'Cinzel, serif', color: '#001a4d' }}
+                    style={{ fontFamily: 'Cinzel, serif', color: 'var(--ae-navy)' }}
                   >
                     SVMI Certified Guides
                   </h3>
-                  <p className="italic text-sm mb-4" style={{ fontFamily: 'Playfair Display, serif', color: '#c59b27' }}>
+                  <p className="italic text-sm mb-4" style={{ fontFamily: 'Playfair Display, serif', color: 'var(--ae-gold)' }}>
                     Swami Vivekanand Mountaineering Institute
                   </p>
-                  <p className="text-[13px] md:text-[14px] leading-relaxed flex-1" style={{ color: '#3a2a18', fontFamily: 'Inter, sans-serif' }}>
+                  <p className="text-[13px] md:text-[14px] leading-relaxed flex-1" style={{ color: 'var(--ae-ink)', fontFamily: 'Inter, sans-serif' }}>
                     Our treks are curated and led by veteran mountaineers certified from India&apos;s{' '}
-                    <span className="font-bold" style={{ color: '#001a4d' }}>elite mountaineering institution SVMI Mount Abu</span>.
+                    <span className="font-bold" style={{ color: 'var(--ae-navy)' }}>elite mountaineering institution SVMI Mount Abu</span>.
                   </p>
-                  <div className="mt-5 pt-4" style={{ borderTop: '1px dashed rgba(197,155,39,0.3)' }}>
+                  <div className="mt-5 pt-4" style={{ borderTop: '1px dashed rgb(var(--ae-gold-rgb) /0.3)' }}>
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-                        style={{ backgroundColor: 'rgba(197,155,39,0.10)' }}
+                        style={{ backgroundColor: 'rgb(var(--ae-gold-rgb) /0.10)' }}
                       >
-                        <CheckCircle size={16} style={{ color: '#c59b27' }} />
+                        <CheckCircle size={16} style={{ color: 'var(--ae-gold)' }} />
                       </div>
-                      <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: 'rgba(58,42,24,0.6)', fontFamily: 'Inter, sans-serif' }}>
+                      <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: 'rgb(var(--ae-ink-rgb) /0.6)', fontFamily: 'Inter, sans-serif' }}>
                         Certified Professional Leadership
                       </span>
                     </div>
@@ -602,13 +602,13 @@ export default function About() {
               className="text-center mb-14"
             >
               <div className="flex items-center justify-center gap-4">
-                <div className="h-[1.5px] flex-1 max-w-[140px] sm:max-w-[180px]" style={{ background: 'linear-gradient(to right, transparent, rgba(197,155,39,0.7))' }} />
+                <div className="h-[1.5px] flex-1 max-w-[140px] sm:max-w-[180px]" style={{ background: 'linear-gradient(to right, transparent, rgb(var(--ae-gold-rgb) /0.7))' }} />
                 <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold uppercase text-center"
-                  style={{ fontFamily: 'Cinzel, serif', color: '#0B2B5C' }}
+                  style={{ fontFamily: 'Cinzel, serif', color: 'var(--ae-navy-deep)' }}
                 >
                   Our Values, Vision &amp; Mission
                 </h2>
-                <div className="h-[1.5px] flex-1 max-w-[140px] sm:max-w-[180px]" style={{ background: 'linear-gradient(to left, transparent, rgba(197,155,39,0.7))' }} />
+                <div className="h-[1.5px] flex-1 max-w-[140px] sm:max-w-[180px]" style={{ background: 'linear-gradient(to left, transparent, rgb(var(--ae-gold-rgb) /0.7))' }} />
               </div>
             </motion.div>
 
@@ -627,39 +627,39 @@ export default function About() {
                   whileHover={{ y: -4 }}
                   className="relative rounded-2xl overflow-hidden flex flex-col"
                   style={{
-                    backgroundColor: '#faf5ea',
+                    backgroundColor: 'var(--ae-cream)',
                     boxShadow: '0 10px 36px rgba(60,40,20,0.13), 0 2px 8px rgba(60,40,20,0.06)',
                     border: '1px solid rgba(180,160,130,0.28)',
                   }}
                 >
-                  <div className="h-1.5" style={{ background: 'linear-gradient(to right, #c59b27, #d4af37, #c59b27)' }} />
+                  <div className="h-1.5" style={{ background: 'linear-gradient(to right, var(--ae-gold), var(--ae-gold2), var(--ae-gold))' }} />
                   <div className="p-6 md:p-8 flex flex-col flex-1">
                     <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-5"
-                      style={{ background: 'linear-gradient(135deg, rgba(0,26,77,0.08), rgba(0,26,77,0.03))', border: '1px solid rgba(0,26,77,0.10)' }}
+                      style={{ background: 'linear-gradient(135deg, rgb(var(--ae-navy-rgb) /0.08), rgb(var(--ae-navy-rgb) /0.03))', border: '1px solid rgb(var(--ae-navy-rgb) /0.10)' }}
                     >
-                      <p.icon size={30} style={{ color: '#001a4d' }} strokeWidth={1.8} />
+                      <p.icon size={30} style={{ color: 'var(--ae-navy)' }} strokeWidth={1.8} />
                     </div>
                     <h3 className="text-xl md:text-2xl font-bold uppercase mb-1"
-                      style={{ fontFamily: 'Cinzel, serif', color: '#0B2B5C' }}
+                      style={{ fontFamily: 'Cinzel, serif', color: 'var(--ae-navy-deep)' }}
                     >
                       {p.title}
                     </h3>
-                    <p className="italic text-sm mb-4" style={{ fontFamily: 'Playfair Display, serif', color: '#c59b27' }}>
+                    <p className="italic text-sm mb-4" style={{ fontFamily: 'Playfair Display, serif', color: 'var(--ae-gold)' }}>
                       {p.subtitle}
                     </p>
-                    <p className="text-[14px] leading-relaxed flex-1" style={{ color: '#3a2a18', fontFamily: 'Inter, sans-serif' }}>
+                    <p className="text-[14px] leading-relaxed flex-1" style={{ color: 'var(--ae-ink)', fontFamily: 'Inter, sans-serif' }}>
                       {p.description}
                     </p>
-                    <div className="mt-5 pt-4" style={{ borderTop: '1px dashed rgba(197,155,39,0.3)' }}>
+                    <div className="mt-5 pt-4" style={{ borderTop: '1px dashed rgb(var(--ae-gold-rgb) /0.3)' }}>
                       {p.keywords.map((line, li) => (
                         <div key={li} className="flex flex-wrap items-center gap-2.5 mt-1 first:mt-0">
                           {line.map((w, wi) => (
                             <span key={w} className="flex items-center gap-2.5">
-                              <span className="text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: '#001a4d', fontFamily: 'Inter, sans-serif' }}>
+                              <span className="text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: 'var(--ae-navy)', fontFamily: 'Inter, sans-serif' }}>
                                 {w}
                               </span>
                               {wi < line.length - 1 && (
-                                <span className="text-[11px]" style={{ color: '#c59b27' }}>•</span>
+                                <span className="text-[11px]" style={{ color: 'var(--ae-gold)' }}>•</span>
                               )}
                             </span>
                           ))}
@@ -689,13 +689,13 @@ export default function About() {
               className="text-center mb-14"
             >
               <div className="flex items-center justify-center gap-4">
-                <div className="h-[1.5px] flex-1 max-w-[140px] sm:max-w-[180px]" style={{ background: 'linear-gradient(to right, transparent, rgba(197,155,39,0.7))' }} />
+                <div className="h-[1.5px] flex-1 max-w-[140px] sm:max-w-[180px]" style={{ background: 'linear-gradient(to right, transparent, rgb(var(--ae-gold-rgb) /0.7))' }} />
                 <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold uppercase text-center"
-                  style={{ fontFamily: 'Cinzel, serif', color: '#0B2B5C' }}
+                  style={{ fontFamily: 'Cinzel, serif', color: 'var(--ae-navy-deep)' }}
                 >
                   Our Memberships
                 </h2>
-                <div className="h-[1.5px] flex-1 max-w-[140px] sm:max-w-[180px]" style={{ background: 'linear-gradient(to left, transparent, rgba(197,155,39,0.7))' }} />
+                <div className="h-[1.5px] flex-1 max-w-[140px] sm:max-w-[180px]" style={{ background: 'linear-gradient(to left, transparent, rgb(var(--ae-gold-rgb) /0.7))' }} />
               </div>
             </motion.div>
 
@@ -707,33 +707,33 @@ export default function About() {
               viewport={{ once: true, margin: '-40px' }}
               className="relative rounded-2xl overflow-hidden"
               style={{
-                backgroundColor: '#faf5ea',
+                backgroundColor: 'var(--ae-cream)',
                 boxShadow: '0 10px 36px rgba(60,40,20,0.13), 0 2px 8px rgba(60,40,20,0.06)',
                 border: '1px solid rgba(180,160,130,0.28)',
               }}
             >
-              <div className="h-1.5" style={{ background: 'linear-gradient(to right, #c59b27, #d4af37, #c59b27)' }} />
+              <div className="h-1.5" style={{ background: 'linear-gradient(to right, var(--ae-gold), var(--ae-gold2), var(--ae-gold))' }} />
               <div className="p-7 md:p-10">
                 <div className="flex flex-col lg:flex-row gap-10">
                   {/* LEFT — heading + description */}
-                  <div className="lg:w-[34%] lg:pr-10 lg:border-r lg:border-[rgba(197,155,39,0.22)] flex flex-col justify-center items-center text-center lg:items-start lg:text-left">
+                  <div className="lg:w-[34%] lg:pr-10 lg:border-r lg:border-[rgb(var(--ae-gold-rgb) /0.22)] flex flex-col justify-center items-center text-center lg:items-start lg:text-left">
                     <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-5"
-                      style={{ background: 'linear-gradient(135deg, rgba(0,26,77,0.08), rgba(0,26,77,0.03))', border: '1px solid rgba(0,26,77,0.10)' }}
+                      style={{ background: 'linear-gradient(135deg, rgb(var(--ae-navy-rgb) /0.08), rgb(var(--ae-navy-rgb) /0.03))', border: '1px solid rgb(var(--ae-navy-rgb) /0.10)' }}
                     >
-                      <Award size={30} style={{ color: '#001a4d' }} strokeWidth={1.8} />
+                      <Award size={30} style={{ color: 'var(--ae-navy)' }} strokeWidth={1.8} />
                     </div>
                     <h3 className="text-2xl md:text-3xl font-bold uppercase mb-2"
-                      style={{ fontFamily: 'Cinzel, serif', color: '#0B2B5C' }}
+                      style={{ fontFamily: 'Cinzel, serif', color: 'var(--ae-navy-deep)' }}
                     >
                       Our Memberships
                     </h3>
                     <p className="italic text-sm md:text-base mb-4"
-                      style={{ fontFamily: 'Playfair Display, serif', color: '#c59b27' }}
+                      style={{ fontFamily: 'Playfair Display, serif', color: 'var(--ae-gold)' }}
                     >
                       Associated with Prestigious National &amp; International Bodies
                     </p>
                     <p className="text-[14px] leading-relaxed max-w-md"
-                      style={{ color: '#3a2a18', fontFamily: 'Inter, sans-serif' }}
+                      style={{ color: 'var(--ae-ink)', fontFamily: 'Inter, sans-serif' }}
                     >
                       We are proud to be associated with leading national and international organizations,
                       which uphold the highest standards in adventure tourism, safety and conservation.
@@ -747,7 +747,7 @@ export default function About() {
                         <div
                           key={m.abbr}
                           className="flex flex-col items-center justify-start text-center px-2 lg:border-l h-full"
-                          style={mi > 0 ? { borderColor: 'rgba(197,155,39,0.22)' } : undefined}
+                          style={mi > 0 ? { borderColor: 'rgb(var(--ae-gold-rgb) /0.22)' } : undefined}
                         >
                           <div className="mb-3 flex items-center justify-center w-[120px] sm:w-[135px] h-[100px] sm:h-[115px]">
                             <img
@@ -758,10 +758,10 @@ export default function About() {
                               className="max-h-[95px] sm:max-h-[110px] max-w-[120px] sm:max-w-[135px] w-auto h-auto object-contain transition-transform duration-300 hover:scale-105"
                             />
                           </div>
-                          <span className="text-base font-bold uppercase tracking-wide" style={{ fontFamily: 'Cinzel, serif', color: '#0B2B5C' }}>
+                          <span className="text-base font-bold uppercase tracking-wide" style={{ fontFamily: 'Cinzel, serif', color: 'var(--ae-navy-deep)' }}>
                             {m.abbr}
                           </span>
-                          <span className="text-[11px] leading-snug mt-1" style={{ color: 'rgba(58,42,24,0.65)', fontFamily: 'Inter, sans-serif' }}>
+                          <span className="text-[11px] leading-snug mt-1" style={{ color: 'rgb(var(--ae-ink-rgb) /0.65)', fontFamily: 'Inter, sans-serif' }}>
                             {m.name}
                           </span>
                         </div>
@@ -772,9 +772,9 @@ export default function About() {
 
                 {/* Elegant closing phrase */}
                 <div className="border-t pt-6 mt-10 flex justify-center"
-                  style={{ borderColor: 'rgba(197,155,39,0.25)' }}
+                  style={{ borderColor: 'rgb(var(--ae-gold-rgb) /0.25)' }}
                 >
-                  <span className="text-2xl" style={{ fontFamily: 'Caveat, cursive', color: '#c59b27' }}>
+                  <span className="text-2xl" style={{ fontFamily: 'Caveat, cursive', color: 'var(--ae-gold)' }}>
                     A Record of Trust
                   </span>
                 </div>
@@ -797,16 +797,16 @@ export default function About() {
               viewport={{ once: true }}
               className="text-center mb-14"
             >
-              <span className="text-lg tracking-wide" style={{ fontFamily: 'Caveat, cursive', color: '#c59b27' }}>
+              <span className="text-lg tracking-wide" style={{ fontFamily: 'Caveat, cursive', color: 'var(--ae-gold)' }}>
                 A Record of Trust
               </span>
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mt-1 mb-3"
-                style={{ fontFamily: 'Cinzel, serif', color: '#001a4d' }}
+                style={{ fontFamily: 'Cinzel, serif', color: 'var(--ae-navy)' }}
               >
                 Our Track Record
               </h2>
               <p className="italic text-base md:text-lg max-w-2xl mx-auto"
-                style={{ fontFamily: 'Playfair Display, serif', color: 'rgba(58,42,24,0.7)' }}
+                style={{ fontFamily: 'Playfair Display, serif', color: 'rgb(var(--ae-ink-rgb) /0.7)' }}
               >
                 Numbers That Inspire Absolute Trust
               </p>
@@ -819,9 +819,9 @@ export default function About() {
               viewport={{ once: true }}
               className="max-w-3xl mx-auto text-center mb-14"
             >
-              <p className="text-[15px] leading-relaxed" style={{ color: '#3a2a18', fontFamily: 'Inter, sans-serif' }}>
+              <p className="text-[15px] leading-relaxed" style={{ color: 'var(--ae-ink)', fontFamily: 'Inter, sans-serif' }}>
                 With nearly three decades of trekking history, we are honored to have led thousands of explorers into the
-                mountains with a <span className="font-bold" style={{ color: '#001a4d' }}>pristine zero-harm record</span>.
+                mountains with a <span className="font-bold" style={{ color: 'var(--ae-navy)' }}>pristine zero-harm record</span>.
               </p>
             </motion.div>
 
@@ -858,7 +858,7 @@ export default function About() {
                       style={{ borderRadius: '2px' }}
                     />
                     <div className="absolute bottom-3 left-0 right-0 text-center">
-                      <span className="text-sm" style={{ fontFamily: 'Caveat, cursive', color: '#3a2a18' }}>
+                      <span className="text-sm" style={{ fontFamily: 'Caveat, cursive', color: 'var(--ae-ink)' }}>
                         {s.detail}
                       </span>
                     </div>
@@ -866,13 +866,13 @@ export default function About() {
 
                   {/* Numbers */}
                   <div className="text-center">
-                    <div className="text-3xl md:text-4xl font-bold mb-1" style={{ fontFamily: 'Cinzel, serif', color: '#001a4d' }}>
+                    <div className="text-3xl md:text-4xl font-bold mb-1" style={{ fontFamily: 'Cinzel, serif', color: 'var(--ae-navy)' }}>
                       <Counter to={s.value} suffix={s.suffix} />
                     </div>
-                    <p className="text-sm font-bold uppercase tracking-wider" style={{ color: '#3a2a18', fontFamily: 'Inter, sans-serif' }}>
+                    <p className="text-sm font-bold uppercase tracking-wider" style={{ color: 'var(--ae-ink)', fontFamily: 'Inter, sans-serif' }}>
                       {s.label}
                     </p>
-                    <p className="text-xs mt-1" style={{ color: 'rgba(58,42,24,0.6)', fontFamily: 'Inter, sans-serif' }}>
+                    <p className="text-xs mt-1" style={{ color: 'rgb(var(--ae-ink-rgb) /0.6)', fontFamily: 'Inter, sans-serif' }}>
                       {s.detail}
                     </p>
                   </div>
@@ -888,7 +888,7 @@ export default function About() {
                 <line x1="5" y1="40" x2="75" y2="40" stroke="#87582b" strokeWidth="0.8" />
                 <polygon points="40,8 43,22 37,22" fill="#a72d1d" />
                 <polygon points="40,72 43,58 37,58" fill="#2c1d11" />
-                <circle cx="40" cy="40" r="3" fill="#c59b27" />
+                <circle cx="40" cy="40" r="3" style={{ fill: 'var(--ae-gold)' }} />
               </svg>
             </div>
           </div>
@@ -902,7 +902,7 @@ export default function About() {
               <svg viewBox="0 0 600 40" className="w-full max-w-md" fill="none">
                 <path d="M10 20 C100 5, 200 35, 300 15 S500 35, 590 20" stroke="#8c5828" strokeWidth="2" strokeDasharray="5 5" strokeLinecap="round" />
                 <circle cx="10" cy="20" r="3" fill="#ba3322" />
-                <circle cx="300" cy="15" r="3" fill="#1e3a5f" />
+                <circle cx="300" cy="15" r="3" style={{ fill: 'var(--ae-navy-soft)' }} />
                 <circle cx="590" cy="20" r="3.5" fill="#ba3322" />
               </svg>
             </div>
@@ -915,7 +915,7 @@ export default function About() {
               viewport={{ once: true }}
               className="relative rounded-2xl overflow-hidden"
               style={{
-                backgroundColor: '#122b49',
+                backgroundColor: 'var(--ae-navy-dark)',
                 boxShadow: '0 16px 48px rgba(0,20,60,0.25), 0 4px 12px rgba(0,20,60,0.12)',
               }}
             >
@@ -938,7 +938,7 @@ export default function About() {
                 <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-6"
                   style={{ backgroundColor: 'rgba(255,255,255,0.10)', border: '1px solid rgba(255,255,255,0.15)' }}
                 >
-                  <Star size={14} className="text-[#d4af37]" />
+                  <Star size={14} className="text-[color:var(--ae-gold2)]" />
                   <span className="text-xs font-bold uppercase tracking-[0.2em] text-white/80" style={{ fontFamily: 'Inter, sans-serif' }}>
                     Join the Legacy
                   </span>
@@ -962,15 +962,15 @@ export default function About() {
                     whileTap={{ scale: 0.97 }}
                     className="group inline-flex items-center gap-3 px-8 py-4 rounded-full text-sm sm:text-base tracking-widest uppercase font-bold transition-all duration-300"
                     style={{
-                      background: 'linear-gradient(to right, #c59b27, #d4af37)',
-                      color: '#122b49',
+                      background: 'linear-gradient(to right, var(--ae-gold), var(--ae-gold2))',
+                      color: 'var(--ae-navy-dark)',
                       fontFamily: 'Cinzel, serif',
-                      boxShadow: '0 8px 24px rgba(197,155,39,0.35)',
+                      boxShadow: '0 8px 24px rgb(var(--ae-gold-rgb) /0.35)',
                     }}
                   >
                     <span>Explore Our Tours</span>
                     <div className="w-7 h-7 rounded-full flex items-center justify-center group-hover:translate-x-1 transition-transform duration-300"
-                      style={{ backgroundColor: '#122b49', color: '#d4af37' }}
+                      style={{ backgroundColor: 'var(--ae-navy-dark)', color: 'var(--ae-gold2)' }}
                     >
                       <ArrowRight size={16} strokeWidth={2.5} />
                     </div>

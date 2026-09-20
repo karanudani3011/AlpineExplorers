@@ -9,7 +9,7 @@ export default function VintageAirplane({ className = "w-56 h-36" }) {
     >
       <defs>
         <linearGradient id="fuselageGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#1e3a5f" />
+          <stop offset="0%" style={{ stopColor: 'var(--ae-navy-soft)' }} />
           <stop offset="40%" stopColor="#0f233d" />
           <stop offset="100%" stopColor="#091424" />
         </linearGradient>
@@ -83,7 +83,7 @@ export default function VintageAirplane({ className = "w-56 h-36" }) {
         {/* Near Wing */}
         <polygon points="140,86 170,145 198,138 195,84" fill="url(#wingGrad)" stroke="#a89a7f" strokeWidth="2" />
         <line x1="168" y1="92" x2="188" y2="135" stroke="url(#goldTrim)" strokeWidth="3" />
-        <text x="178" y="125" transform="rotate(64, 178, 125)" fill="#1e3a5f" fontSize="8" fontWeight="bold" fontFamily="serif">ALPINE-01</text>
+        <text x="178" y="125" transform="rotate(64, 178, 125)" style={{ fill: 'var(--ae-navy-soft)' }} fontSize="8" fontWeight="bold" fontFamily="serif">ALPINE-01</text>
 
         {/* Engine Nacelle */}
         <rect x="180" y="80" width="32" height="18" rx="7" fill="url(#fuselageGrad)" stroke="#091424" strokeWidth="1.5" />

@@ -49,7 +49,7 @@ export function AirMailSticker({ className = "w-36 h-20" }) {
           backgroundPosition: 'top, bottom',
         }}
       />
-      <div className="bg-[#122b49] text-amber-50 rounded px-2.5 py-1 text-center font-bold tracking-widest text-xs flex items-center justify-between">
+      <div className="bg-[color:var(--ae-navy-dark)] text-amber-50 rounded px-2.5 py-1 text-center font-bold tracking-widest text-xs flex items-center justify-between">
         <span>PAR AVION</span>
         <span className="text-[9px] opacity-75">✈ 1st CLASS</span>
       </div>
@@ -92,8 +92,8 @@ export function HandDrawnRoute({ className = "w-full h-24" }) {
       />
       {/* Waypoints */}
       <circle cx="20" cy="90" r="4" fill="#ba3322" />
-      <circle cx="200" cy="75" r="3.5" fill="#1e3a5f" />
-      <circle cx="360" cy="40" r="3.5" fill="#1e3a5f" />
+      <circle cx="200" cy="75" r="3.5" style={{ fill: 'var(--ae-navy-soft)' }} />
+      <circle cx="360" cy="40" r="3.5" style={{ fill: 'var(--ae-navy-soft)' }} />
       <circle cx="580" cy="30" r="5" fill="#ba3322" stroke="#ffffff" strokeWidth="1.5" />
     </svg>
   )

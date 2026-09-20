@@ -24,12 +24,12 @@ export function DataTable({
           <tr>
             {columns.map((c) => (
               <th key={c.key} className="py-2.5 px-3 text-[10px] uppercase tracking-wider font-bold whitespace-nowrap"
-                style={{ color: 'rgba(0,26,77,0.55)', borderBottom: '2px solid rgba(197,155,39,0.4)' }}>
+                style={{ color: 'rgb(var(--ae-navy-rgb) /0.55)', borderBottom: '2px solid rgb(var(--ae-gold-rgb) /0.4)' }}>
                 {c.label}
               </th>
             ))}
             <th className="py-2.5 px-3 text-right text-[10px] uppercase tracking-wider font-bold whitespace-nowrap"
-              style={{ color: 'rgba(0,26,77,0.55)', borderBottom: '2px solid rgba(197,155,39,0.4)' }}>
+              style={{ color: 'rgb(var(--ae-navy-rgb) /0.55)', borderBottom: '2px solid rgb(var(--ae-gold-rgb) /0.4)' }}>
               Actions
             </th>
           </tr>
@@ -54,7 +54,7 @@ export function DataTable({
                   )}
                   {onEdit && (
                     <button onClick={() => onEdit(row)} className="p-1.5 rounded-lg hover:bg-black/5" title="Edit" style={{ border: 'none', background: 'none' }}>
-                      <Edit size={15} color="#001a4d" />
+                      <Edit size={15} color="var(--ae-navy)" />
                     </button>
                   )}
                   {onDelete && (

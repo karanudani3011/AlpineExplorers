@@ -26,7 +26,7 @@ export default function ActivityLogs() {
               <thead>
                 <tr>
                   {['User', 'Action', 'Module', 'Details', 'Date & Time'].map((h) => (
-                    <th key={h} className="py-3 px-4 text-[10px] uppercase tracking-wider font-bold whitespace-nowrap" style={{ color: 'rgba(0,26,77,0.55)', borderBottom: '2px solid rgba(197,155,39,0.4)' }}>{h}</th>
+                    <th key={h} className="py-3 px-4 text-[10px] uppercase tracking-wider font-bold whitespace-nowrap" style={{ color: 'rgb(var(--ae-navy-rgb) /0.55)', borderBottom: '2px solid rgb(var(--ae-gold-rgb) /0.4)' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -36,8 +36,8 @@ export default function ActivityLogs() {
                     <td className="py-3 px-4 text-[12.5px] font-bold" style={{ color: NAVY }}>{l.user_name}</td>
                     <td className="py-3 px-4 text-[12.5px]">{l.action}</td>
                     <td className="py-3 px-4"><Badge>{l.module}</Badge></td>
-                    <td className="py-3 px-4 text-[12px]" style={{ color: 'rgba(0,26,77,0.6)' }}>{l.details || '—'}</td>
-                    <td className="py-3 px-4 text-[12px]" style={{ color: 'rgba(0,26,77,0.5)' }}>{l.created_at}</td>
+                    <td className="py-3 px-4 text-[12px]" style={{ color: 'rgb(var(--ae-navy-rgb) /0.6)' }}>{l.details || '—'}</td>
+                    <td className="py-3 px-4 text-[12px]" style={{ color: 'rgb(var(--ae-navy-rgb) /0.5)' }}>{l.created_at}</td>
                   </tr>
                 ))}
               </tbody>

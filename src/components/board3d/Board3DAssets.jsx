@@ -307,13 +307,13 @@ export function VintageBrassCompass({ className = "w-24 h-24" }) {
       <defs>
         <radialGradient id="compassBrass" cx="40%" cy="40%" r="60%">
           <stop offset="0%" stopColor="#fef08a" />
-          <stop offset="50%" stopColor="#d4af37" />
+          <stop offset="50%" style={{ stopColor: 'var(--ae-gold2)' }} />
           <stop offset="85%" stopColor="#996515" />
           <stop offset="100%" stopColor="#5c3a09" />
         </radialGradient>
         <radialGradient id="compassFace" cx="50%" cy="50%" r="50%">
           <stop offset="0%" stopColor="#fdfbf7" />
-          <stop offset="80%" stopColor="#f5ecd8" />
+          <stop offset="80%" style={{ stopColor: 'var(--ae-bg-paper)' }} />
           <stop offset="100%" stopColor="#d9c39e" />
         </radialGradient>
         <filter id="compassDrop" x="-20%" y="-20%" width="140%" height="140%">

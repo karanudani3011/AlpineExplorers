@@ -4,12 +4,12 @@ import { X, Mail, Lock, User, Compass, ArrowRight, Loader2, CheckCircle2, AlertC
 import { useSupabaseAuth } from '../../hooks/useSupabaseAuth'
 import { useNavigate } from 'react-router-dom'
 
-const NAVY = '#001a4d'
-const NAVY_MID = '#0d3a80'
-const GOLD = '#c59b27'
-const GOLD2 = '#d4af37'
-const CREAM = '#faf5ea'
-const BROWN = '#3a2a18'
+const NAVY = 'var(--ae-navy)'
+const NAVY_MID = 'var(--ae-navy-mid)'
+const GOLD = 'var(--ae-gold)'
+const GOLD2 = 'var(--ae-gold2)'
+const CREAM = 'var(--ae-cream)'
+const BROWN = 'var(--ae-ink)'
 
 export default function AuthModal() {
   const {
@@ -164,8 +164,8 @@ export default function AuthModal() {
           className="relative w-full max-w-md rounded-2xl overflow-hidden shadow-2xl my-auto"
           style={{
             backgroundColor: '#ffffff',
-            border: '1px solid rgba(212,175,55,0.4)',
-            boxShadow: '0 25px 60px rgba(0,26,77,0.45)',
+            border: '1px solid rgb(var(--ae-gold2-rgb) /0.4)',
+            boxShadow: '0 25px 60px rgb(var(--ae-navy-rgb) /0.45)',
           }}
         >
           {/* Header Banner */}
@@ -173,7 +173,7 @@ export default function AuthModal() {
             className="px-6 pt-6 pb-5 text-white relative"
             style={{
               background: `linear-gradient(135deg, ${NAVY}, ${NAVY_MID})`,
-              borderBottom: '2px solid rgba(212,175,55,0.5)',
+              borderBottom: '2px solid rgb(var(--ae-gold2-rgb) /0.5)',
             }}
           >
             <div className="flex items-center justify-between">
@@ -181,8 +181,8 @@ export default function AuthModal() {
                 <div
                   className="w-9 h-9 rounded-xl flex items-center justify-center"
                   style={{
-                    backgroundColor: 'rgba(212,175,55,0.2)',
-                    border: '1px solid rgba(212,175,55,0.5)',
+                    backgroundColor: 'rgb(var(--ae-gold2-rgb) /0.2)',
+                    border: '1px solid rgb(var(--ae-gold2-rgb) /0.5)',
                   }}
                 >
                   <Compass size={20} style={{ color: GOLD2 }} />
@@ -214,9 +214,9 @@ export default function AuthModal() {
             <div
               className="mt-4 rounded-xl px-3.5 py-2.5 text-xs leading-relaxed"
               style={{
-                backgroundColor: 'rgba(250,245,234,0.12)',
-                border: '1px solid rgba(212,175,55,0.3)',
-                color: 'rgba(250,245,234,0.95)',
+                backgroundColor: 'rgb(var(--ae-cream-rgb) /0.12)',
+                border: '1px solid rgb(var(--ae-gold2-rgb) /0.3)',
+                color: 'rgb(var(--ae-cream-rgb) /0.95)',
               }}
             >
               {authModalConfig.message || 'Login or create an account to continue with your booking.'}
@@ -236,7 +236,7 @@ export default function AuthModal() {
                 onClick={() => { setTab('login'); setErrorMsg(''); setSuccessMsg('') }}
                 className="flex-1 py-3.5 text-center transition cursor-pointer relative"
                 style={{
-                  color: tab === 'login' ? NAVY : 'rgba(58,42,24,0.6)',
+                  color: tab === 'login' ? NAVY : 'rgb(var(--ae-ink-rgb) /0.6)',
                   backgroundColor: tab === 'login' ? '#ffffff' : '#fafafa',
                 }}
               >
@@ -250,7 +250,7 @@ export default function AuthModal() {
                 onClick={() => { setTab('signup'); setErrorMsg(''); setSuccessMsg('') }}
                 className="flex-1 py-3.5 text-center transition cursor-pointer relative"
                 style={{
-                  color: tab === 'signup' ? NAVY : 'rgba(58,42,24,0.6)',
+                  color: tab === 'signup' ? NAVY : 'rgb(var(--ae-ink-rgb) /0.6)',
                   backgroundColor: tab === 'signup' ? '#ffffff' : '#fafafa',
                 }}
               >
@@ -375,7 +375,7 @@ export default function AuthModal() {
                   )}
                 </button>
 
-                <div className="pt-2 text-center text-xs" style={{ color: 'rgba(58,42,24,0.7)' }}>
+                <div className="pt-2 text-center text-xs" style={{ color: 'rgb(var(--ae-ink-rgb) /0.7)' }}>
                   Don't have an account yet?{' '}
                   <button
                     type="button"
@@ -487,7 +487,7 @@ export default function AuthModal() {
                   )}
                 </button>
 
-                <div className="pt-2 text-center text-xs" style={{ color: 'rgba(58,42,24,0.7)' }}>
+                <div className="pt-2 text-center text-xs" style={{ color: 'rgb(var(--ae-ink-rgb) /0.7)' }}>
                   Already have an account?{' '}
                   <button
                     type="button"
@@ -515,7 +515,7 @@ export default function AuthModal() {
                   </button>
                 </div>
 
-                <p className="text-xs leading-relaxed" style={{ color: 'rgba(58,42,24,0.7)' }}>
+                <p className="text-xs leading-relaxed" style={{ color: 'rgb(var(--ae-ink-rgb) /0.7)' }}>
                   Enter your registered email address and we'll send you a link to reset your password.
                 </p>
 

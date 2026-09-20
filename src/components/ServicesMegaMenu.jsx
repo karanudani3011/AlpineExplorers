@@ -4,9 +4,9 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Globe, Map, Mountain, Tent, Users, Backpack } from 'lucide-react'
 import { serviceCategories } from '../data/servicesData'
 
-const NAVY = '#001a4d'
-const GOLD = '#c59b27'
-const GOLD2 = '#d4af37'
+const NAVY = 'var(--ae-navy)'
+const GOLD = 'var(--ae-gold)'
+const GOLD2 = 'var(--ae-gold2)'
 
 const iconMap = {
   international: Globe,
@@ -97,7 +97,7 @@ export default function ServicesMegaMenu({ isOpen, onHoverStart, onHoverEnd, onN
                         <div
                           className="w-10 h-10 rounded-xl flex items-center justify-center mb-2.5 transition-all duration-300 group-hover:scale-105 group-hover:shadow-md"
                           style={{
-                            background: `linear-gradient(135deg, ${NAVY}, #0d3a80)`,
+                            background: `linear-gradient(135deg, ${NAVY}, var(--ae-navy-mid))`,
                           }}
                         >
                           {Icon && <Icon size={18} className="text-white" />}
@@ -115,7 +115,7 @@ export default function ServicesMegaMenu({ isOpen, onHoverStart, onHoverEnd, onN
 
                         {/* Title */}
                         <h4
-                          className="text-[12px] font-bold mb-1 transition-colors duration-200 group-hover:text-[#c59b27] leading-tight"
+                          className="text-[12px] font-bold mb-1 transition-colors duration-200 group-hover:text-[color:var(--ae-gold)] leading-tight"
                           style={{ fontFamily: 'Cinzel, serif', color: NAVY }}
                         >
                           {cat.shortName}
@@ -124,7 +124,7 @@ export default function ServicesMegaMenu({ isOpen, onHoverStart, onHoverEnd, onN
                         {/* Description */}
                         <p
                           className="text-[10px] leading-snug line-clamp-2"
-                          style={{ color: 'rgba(58,42,24,0.55)' }}
+                          style={{ color: 'rgb(var(--ae-ink-rgb) /0.55)' }}
                         >
                           {cat.tagline}
                         </p>

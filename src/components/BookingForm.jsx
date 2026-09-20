@@ -15,12 +15,12 @@ import { useSupabaseAuth } from '../hooks/useSupabaseAuth'
 import { supabase } from '../services/supabaseClient'
 import { api } from '../services/api'
 
-const NAVY = '#001a4d'
-const NAVY_MID = '#0d3a80'
-const GOLD = '#c59b27'
-const GOLD2 = '#d4af37'
-const CREAM = '#faf5ea'
-const BROWN = '#3a2a18'
+const NAVY = 'var(--ae-navy)'
+const NAVY_MID = 'var(--ae-navy-mid)'
+const GOLD = 'var(--ae-gold)'
+const GOLD2 = 'var(--ae-gold2)'
+const CREAM = 'var(--ae-cream)'
+const BROWN = 'var(--ae-ink)'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -83,7 +83,7 @@ function Input({ icon: Icon, ...props }) {
       <input
         {...props}
         className={`w-full ${Icon ? 'pl-10' : 'pl-3.5'} pr-3.5 py-2.5 rounded-xl border text-sm outline-none transition
-          focus:ring-2 focus:ring-[#001a4d]/20 focus:border-[#001a4d]`}
+          focus:ring-2 focus:ring-[color:var(--ae-navy)]/20 focus:border-[color:var(--ae-navy)]`}
         style={{ borderColor: 'rgba(180,160,130,0.45)', color: BROWN, backgroundColor: '#ffffff' }}
       />
     </div>
@@ -102,20 +102,20 @@ function BookingConfirmation({ booking, tour, onViewMyBookings }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
       className="rounded-2xl overflow-hidden text-center"
-      style={{ border: '1px solid rgba(212,175,55,0.4)', backgroundColor: '#ffffff', boxShadow: '0 8px 30px rgba(0,26,77,0.12)' }}
+      style={{ border: '1px solid rgb(var(--ae-gold2-rgb) /0.4)', backgroundColor: '#ffffff', boxShadow: '0 8px 30px rgb(var(--ae-navy-rgb) /0.12)' }}
     >
       {/* Success banner */}
       <div className="py-10 px-6" style={{ background: `linear-gradient(135deg, ${NAVY}, ${NAVY_MID})` }}>
         <div
           className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
-          style={{ backgroundColor: 'rgba(212,175,55,0.2)', border: '2px solid rgba(212,175,55,0.5)' }}
+          style={{ backgroundColor: 'rgb(var(--ae-gold2-rgb) /0.2)', border: '2px solid rgb(var(--ae-gold2-rgb) /0.5)' }}
         >
           <CheckCircle2 size={36} style={{ color: GOLD2 }} />
         </div>
         <h2 className="text-2xl font-bold text-white mb-2" style={{ fontFamily: 'Cinzel, serif' }}>
           {isPaid ? 'Booking Confirmed!' : 'Booking Request Received!'}
         </h2>
-        <p className="text-sm" style={{ color: 'rgba(250,245,234,0.85)' }}>
+        <p className="text-sm" style={{ color: 'rgb(var(--ae-cream-rgb) /0.85)' }}>
           {isPaid
             ? 'Thank you! Your payment is confirmed and your booking is secured.'
             : isPendingVerification
@@ -128,7 +128,7 @@ function BookingConfirmation({ booking, tour, onViewMyBookings }) {
       <div className="px-6 py-6 border-b" style={{ borderColor: 'rgba(180,160,130,0.2)' }}>
         <div
           className="inline-block px-6 py-3 rounded-2xl"
-          style={{ backgroundColor: 'rgba(197,155,39,0.1)', border: '1px solid rgba(197,155,39,0.4)' }}
+          style={{ backgroundColor: 'rgb(var(--ae-gold-rgb) /0.1)', border: '1px solid rgb(var(--ae-gold-rgb) /0.4)' }}
         >
           <p className="text-[10px] font-bold uppercase tracking-[0.2em] mb-1" style={{ color: GOLD }}>
             Booking Reference
@@ -165,7 +165,7 @@ function BookingConfirmation({ booking, tour, onViewMyBookings }) {
           },
         ].map(({ label, value }) => (
           <div key={label}>
-            <p className="text-[10px] font-bold uppercase tracking-wider mb-0.5" style={{ color: 'rgba(58,42,24,0.55)' }}>{label}</p>
+            <p className="text-[10px] font-bold uppercase tracking-wider mb-0.5" style={{ color: 'rgb(var(--ae-ink-rgb) /0.55)' }}>{label}</p>
             <p className="text-sm font-semibold" style={{ color: NAVY }}>{value}</p>
           </div>
         ))}
@@ -176,8 +176,8 @@ function BookingConfirmation({ booking, tour, onViewMyBookings }) {
         <Link
           to="/services"
           className="px-6 py-2.5 rounded-xl text-sm font-bold transition flex items-center gap-1.5"
-          style={{ color: NAVY, border: `1px solid rgba(0,26,77,0.25)`, backgroundColor: 'transparent' }}
-          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(0,26,77,0.06)'}
+          style={{ color: NAVY, border: `1px solid rgb(var(--ae-navy-rgb) /0.25)`, backgroundColor: 'transparent' }}
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgb(var(--ae-navy-rgb) /0.06)'}
           onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
         >
           <ArrowLeft size={14} /> Back to Tours
@@ -471,7 +471,7 @@ export default function BookingForm() {
       <main className="flex-1 w-full max-w-4xl mx-auto px-4 sm:px-6 py-8">
 
         {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-xs mb-6" style={{ color: 'rgba(58,42,24,0.6)' }}>
+        <div className="flex items-center gap-2 text-xs mb-6" style={{ color: 'rgb(var(--ae-ink-rgb) /0.6)' }}>
           <Link to="/services" className="hover:underline font-medium" style={{ color: NAVY }}>Tours</Link>
           <span>›</span>
           <Link to={`/tour/${tour.id}`} className="hover:underline font-medium" style={{ color: NAVY }}>
@@ -502,7 +502,7 @@ export default function BookingForm() {
                 <span
                   className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[11px] transition ${
                     isActive
-                      ? 'bg-[#001a4d] text-white'
+                      ? 'bg-[color:var(--ae-navy)] text-white'
                       : isPassed
                       ? 'bg-emerald-600 text-white'
                       : 'bg-gray-100 text-gray-500'
@@ -510,7 +510,7 @@ export default function BookingForm() {
                 >
                   {isPassed && !isActive ? '✓' : idx + 1}
                 </span>
-                <span className={`hidden sm:inline font-bold ${isActive ? 'text-[#001a4d]' : 'text-gray-500'}`}>
+                <span className={`hidden sm:inline font-bold ${isActive ? 'text-[color:var(--ae-navy)]' : 'text-gray-500'}`}>
                   {s.label.split('. ')[1]}
                 </span>
                 {idx < 3 && <div className="w-6 sm:w-12 h-0.5 bg-gray-200 mx-1" />}
@@ -551,16 +551,16 @@ export default function BookingForm() {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             className="rounded-2xl overflow-hidden shadow-xl bg-white border"
-            style={{ borderColor: 'rgba(212,175,55,0.45)' }}
+            style={{ borderColor: 'rgb(var(--ae-gold2-rgb) /0.45)' }}
           >
             <div
               className="px-6 py-6 text-white text-center"
-              style={{ background: `linear-gradient(135deg, ${NAVY}, ${NAVY_MID})`, borderBottom: '2px solid rgba(212,175,55,0.4)' }}
+              style={{ background: `linear-gradient(135deg, ${NAVY}, ${NAVY_MID})`, borderBottom: '2px solid rgb(var(--ae-gold2-rgb) /0.4)' }}
             >
               <h2 className="text-2xl font-bold tracking-wide" style={{ fontFamily: 'Cinzel, serif' }}>
                 Booking Summary
               </h2>
-              <p className="text-xs mt-1" style={{ color: 'rgba(250,245,234,0.85)' }}>
+              <p className="text-xs mt-1" style={{ color: 'rgb(var(--ae-cream-rgb) /0.85)' }}>
                 Please review your booking details before proceeding to payment.
               </p>
             </div>
@@ -620,7 +620,7 @@ export default function BookingForm() {
               {/* Prominent Booking Amount Display */}
               <div
                 className="p-5 rounded-2xl text-center border"
-                style={{ backgroundColor: 'rgba(197,155,39,0.1)', borderColor: 'rgba(197,155,39,0.45)' }}
+                style={{ backgroundColor: 'rgb(var(--ae-gold-rgb) /0.1)', borderColor: 'rgb(var(--ae-gold-rgb) /0.45)' }}
               >
                 <p className="text-xs uppercase font-bold tracking-widest text-amber-800 mb-1">
                   Booking Amount
@@ -647,8 +647,8 @@ export default function BookingForm() {
                   type="button"
                   onClick={() => setStep('form')}
                   className="flex-1 py-3.5 rounded-xl font-bold text-sm border flex items-center justify-center gap-2 transition cursor-pointer"
-                  style={{ borderColor: 'rgba(0,26,77,0.3)', color: NAVY }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(0,26,77,0.05)'}
+                  style={{ borderColor: 'rgb(var(--ae-navy-rgb) /0.3)', color: NAVY }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgb(var(--ae-navy-rgb) /0.05)'}
                   onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                 >
                   <Edit3 size={15} /> Edit Details
@@ -688,17 +688,17 @@ export default function BookingForm() {
             <div className="lg:col-span-2">
               <div
                 className="rounded-2xl overflow-hidden"
-                style={{ border: '1px solid rgba(180,160,130,0.3)', backgroundColor: '#ffffff', boxShadow: '0 4px 20px rgba(0,26,77,0.08)' }}
+                style={{ border: '1px solid rgba(180,160,130,0.3)', backgroundColor: '#ffffff', boxShadow: '0 4px 20px rgb(var(--ae-navy-rgb) /0.08)' }}
               >
                 {/* Form Header */}
                 <div
                   className="px-6 pt-6 pb-5"
-                  style={{ background: `linear-gradient(135deg, ${NAVY}, ${NAVY_MID})`, borderBottom: '2px solid rgba(212,175,55,0.45)' }}
+                  style={{ background: `linear-gradient(135deg, ${NAVY}, ${NAVY_MID})`, borderBottom: '2px solid rgb(var(--ae-gold2-rgb) /0.45)' }}
                 >
                   <h1 className="text-xl font-bold text-white" style={{ fontFamily: 'Cinzel, serif' }}>
                     Book Your Adventure
                   </h1>
-                  <p className="text-xs mt-1" style={{ color: 'rgba(250,245,234,0.8)' }}>
+                  <p className="text-xs mt-1" style={{ color: 'rgb(var(--ae-cream-rgb) /0.8)' }}>
                     Complete your booking details for <strong style={{ color: GOLD2 }}>{tour.title}</strong>
                   </p>
                 </div>
@@ -755,9 +755,9 @@ export default function BookingForm() {
                               type="checkbox"
                               checked={form.sameAsPhone}
                               onChange={(e) => set('sameAsPhone', e.target.checked)}
-                              className="w-3.5 h-3.5 accent-[#001a4d]"
+                              className="w-3.5 h-3.5 accent-[color:var(--ae-navy)]"
                             />
-                            <span className="text-xs" style={{ color: 'rgba(58,42,24,0.7)' }}>Same as mobile number</span>
+                            <span className="text-xs" style={{ color: 'rgb(var(--ae-ink-rgb) /0.7)' }}>Same as mobile number</span>
                           </label>
                         </div>
                       </Field>
@@ -791,7 +791,7 @@ export default function BookingForm() {
                       <Field label="Total Travelers">
                         <div
                           className="py-2.5 px-3.5 rounded-xl text-sm font-bold flex items-center gap-2"
-                          style={{ border: '1px solid rgba(197,155,39,0.4)', backgroundColor: 'rgba(197,155,39,0.08)', color: NAVY }}
+                          style={{ border: '1px solid rgb(var(--ae-gold-rgb) /0.4)', backgroundColor: 'rgb(var(--ae-gold-rgb) /0.08)', color: NAVY }}
                         >
                           <Users size={14} style={{ color: GOLD }} />
                           {totalTravelers} Traveler{totalTravelers !== 1 ? 's' : ''}
@@ -812,7 +812,7 @@ export default function BookingForm() {
                           onChange={(e) => set('special_requirements', e.target.value)}
                           placeholder="Vegetarian meals, wheelchair access, allergies, etc."
                           rows={3}
-                          className="w-full px-3.5 py-2.5 rounded-xl border text-sm outline-none transition focus:ring-2 focus:ring-[#001a4d]/20 focus:border-[#001a4d] resize-none"
+                          className="w-full px-3.5 py-2.5 rounded-xl border text-sm outline-none transition focus:ring-2 focus:ring-[color:var(--ae-navy)]/20 focus:border-[color:var(--ae-navy)] resize-none"
                           style={{ borderColor: 'rgba(180,160,130,0.45)', color: BROWN }}
                         />
                       </Field>
@@ -822,7 +822,7 @@ export default function BookingForm() {
                           onChange={(e) => set('notes', e.target.value)}
                           placeholder="Any other message for the Alpine Explorers team..."
                           rows={3}
-                          className="w-full px-3.5 py-2.5 rounded-xl border text-sm outline-none transition focus:ring-2 focus:ring-[#001a4d]/20 focus:border-[#001a4d] resize-none"
+                          className="w-full px-3.5 py-2.5 rounded-xl border text-sm outline-none transition focus:ring-2 focus:ring-[color:var(--ae-navy)]/20 focus:border-[color:var(--ae-navy)] resize-none"
                           style={{ borderColor: 'rgba(180,160,130,0.45)', color: BROWN }}
                         />
                       </Field>
@@ -832,7 +832,7 @@ export default function BookingForm() {
                   {/* Prominent Live Amount in Form */}
                   <div
                     className="rounded-xl px-4 py-3 flex items-center justify-between"
-                    style={{ backgroundColor: 'rgba(197,155,39,0.12)', border: '1px solid rgba(197,155,39,0.4)' }}
+                    style={{ backgroundColor: 'rgb(var(--ae-gold-rgb) /0.12)', border: '1px solid rgb(var(--ae-gold-rgb) /0.4)' }}
                   >
                     <div>
                       <span className="text-[10px] uppercase font-bold tracking-wider block text-amber-800">Booking Amount</span>
@@ -872,7 +872,7 @@ export default function BookingForm() {
             <div className="lg:col-span-1">
               <div
                 className="rounded-2xl overflow-hidden sticky top-24"
-                style={{ border: '1px solid rgba(212,175,55,0.4)', boxShadow: '0 4px 20px rgba(0,26,77,0.1)' }}
+                style={{ border: '1px solid rgb(var(--ae-gold2-rgb) /0.4)', boxShadow: '0 4px 20px rgb(var(--ae-navy-rgb) /0.1)' }}
               >
                 {/* Tour Image */}
                 {tour.image && (
@@ -900,7 +900,7 @@ export default function BookingForm() {
                     <div key={label} className="py-2.5 flex items-start gap-2.5">
                       <Icon size={14} className="mt-0.5 shrink-0" style={{ color: GOLD }} />
                       <div>
-                        <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: 'rgba(58,42,24,0.5)' }}>{label}</p>
+                        <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: 'rgb(var(--ae-ink-rgb) /0.5)' }}>{label}</p>
                         <p className="text-sm font-semibold" style={{ color: NAVY }}>{value}</p>
                       </div>
                     </div>
@@ -917,7 +917,7 @@ export default function BookingForm() {
                           {formatINR(totalAmount)}
                         </span>
                       </div>
-                      <p className="text-[10px] mt-1" style={{ color: 'rgba(58,42,24,0.5)' }}>
+                      <p className="text-[10px] mt-1" style={{ color: 'rgb(var(--ae-ink-rgb) /0.5)' }}>
                         {formatINR(price)} × {form.adults} Adult{Number(form.adults) !== 1 ? 's' : ''}
                         {Number(form.children) > 0 ? ` + ${form.children} Child${Number(form.children) !== 1 ? 'ren' : ''}` : ''}
                       </p>

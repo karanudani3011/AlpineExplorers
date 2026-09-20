@@ -9,12 +9,12 @@ import TourImageSlider from '../components/TourImageSlider'
 import { tourImages } from '../data/tourImages'
 import { ArrowRight, ArrowUpRight, MapPin, Calendar, Clock, Compass, Award, Heart, Sparkles, Quote } from 'lucide-react'
 
-const NAVY = '#001a4d'
-const NAVY_MID = '#0d3a80'
-const GOLD = '#c59b27'
-const GOLD2 = '#d4af37'
-const CREAM = '#faf5ea'
-const BROWN = '#3a2a18'
+const NAVY = 'var(--ae-navy)'
+const NAVY_MID = 'var(--ae-navy-mid)'
+const GOLD = 'var(--ae-gold)'
+const GOLD2 = 'var(--ae-gold2)'
+const CREAM = 'var(--ae-cream)'
+const BROWN = 'var(--ae-ink)'
 
 const font = {
   vintage: { fontFamily: 'Cinzel, serif' },
@@ -179,7 +179,7 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.7 }}
             className="text-xl sm:text-2xl mb-2 font-medium"
-            style={{ ...font.script, color: GOLD2, textShadow: '0 2px 8px rgba(0,26,77,0.5)' }}
+            style={{ ...font.script, color: GOLD2, textShadow: '0 2px 8px rgb(var(--ae-navy-rgb) /0.5)' }}
           >
             Alpine Explorers · Journeys beyond the postcard
           </motion.span>
@@ -246,8 +246,8 @@ export default function Home() {
           >
             <Link
               to="/services"
-              className="group inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-widest text-[#001a4d] transition duration-300 hover:-translate-y-0.5 hover:shadow-xl"
-              style={{ backgroundColor: GOLD, fontFamily: 'Cinzel, serif', boxShadow: '0 8px 24px rgba(197,155,39,0.4)' }}
+              className="group inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-widest text-[color:var(--ae-navy)] transition duration-300 hover:-translate-y-0.5 hover:shadow-xl"
+              style={{ backgroundColor: GOLD, fontFamily: 'Cinzel, serif', boxShadow: '0 8px 24px rgb(var(--ae-gold-rgb) /0.4)' }}
             >
               Explore Tours →
             </Link>
@@ -270,7 +270,7 @@ export default function Home() {
         >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="inline-flex flex-wrap items-center gap-4 sm:gap-8 rounded-2xl px-6 py-3.5 sm:px-8"
-              style={{ backgroundColor: '#FAF5EA', border: '1px solid rgba(212,175,55,0.4)', boxShadow: '0 12px 36px rgba(11,42,91,0.25)' }}>
+              style={{ backgroundColor: '#FAF5EA', border: '1px solid rgb(var(--ae-gold2-rgb) /0.4)', boxShadow: '0 12px 36px rgba(11,42,91,0.25)' }}>
               {[
                 { value: '120+', label: 'DESTINATIONS' },
                 { value: '5000+', label: 'HAPPY TRAVELERS' },
@@ -282,7 +282,7 @@ export default function Home() {
                     <div className="text-[10px] sm:text-xs uppercase tracking-wider font-bold mt-1" style={{ color: GOLD }}>{stat.label}</div>
                   </div>
                   {i < 2 && (
-                    <div className="hidden sm:block w-px h-7" style={{ backgroundColor: 'rgba(197,155,39,0.35)' }} />
+                    <div className="hidden sm:block w-px h-7" style={{ backgroundColor: 'rgb(var(--ae-gold-rgb) /0.35)' }} />
                   )}
                 </div>
               ))}
@@ -297,7 +297,7 @@ export default function Home() {
       <section className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="text-center max-w-3xl mx-auto mb-14">
           <span className="text-2xl block mb-2" style={{ ...font.script, color: GOLD }}>Curated world wonders</span>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#001a4d] mb-3" style={font.vintage}>
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[color:var(--ae-navy)] mb-3" style={font.vintage}>
             Destinations Worth Discovering
           </h2>
           <p className="text-gray-600 text-sm sm:text-base" style={font.body}>
@@ -328,7 +328,7 @@ export default function Home() {
                   className="w-full h-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-110"
                   loading="lazy"
                 />
-                <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,26,77,0.78) 0%, rgba(0,26,77,0.12) 60%, transparent 100%)' }} />
+                <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgb(var(--ae-navy-rgb) /0.78) 0%, rgb(var(--ae-navy-rgb) /0.12) 60%, transparent 100%)' }} />
                 <div className="absolute left-4 bottom-4 right-4">
                   <div className="text-[10px] uppercase tracking-[0.18em] font-bold mb-1 transition-all duration-500"
                     style={{ color: GOLD2, opacity: 0, transform: 'translateY(8px)' }}>
@@ -357,7 +357,7 @@ export default function Home() {
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-14">
           <div className="max-w-2xl">
             <span className="text-2xl block mb-2" style={{ ...font.script, color: GOLD }}>A journey for every heart</span>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#001a4d] mb-3 uppercase" style={font.vintage}>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[color:var(--ae-navy)] mb-3 uppercase" style={font.vintage}>
               How Do You Want to Travel?
             </h2>
           </div>
@@ -384,9 +384,9 @@ export default function Home() {
                   className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110"
                   loading="lazy"
                 />
-                <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,26,77,0.72) 0%, rgba(0,26,77,0.05) 55%, transparent 100%)' }} />
+                <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgb(var(--ae-navy-rgb) /0.72) 0%, rgb(var(--ae-navy-rgb) /0.05) 55%, transparent 100%)' }} />
                 <div className="absolute top-3 left-4 text-[10px] font-bold uppercase tracking-[0.2em] transition-all duration-500"
-                  style={{ color: 'rgba(212,175,55,0)', opacity: 0 }}>
+                  style={{ color: 'rgb(var(--ae-gold2-rgb) /0)', opacity: 0 }}>
                   0{i + 1}
                 </div>
                 <div className="absolute inset-x-0 bottom-0 p-5">
@@ -411,12 +411,12 @@ export default function Home() {
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-14">
             <div className="max-w-2xl">
               <span className="text-2xl block mb-2" style={{ ...font.script, color: GOLD }}>Chosen by our travelers</span>
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#001a4d] mb-3 uppercase" style={font.vintage}>
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[color:var(--ae-navy)] mb-3 uppercase" style={font.vintage}>
                 Experiences You&apos;ll Remember
               </h2>
             </div>
             <Link to="/services" className="group inline-flex items-center gap-2 text-sm font-bold uppercase tracking-widest py-2.5 px-5 rounded-xl transition inline-flex"
-              style={{ color: NAVY, border: `1px solid ${GOLD}`, backgroundColor: 'rgba(212,175,55,0.1)' }}>
+              style={{ color: NAVY, border: `1px solid ${GOLD}`, backgroundColor: 'rgb(var(--ae-gold2-rgb) /0.1)' }}>
               View All Tours
               <ArrowRight size={15} className="transition-transform group-hover:translate-x-1" />
             </Link>
@@ -435,14 +435,14 @@ export default function Home() {
                   viewport={{ once: true, margin: '-60px' }}
                   transition={{ duration: 0.6, delay: i * 0.1 }}
                   whileHover={{ y: -8 }}
-                  className="group flex flex-col rounded-2xl overflow-hidden bg-[#faf5ea] border border-[#e8ded0]"
+                  className="group flex flex-col rounded-2xl overflow-hidden bg-[color:var(--ae-cream)] border border-[#e8ded0]"
                   style={{ boxShadow: '0 10px 28px rgba(60,40,20,0.12)' }}
                 >
                   <Link to={`/tour/${tour.id}`} className="block relative h-52 overflow-hidden flex-shrink-0">
                     <TourImageSlider images={tourImages[tour.id] || [tour.image]} alt={tour.title} />
-                    <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,26,77,0.45) 0%, rgba(0,26,77,0.05) 60%, transparent 100%)' }} />
+                    <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgb(var(--ae-navy-rgb) /0.45) 0%, rgb(var(--ae-navy-rgb) /0.05) 60%, transparent 100%)' }} />
                     <span className="absolute top-3 left-3 text-[9px] font-bold uppercase tracking-[0.18em] px-3 py-1 rounded-full"
-                      style={{ backgroundColor: 'rgba(212,175,55,0.95)', color: NAVY }}>
+                      style={{ backgroundColor: 'rgb(var(--ae-gold2-rgb) /0.95)', color: NAVY }}>
                       {tour.category}
                     </span>
                   </Link>
@@ -453,7 +453,7 @@ export default function Home() {
                       <span className="truncate uppercase tracking-wider">{tour.location}</span>
                     </div>
                     <Link to={`/tour/${tour.id}`}>
-                      <h3 className="text-lg font-extrabold leading-snug mb-2 text-[#001a4d] group-hover:text-[#c59b27] transition-colors" style={font.vintage}>
+                      <h3 className="text-lg font-extrabold leading-snug mb-2 text-[color:var(--ae-navy)] group-hover:text-[color:var(--ae-gold)] transition-colors" style={font.vintage}>
                         {tour.title}
                       </h3>
                     </Link>
@@ -472,7 +472,7 @@ export default function Home() {
                         {price && (
                           <>
                             <span className="text-[10px] uppercase tracking-wider text-gray-500">From</span>
-                            <span className="text-lg font-extrabold text-[#001a4d]" style={font.vintage}>{price}</span>
+                            <span className="text-lg font-extrabold text-[color:var(--ae-navy)]" style={font.vintage}>{price}</span>
                           </>
                         )}
                       </div>
@@ -493,7 +493,7 @@ export default function Home() {
       {/* ===================================================================== */}
       {/* SECTION 5 — WHY ALPINE EXPLORERS                                      */}
       {/* ===================================================================== */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 relative overflow-hidden" style={{ backgroundColor: '#f5ecd8' }}>
+      <section className="py-24 px-4 sm:px-6 lg:px-8 relative overflow-hidden" style={{ backgroundColor: 'var(--ae-bg-paper)' }}>
         {/* subtle mountain line-art */}
         <svg className="absolute inset-x-0 top-6 w-full h-40 opacity-[0.12] pointer-events-none" viewBox="0 0 1200 160" preserveAspectRatio="none" aria-hidden="true">
           <polyline points="0,140 180,60 300,120 460,20 560,110 720,40 880,120 1000,70 1200,130" fill="none" stroke={NAVY} strokeWidth="2.5" />
@@ -503,7 +503,7 @@ export default function Home() {
         <div className="relative z-10 max-w-7xl mx-auto">
           <div className="text-center max-w-3xl mx-auto mb-14">
             <span className="text-2xl block mb-2" style={{ ...font.script, color: GOLD }}>The Alpine standard</span>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#001a4d] mb-3" style={font.vintage}>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[color:var(--ae-navy)] mb-3" style={font.vintage}>
               Why Travel with Alpine Explorers?
             </h2>
             <p className="text-gray-600 text-sm sm:text-base" style={font.body}>
@@ -521,14 +521,14 @@ export default function Home() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: '-60px' }}
                   transition={{ duration: 0.55, delay: i * 0.1 }}
-                  className="group rounded-2xl p-8 text-center bg-[#faf5ea] hover:bg-[#fffaf0] transition-colors"
+                  className="group rounded-2xl p-8 text-center bg-[color:var(--ae-cream)] hover:bg-[#fffaf0] transition-colors"
                   style={{ border: '1px solid rgba(180,160,130,0.35)', boxShadow: '0 8px 22px rgba(60,40,20,0.08)' }}
                 >
                   <div className="mx-auto mb-5 w-16 h-16 rounded-full flex items-center justify-center transition-all duration-500 group-hover:scale-110"
-                    style={{ border: `1.5px solid ${GOLD}`, color: NAVY, backgroundColor: 'rgba(212,175,55,0.1)' }}>
+                    style={{ border: `1.5px solid ${GOLD}`, color: NAVY, backgroundColor: 'rgb(var(--ae-gold2-rgb) /0.1)' }}>
                     <Icon size={26} />
                   </div>
-                  <h3 className="text-lg font-extrabold uppercase tracking-wide mb-2 text-[#001a4d]" style={font.vintage}>
+                  <h3 className="text-lg font-extrabold uppercase tracking-wide mb-2 text-[color:var(--ae-navy)]" style={font.vintage}>
                     {b.title}
                   </h3>
                   <p className="text-sm text-gray-600 leading-relaxed" style={font.body}>
@@ -548,11 +548,11 @@ export default function Home() {
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-12">
           <div>
             <span className="text-2xl block mb-2" style={{ ...font.script, color: GOLD }}>Save the date</span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-[#001a4d] uppercase" style={font.vintage}>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-[color:var(--ae-navy)] uppercase" style={font.vintage}>
               Upcoming Adventures
             </h2>
           </div>
-          <Link to="/upcoming-events" className="group inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[#001a4d] hover:text-[#c59b27] transition">
+          <Link to="/upcoming-events" className="group inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[color:var(--ae-navy)] hover:text-[color:var(--ae-gold)] transition">
             View All Events
             <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
           </Link>
@@ -566,7 +566,7 @@ export default function Home() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-60px' }}
               transition={{ duration: 0.55, delay: i * 0.1 }}
-              className="group flex items-center gap-4 rounded-2xl p-4 bg-[#faf5ea] hover:bg-white transition-colors"
+              className="group flex items-center gap-4 rounded-2xl p-4 bg-[color:var(--ae-cream)] hover:bg-white transition-colors"
               style={{ border: '1px solid rgba(180,160,130,0.35)', boxShadow: '0 6px 18px rgba(60,40,20,0.08)' }}
             >
               <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden flex-shrink-0">
@@ -576,11 +576,11 @@ export default function Home() {
                 <div className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: GOLD }}>
                   <span className="inline-flex items-center gap-1"><Calendar size={11} /> {ev.date}</span>
                 </div>
-                <h3 className="text-sm font-extrabold leading-snug mb-1 text-[#001a4d]" style={font.vintage}>{ev.title}</h3>
+                <h3 className="text-sm font-extrabold leading-snug mb-1 text-[color:var(--ae-navy)]" style={font.vintage}>{ev.title}</h3>
                 <p className="text-xs text-gray-500 mb-2 flex items-center gap-1">
                   <MapPin size={11} style={{ color: GOLD }} /> {ev.location}
                 </p>
-                <Link to="/upcoming-events" className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-widest text-[#c59b27] hover:text-[#001a4d] transition">
+                <Link to="/upcoming-events" className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-widest text-[color:var(--ae-gold)] hover:text-[color:var(--ae-navy)] transition">
                   View Event <ArrowRight size={12} />
                 </Link>
               </div>
@@ -596,7 +596,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center max-w-3xl mx-auto mb-14">
             <span className="text-2xl block mb-2" style={{ ...font.script, color: GOLD }}>Real stories, real journeys</span>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#001a4d] mb-3" style={font.vintage}>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[color:var(--ae-navy)] mb-3" style={font.vintage}>
               Travelers Who Came Back with Stories
             </h2>
             <p className="text-gray-600 text-sm sm:text-base" style={font.body}>
@@ -612,7 +612,7 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-60px' }}
                 transition={{ duration: 0.6, delay: i * 0.1 }}
-                className="relative rounded-2xl p-7 bg-[#faf5ea] flex flex-col"
+                className="relative rounded-2xl p-7 bg-[color:var(--ae-cream)] flex flex-col"
                 style={{ border: '1px solid rgba(180,160,130,0.35)', boxShadow: '0 10px 28px rgba(60,40,20,0.1)' }}
               >
                 <Quote size={30} className="mb-4" style={{ color: GOLD, opacity: 0.55 }} />
@@ -628,7 +628,7 @@ export default function Home() {
                     loading="lazy"
                   />
                   <div>
-                    <div className="text-sm font-extrabold text-[#001a4d]" style={font.vintage}>{t.name}</div>
+                    <div className="text-sm font-extrabold text-[color:var(--ae-navy)]" style={font.vintage}>{t.name}</div>
                     <div className="text-[11px] text-gray-500">{t.role.split('•').slice(-1)[0].trim()}</div>
                   </div>
                 </figcaption>
@@ -648,7 +648,7 @@ export default function Home() {
             alt="A canoe gliding across a calm mountain lake at sunrise"
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,26,77,0.88) 0%, rgba(0,26,77,0.55) 60%, rgba(0,26,77,0.7) 100%)' }} />
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgb(var(--ae-navy-rgb) /0.88) 0%, rgb(var(--ae-navy-rgb) /0.55) 60%, rgb(var(--ae-navy-rgb) /0.7) 100%)' }} />
         </motion.div>
 
         <div className="relative z-10 max-w-3xl mx-auto px-4 text-center">
@@ -691,7 +691,7 @@ export default function Home() {
           >
             <Link
               to="/services"
-              className="group inline-flex items-center justify-center gap-2 px-9 py-4 rounded-xl text-sm font-bold uppercase tracking-widest text-[#001a4d] transition hover:-translate-y-0.5"
+              className="group inline-flex items-center justify-center gap-2 px-9 py-4 rounded-xl text-sm font-bold uppercase tracking-widest text-[color:var(--ae-navy)] transition hover:-translate-y-0.5"
               style={{ backgroundColor: GOLD, fontFamily: 'Cinzel, serif' }}
             >
               Start Exploring

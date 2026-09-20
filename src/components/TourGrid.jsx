@@ -23,22 +23,22 @@ export default function TourGrid({ tours, category }) {
       >
         <span
           className="text-xl"
-          style={{ fontFamily: 'Caveat, cursive', color: '#c59b27' }}
+          style={{ fontFamily: 'Caveat, cursive', color: 'var(--ae-gold)' }}
         >
           Explore our curated collection
         </span>
         <h2
           className="text-2xl sm:text-3xl font-bold mt-1"
-          style={{ fontFamily: 'Cinzel, serif', color: '#001a4d' }}
+          style={{ fontFamily: 'Cinzel, serif', color: 'var(--ae-navy)' }}
         >
           {category.name}
         </h2>
         <div className="flex items-center justify-center gap-3 mt-2">
-          <div className="h-[1.5px] w-12" style={{ background: 'linear-gradient(to right, transparent, #c59b27)' }} />
-          <p className="italic text-sm" style={{ fontFamily: 'Playfair Display, serif', color: 'rgba(58,42,24,0.6)' }}>
+          <div className="h-[1.5px] w-12" style={{ background: 'linear-gradient(to right, transparent, var(--ae-gold))' }} />
+          <p className="italic text-sm" style={{ fontFamily: 'Playfair Display, serif', color: 'rgb(var(--ae-ink-rgb) /0.6)' }}>
             {category.tagline}
           </p>
-          <div className="h-[1.5px] w-12" style={{ background: 'linear-gradient(to left, transparent, #c59b27)' }} />
+          <div className="h-[1.5px] w-12" style={{ background: 'linear-gradient(to left, transparent, var(--ae-gold))' }} />
         </div>
       </motion.div>
 

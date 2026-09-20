@@ -1,12 +1,12 @@
 import { X } from 'lucide-react'
 
-export const NAVY = '#001a4d'
+export const NAVY = 'var(--ae-navy)'
 export const NAVY_DARK = '#0d1b3e'
-export const GOLD = '#c59b27'
-export const GOLD2 = '#d4af37'
-export const CREAM = '#faf5ea'
-export const BROWN = '#3a2a18'
-export const BG = '#f5ecd8'
+export const GOLD = 'var(--ae-gold)'
+export const GOLD2 = 'var(--ae-gold2)'
+export const CREAM = 'var(--ae-cream)'
+export const BROWN = 'var(--ae-ink)'
+export const BG = 'var(--ae-bg-paper)'
 
 export const font = { vintage: "'Cinzel', serif", body: "'Inter', sans-serif" }
 
@@ -14,11 +14,11 @@ export function cls(...parts) { return parts.filter(Boolean).join(' ') }
 
 export function Btn({ children, onClick, variant = 'primary', className = '', type = 'button', disabled }) {
   const styles = {
-    primary: { background: 'linear-gradient(90deg,#c59b27,#d4af37)', color: NAVY, boxShadow: '0 6px 18px rgba(197,155,39,0.3)' },
-    navy: { background: NAVY, color: '#fff', boxShadow: '0 6px 18px rgba(0,26,77,0.25)' },
+    primary: { background: 'linear-gradient(90deg,var(--ae-gold),var(--ae-gold2))', color: NAVY, boxShadow: '0 6px 18px rgb(var(--ae-gold-rgb) /0.3)' },
+    navy: { background: NAVY, color: '#fff', boxShadow: '0 6px 18px rgb(var(--ae-navy-rgb) /0.25)' },
     danger: { background: '#8b2518', color: '#fff' },
-    ghost: { background: 'transparent', border: '1px solid rgba(0,26,77,0.2)', color: NAVY },
-    ghostGold: { background: 'rgba(197,155,39,0.12)', border: '1px solid rgba(197,155,39,0.4)', color: NAVY },
+    ghost: { background: 'transparent', border: '1px solid rgb(var(--ae-navy-rgb) /0.2)', color: NAVY },
+    ghostGold: { background: 'rgb(var(--ae-gold-rgb) /0.12)', border: '1px solid rgb(var(--ae-gold-rgb) /0.4)', color: NAVY },
   }
   return (
     <button type={type} disabled={disabled} onClick={onClick} className={`inline-flex items-center gap-2 px-4 py-2 min-h-[44px] rounded-full text-xs font-bold uppercase tracking-wider transition-all hover:opacity-85 disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
@@ -35,12 +35,12 @@ export function PageHeader({ icon: Icon, title, subtitle, actions }) {
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 flex-wrap">
       <div className="flex items-center gap-3">
         <div className="w-11 h-11 rounded-xl flex items-center justify-center"
-          style={{ background: 'linear-gradient(135deg,rgba(197,155,39,0.2),rgba(212,175,55,0.1))', border: '1px solid rgba(197,155,39,0.35)' }}>
+          style={{ background: 'linear-gradient(135deg,rgb(var(--ae-gold-rgb) /0.2),rgb(var(--ae-gold2-rgb) /0.1))', border: '1px solid rgb(var(--ae-gold-rgb) /0.35)' }}>
           <Icon size={20} style={{ color: GOLD }} />
         </div>
         <div>
           <h1 className="text-xl sm:text-2xl font-bold" style={{ fontFamily: font.vintage, color: NAVY }}>{title}</h1>
-          {subtitle && <p className="text-xs" style={{ color: 'rgba(58,42,24,0.6)', fontFamily: font.body }}>{subtitle}</p>}
+          {subtitle && <p className="text-xs" style={{ color: 'rgb(var(--ae-ink-rgb) /0.6)', fontFamily: font.body }}>{subtitle}</p>}
         </div>
       </div>
       {actions && <div className="flex flex-wrap gap-2 w-full sm:w-auto">{actions}</div>}
@@ -66,7 +66,7 @@ export function StatCard({ label, value, icon: Icon, accent = GOLD }) {
       </div>
       <div>
         <div className="text-2xl font-bold" style={{ color: NAVY, fontFamily: font.vintage }}>{value}</div>
-        <div className="text-[11px] uppercase tracking-wider font-semibold" style={{ color: 'rgba(58,42,24,0.6)', fontFamily: font.body }}>{label}</div>
+        <div className="text-[11px] uppercase tracking-wider font-semibold" style={{ color: 'rgb(var(--ae-ink-rgb) /0.6)', fontFamily: font.body }}>{label}</div>
       </div>
     </div>
   )
@@ -79,14 +79,14 @@ export function Badge({ children, tone }) {
     published: { bg: 'rgba(22,163,74,0.12)', color: '#166534' },
     draft: { bg: 'rgba(148,163,184,0.15)', color: '#475569' },
     unpublished: { bg: 'rgba(245,158,11,0.15)', color: '#b45309' },
-    new: { bg: 'rgba(0,26,77,0.08)', color: NAVY },
+    new: { bg: 'rgb(var(--ae-navy-rgb) /0.08)', color: NAVY },
     contacted: { bg: 'rgba(37,99,235,0.12)', color: '#1d4ed8' },
     in_progress: { bg: 'rgba(245,158,11,0.15)', color: '#b45309' },
     converted: { bg: 'rgba(22,163,74,0.12)', color: '#166534' },
     closed: { bg: 'rgba(148,163,184,0.15)', color: '#475569' },
     super_admin: { bg: 'rgba(139,37,24,0.12)', color: '#8b2518' },
-    admin: { bg: 'rgba(0,26,77,0.08)', color: NAVY },
-    editor: { bg: 'rgba(197,155,39,0.15)', color: '#8a6d1a' },
+    admin: { bg: 'rgb(var(--ae-navy-rgb) /0.08)', color: NAVY },
+    editor: { bg: 'rgb(var(--ae-gold-rgb) /0.15)', color: '#8a6d1a' },
   }
   const t = map[tone] || { bg: 'rgba(148,163,184,0.15)', color: '#475569' }
   return <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide" style={{ background: t.bg, color: t.color, fontFamily: font.body }}>{children}</span>
@@ -97,7 +97,7 @@ export function EmptyState({ title = 'Nothing here yet', subtitle }) {
     <div className="text-center py-14">
       <div className="text-5xl mb-3 opacity-30">🗺️</div>
       <p className="font-bold" style={{ color: NAVY, fontFamily: font.vintage }}>{title}</p>
-      {subtitle && <p className="text-xs mt-1" style={{ color: 'rgba(58,42,24,0.6)', fontFamily: font.body }}>{subtitle}</p>}
+      {subtitle && <p className="text-xs mt-1" style={{ color: 'rgb(var(--ae-ink-rgb) /0.6)', fontFamily: font.body }}>{subtitle}</p>}
     </div>
   )
 }
@@ -135,7 +135,7 @@ export function FieldLabel({ children, required }) {
 
 export function inputStyle() {
   return {
-    width: '100%', padding: '12px', borderRadius: 10, border: '1px solid rgba(0,26,77,0.18)',
+    width: '100%', padding: '12px', borderRadius: 10, border: '1px solid rgb(var(--ae-navy-rgb) /0.18)',
     fontFamily: font.body, fontSize: 16, background: '#fff', color: '#1a1a1a', outline: 'none',
   }
 }

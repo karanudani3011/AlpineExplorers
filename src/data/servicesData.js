@@ -10,7 +10,7 @@ export const serviceCategories = [
     tagline: 'Explore the world beyond borders',
     description: 'Curated transcontinental journeys across Europe, Asia, the Americas, and the Pacific with VIP concierge support.',
     heroImage: 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1600&h=700&fit=crop',
-    color: '#0d3a80',
+    color: 'var(--ae-navy-mid)',
   },
   {
     id: 'domestic',
@@ -32,7 +32,7 @@ export const serviceCategories = [
     tagline: 'Higher peaks, deeper experiences',
     description: 'High-altitude mountaineering, glacial passes, alpine meadows, and guided summit expeditions across the world\'s greatest ranges.',
     heroImage: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1600&h=700&fit=crop',
-    color: '#1e3a5f',
+    color: 'var(--ae-navy-soft)',
   },
   {
     id: 'adventure',

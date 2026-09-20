@@ -58,9 +58,9 @@ export default function Dashboard() {
               <div key={c.name}>
                 <div className="flex justify-between text-xs font-semibold mb-1" style={fonts}>
                   <span style={{ color: NAVY }}>{c.name}</span>
-                  <span style={{ color: 'rgba(0,26,77,0.5)' }}>{c.value}</span>
+                  <span style={{ color: 'rgb(var(--ae-navy-rgb) /0.5)' }}>{c.value}</span>
                 </div>
-                <div className="h-2.5 rounded-full overflow-hidden" style={{ background: 'rgba(0,26,77,0.06)' }}>
+                <div className="h-2.5 rounded-full overflow-hidden" style={{ background: 'rgb(var(--ae-navy-rgb) /0.06)' }}>
                   <div className="h-full rounded-full transition-all" style={{ width: `${(c.value / maxCat) * 100}%`, background: `linear-gradient(90deg, ${GOLD}, ${GOLD2})` }} />
                 </div>
               </div>
@@ -70,7 +70,7 @@ export default function Dashboard() {
           <div className="mt-6">
             <h4 className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: NAVY }}>International vs Domestic</h4>
             <div className="flex gap-4">
-              <Bar label="International" value={stats.international} max={maxActive} color="#001a4d" />
+              <Bar label="International" value={stats.international} max={maxActive} color="var(--ae-navy)" />
               <Bar label="Domestic" value={stats.domestic} max={maxActive} color={GOLD} />
             </div>
           </div>
@@ -90,7 +90,7 @@ export default function Dashboard() {
                   <span className="text-[10px] font-bold" style={{ color: NAVY }}>{m.value}</span>
                   <div className="w-full rounded-t-lg transition-all" title={m.month}
                     style={{ height: `${(m.value / maxMonth) * 130}px`, minHeight: 6, background: `linear-gradient(180deg, ${GOLD2}, ${GOLD})` }} />
-                  <span className="text-[9px]" style={{ color: 'rgba(0,26,77,0.5)' }}>{m.month.slice(5)}</span>
+                  <span className="text-[9px]" style={{ color: 'rgb(var(--ae-navy-rgb) /0.5)' }}>{m.month.slice(5)}</span>
                 </div>
               ))}
             </div>
@@ -104,10 +104,10 @@ export default function Dashboard() {
               {topDestinations.map((d) => (
                 <div key={d.name} className="flex items-center gap-3">
                   <span className="text-[11px] font-semibold w-32 truncate" style={{ color: NAVY }}>{d.name}</span>
-                  <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: 'rgba(0,26,77,0.06)' }}>
-                    <div className="h-full rounded-full" style={{ width: `${(d.value / maxDest) * 100}%`, background: '#001a4d' }} />
+                  <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: 'rgb(var(--ae-navy-rgb) /0.06)' }}>
+                    <div className="h-full rounded-full" style={{ width: `${(d.value / maxDest) * 100}%`, background: 'var(--ae-navy)' }} />
                   </div>
-                  <span className="text-[11px] font-bold" style={{ color: 'rgba(0,26,77,0.5)' }}>{d.value}</span>
+                  <span className="text-[11px] font-bold" style={{ color: 'rgb(var(--ae-navy-rgb) /0.5)' }}>{d.value}</span>
                 </div>
               ))}
             </div>
@@ -125,7 +125,7 @@ export default function Dashboard() {
             {recentActivity.map((a, i) => (
               <div key={a.id} className="flex items-center gap-3 py-2.5 border-b last:border-0" style={{ borderColor: 'rgba(180,160,130,0.15)' }}>
                 <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-                  style={{ background: 'rgba(197,155,39,0.12)', color: GOLD }}>
+                  style={{ background: 'rgb(var(--ae-gold-rgb) /0.12)', color: GOLD }}>
                   <div className="w-2 h-2 rounded-full" style={{ background: GOLD }} />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -133,7 +133,7 @@ export default function Dashboard() {
                     <span style={{ color: NAVY }}>{a.action}</span>
                     {a.details && <span className="text-[11px] font-normal text-gray-500"> — {a.details}</span>}
                   </p>
-                  <p className="text-[10px]" style={{ color: 'rgba(0,26,77,0.45)', fontFamily: 'Inter' }}>
+                  <p className="text-[10px]" style={{ color: 'rgb(var(--ae-navy-rgb) /0.45)', fontFamily: 'Inter' }}>
                     {a.user_name} · {a.module} · {a.created_at}
                   </p>
                 </div>
@@ -151,8 +151,8 @@ export default function Dashboard() {
 function Bar({ label, value, max, color }) {
   return (
     <div className="flex-1">
-      <div className="text-[11px] font-semibold mb-1" style={{ color: 'rgba(0,26,77,0.6)' }}>{label}: <b style={{ color: NAVY }}>{value}</b></div>
-      <div className="h-3 rounded-full overflow-hidden" style={{ background: 'rgba(0,26,77,0.06)' }}>
+      <div className="text-[11px] font-semibold mb-1" style={{ color: 'rgb(var(--ae-navy-rgb) /0.6)' }}>{label}: <b style={{ color: NAVY }}>{value}</b></div>
+      <div className="h-3 rounded-full overflow-hidden" style={{ background: 'rgb(var(--ae-navy-rgb) /0.06)' }}>
         <div className="h-full rounded-full" style={{ width: `${(value / max) * 100}%`, background: color }} />
       </div>
     </div>

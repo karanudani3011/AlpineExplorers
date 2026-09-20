@@ -70,13 +70,13 @@ export default function AboutAdmin() {
         <div className="space-y-6">
           <Card>
             <h3 className="font-bold mb-4" style={{ fontFamily: 'Cinzel', color: NAVY }}>Statistics</h3>
-            <p className="text-[11px] mb-3" style={{ color: 'rgba(58,42,24,0.55)' }}>Format: Label — value (e.g. Years of Legacy — 28)</p>
+            <p className="text-[11px] mb-3" style={{ color: 'rgb(var(--ae-ink-rgb) /0.55)' }}>Format: Label — value (e.g. Years of Legacy — 28)</p>
             <ListEditor value={a.statistics} onChange={set('statistics')} placeholder="Label — value" />
           </Card>
 
           <Card>
             <h3 className="font-bold mb-4" style={{ fontFamily: 'Cinzel', color: NAVY }}>Recognition & Associations</h3>
-            <p className="text-[11px] mb-3" style={{ color: 'rgba(58,42,24,0.55)' }}>Format: Label — kind (kind = Awarded By or Instructor Association)</p>
+            <p className="text-[11px] mb-3" style={{ color: 'rgb(var(--ae-ink-rgb) /0.55)' }}>Format: Label — kind (kind = Awarded By or Instructor Association)</p>
             <ListEditor value={a.recognition} onChange={set('recognition')} placeholder="President X — Awarded By" />
           </Card>
         </div>

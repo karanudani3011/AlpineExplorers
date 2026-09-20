@@ -3,12 +3,12 @@ import { X, Heart, Shield, Award, Compass, LogOut, LogIn, Ticket, User } from 'l
 import { Link, useNavigate } from 'react-router-dom'
 import { useSupabaseAuth } from '../hooks/useSupabaseAuth'
 
-const NAVY = '#001a4d'
-const NAVY_MID = '#0d3a80'
-const GOLD = '#c59b27'
-const GOLD2 = '#d4af37'
-const CREAM = '#faf5ea'
-const BROWN = '#3a2a18'
+const NAVY = 'var(--ae-navy)'
+const NAVY_MID = 'var(--ae-navy-mid)'
+const GOLD = 'var(--ae-gold)'
+const GOLD2 = 'var(--ae-gold2)'
+const CREAM = 'var(--ae-cream)'
+const BROWN = 'var(--ae-ink)'
 
 export default function UserProfileModal({ isOpen, onClose }) {
   const { user, profile, signOut, openAuthModal } = useSupabaseAuth()
@@ -55,7 +55,7 @@ export default function UserProfileModal({ isOpen, onClose }) {
             <div className="flex items-center justify-between pb-4 border-b" style={{ borderColor: 'rgba(180,160,130,0.25)' }}>
               <div className="flex items-center gap-2">
                 <Compass size={20} style={{ color: GOLD }} />
-                <h3 className="font-display font-bold text-lg text-[#001a4d]">Adventurer Portal</h3>
+                <h3 className="font-display font-bold text-lg text-[color:var(--ae-navy)]">Adventurer Portal</h3>
               </div>
               <button
                 onClick={onClose}
@@ -77,13 +77,13 @@ export default function UserProfileModal({ isOpen, onClose }) {
                 <div className="flex items-center gap-3">
                   <div
                     className="w-14 h-14 rounded-full flex items-center justify-center text-lg font-bold shrink-0"
-                    style={{ backgroundColor: 'rgba(212,175,55,0.25)', border: '2px solid rgba(212,175,55,0.6)' }}
+                    style={{ backgroundColor: 'rgb(var(--ae-gold2-rgb) /0.25)', border: '2px solid rgb(var(--ae-gold2-rgb) /0.6)' }}
                   >
                     {userInitials}
                   </div>
                   <div className="min-w-0">
                     <h4 className="font-bold text-base truncate">{displayName}</h4>
-                    <p className="text-xs truncate" style={{ color: 'rgba(250,245,234,0.8)' }}>
+                    <p className="text-xs truncate" style={{ color: 'rgb(var(--ae-cream-rgb) /0.8)' }}>
                       {user.email}
                     </p>
                     <p className="text-[10px] flex items-center gap-1 mt-0.5" style={{ color: GOLD2 }}>
@@ -93,14 +93,14 @@ export default function UserProfileModal({ isOpen, onClose }) {
                   </div>
                 </div>
 
-                <div className="mt-4 pt-3 border-t flex items-center justify-between" style={{ borderColor: 'rgba(212,175,55,0.3)' }}>
+                <div className="mt-4 pt-3 border-t flex items-center justify-between" style={{ borderColor: 'rgb(var(--ae-gold2-rgb) /0.3)' }}>
                   <Link
                     to="/my-bookings"
                     onClick={onClose}
                     className="flex-1 py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition text-white"
-                    style={{ backgroundColor: 'rgba(212,175,55,0.2)', border: '1px solid rgba(212,175,55,0.4)' }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(212,175,55,0.35)'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(212,175,55,0.2)'}
+                    style={{ backgroundColor: 'rgb(var(--ae-gold2-rgb) /0.2)', border: '1px solid rgb(var(--ae-gold2-rgb) /0.4)' }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgb(var(--ae-gold2-rgb) /0.35)'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgb(var(--ae-gold2-rgb) /0.2)'}
                   >
                     <Ticket size={13} style={{ color: GOLD2 }} />
                     <span>View My Bookings</span>
@@ -114,14 +114,14 @@ export default function UserProfileModal({ isOpen, onClose }) {
               >
                 <div
                   className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-3"
-                  style={{ backgroundColor: 'rgba(212,175,55,0.2)', border: '1px solid rgba(212,175,55,0.5)' }}
+                  style={{ backgroundColor: 'rgb(var(--ae-gold2-rgb) /0.2)', border: '1px solid rgb(var(--ae-gold2-rgb) /0.5)' }}
                 >
                   <User size={22} style={{ color: GOLD2 }} />
                 </div>
                 <h4 className="font-bold text-base mb-1" style={{ fontFamily: 'Cinzel, serif' }}>
                   Welcome, Explorer
                 </h4>
-                <p className="text-xs mb-4" style={{ color: 'rgba(250,245,234,0.8)' }}>
+                <p className="text-xs mb-4" style={{ color: 'rgb(var(--ae-cream-rgb) /0.8)' }}>
                   Log in to manage your bookings, expedited reservations, and personalized tours.
                 </p>
                 <button
@@ -146,14 +146,14 @@ export default function UserProfileModal({ isOpen, onClose }) {
                   onClick={onClose}
                   className="flex items-center justify-between p-3 rounded-xl transition border font-semibold"
                   style={{ borderColor: 'rgba(180,160,130,0.3)', backgroundColor: '#ffffff' }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(212,175,55,0.12)'}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgb(var(--ae-gold2-rgb) /0.12)'}
                   onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ffffff'}
                 >
                   <span className="flex items-center gap-2" style={{ color: NAVY }}>
                     <Ticket size={16} style={{ color: GOLD }} />
                     <span>My Tour Bookings</span>
                   </span>
-                  <span className="text-xs font-bold text-[#c59b27]">View</span>
+                  <span className="text-xs font-bold text-[color:var(--ae-gold)]">View</span>
                 </Link>
               )}
             </div>

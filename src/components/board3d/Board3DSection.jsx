@@ -105,7 +105,7 @@ export default function Board3DSection({ onCategorySelect, onContactClick }) {
         <h1 className="font-vintage text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-wider text-[#0e1e38] uppercase">
           HOME PAGE
         </h1>
-        <div className="w-16 h-1 bg-[#d4af37] mx-auto mt-2 rounded-full opacity-60" />
+        <div className="w-16 h-1 bg-[color:var(--ae-gold2)] mx-auto mt-2 rounded-full opacity-60" />
       </div>
 
       {/* Presentation Canvas Container */}

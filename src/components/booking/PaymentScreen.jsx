@@ -9,12 +9,12 @@ import {
 import { api } from '../../services/api'
 import { supabase } from '../../services/supabaseClient'
 
-const NAVY = '#001a4d'
-const NAVY_MID = '#0d3a80'
-const GOLD = '#c59b27'
-const GOLD2 = '#d4af37'
-const CREAM = '#faf5ea'
-const BROWN = '#3a2a18'
+const NAVY = 'var(--ae-navy)'
+const NAVY_MID = 'var(--ae-navy-mid)'
+const GOLD = 'var(--ae-gold)'
+const GOLD2 = 'var(--ae-gold2)'
+const CREAM = 'var(--ae-cream)'
+const BROWN = 'var(--ae-ink)'
 
 const WHATSAPP_NUMBER = '919979883339' // +91 99798 83339
 const UPI_VPA = '9979883339@upi'
@@ -72,7 +72,7 @@ export default function PaymentScreen({
       width: 280,
       margin: 2,
       color: {
-        dark: '#001a4d',
+        dark: 'var(--ae-navy)',
         light: '#ffffff',
       },
     })
@@ -380,13 +380,13 @@ Thank you.`
   }
 
   return (
-    <div className="rounded-2xl overflow-hidden shadow-2xl bg-white border" style={{ borderColor: 'rgba(212,175,55,0.45)' }}>
+    <div className="rounded-2xl overflow-hidden shadow-2xl bg-white border" style={{ borderColor: 'rgb(var(--ae-gold2-rgb) /0.45)' }}>
       {/* Title Header Banner */}
       <div
         className="px-6 py-6 text-white text-center relative"
         style={{
           background: `linear-gradient(135deg, ${NAVY}, ${NAVY_MID})`,
-          borderBottom: '2px solid rgba(212,175,55,0.4)',
+          borderBottom: '2px solid rgb(var(--ae-gold2-rgb) /0.4)',
         }}
       >
         <div className="flex items-center justify-between mb-2">
@@ -411,7 +411,7 @@ Thank you.`
         >
           Complete Your Payment
         </h2>
-        <p className="text-xs sm:text-sm mt-1" style={{ color: 'rgba(250,245,234,0.85)' }}>
+        <p className="text-xs sm:text-sm mt-1" style={{ color: 'rgb(var(--ae-cream-rgb) /0.85)' }}>
           Review your booking details and choose your preferred payment option below.
         </p>
 
@@ -420,7 +420,7 @@ Thank you.`
           className="mt-5 rounded-xl p-4 text-left grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3"
           style={{
             backgroundColor: 'rgba(255,255,255,0.08)',
-            border: '1px solid rgba(212,175,55,0.3)',
+            border: '1px solid rgb(var(--ae-gold2-rgb) /0.3)',
           }}
         >
           <div>
@@ -470,7 +470,7 @@ Thank you.`
             onClick={() => { setMethod('upi'); setErrorMsg('') }}
             className={`flex-1 py-3 rounded-lg text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition cursor-pointer ${
               method === 'upi'
-                ? 'bg-white shadow-md text-[#001a4d]'
+                ? 'bg-white shadow-md text-[color:var(--ae-navy)]'
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
@@ -483,7 +483,7 @@ Thank you.`
             onClick={() => { setMethod('card'); setErrorMsg('') }}
             className={`flex-1 py-3 rounded-lg text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition cursor-pointer ${
               method === 'card'
-                ? 'bg-white shadow-md text-[#001a4d]'
+                ? 'bg-white shadow-md text-[color:var(--ae-navy)]'
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
@@ -495,8 +495,8 @@ Thank you.`
         {/* ── OPTION 1: UPI / GPAY ── */}
         {method === 'upi' && (
           <div className="space-y-6">
-            <div className="p-6 rounded-2xl border text-center" style={{ backgroundColor: '#fcfaf6', borderColor: 'rgba(212,175,55,0.3)' }}>
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3" style={{ backgroundColor: 'rgba(197,155,39,0.15)', color: NAVY }}>
+            <div className="p-6 rounded-2xl border text-center" style={{ backgroundColor: '#fcfaf6', borderColor: 'rgb(var(--ae-gold2-rgb) /0.3)' }}>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3" style={{ backgroundColor: 'rgb(var(--ae-gold-rgb) /0.15)', color: NAVY }}>
                 <QrCode size={13} style={{ color: GOLD }} />
                 <span>Instant UPI Payment</span>
               </div>
@@ -605,8 +605,8 @@ Thank you.`
         {/* ── OPTION 2: CARD PAYMENT ── */}
         {method === 'card' && (
           <div className="space-y-6">
-            <div className="p-6 rounded-2xl border text-center" style={{ backgroundColor: '#fcfaf6', borderColor: 'rgba(212,175,55,0.3)' }}>
-              <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3" style={{ backgroundColor: 'rgba(0,26,77,0.08)', color: NAVY }}>
+            <div className="p-6 rounded-2xl border text-center" style={{ backgroundColor: '#fcfaf6', borderColor: 'rgb(var(--ae-gold2-rgb) /0.3)' }}>
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3" style={{ backgroundColor: 'rgb(var(--ae-navy-rgb) /0.08)', color: NAVY }}>
                 <CreditCard size={28} style={{ color: NAVY }} />
               </div>
 

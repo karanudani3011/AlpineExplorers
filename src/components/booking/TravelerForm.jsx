@@ -59,10 +59,10 @@ export default function TravelerForm({ index, count, trip, traveler, errors, onC
   return (
     <div className="space-y-6">
       {/* Course */}
-      <div className="rounded-xl p-4" style={{ backgroundColor: 'rgba(0,26,77,0.05)', border: '1px solid rgba(0,26,77,0.15)' }}>
+      <div className="rounded-xl p-4" style={{ backgroundColor: 'rgb(var(--ae-navy-rgb) /0.05)', border: '1px solid rgb(var(--ae-navy-rgb) /0.15)' }}>
         <div className="flex items-center gap-2 mb-3">
           <span className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: GOLD }}>Course</span>
-          <span className="h-px flex-1" style={{ background: 'rgba(197,155,39,0.4)' }} />
+          <span className="h-px flex-1" style={{ background: 'rgb(var(--ae-gold-rgb) /0.4)' }} />
         </div>
         <Field id={`course-${index}`} label="Name of Course" required error={errors.courseName}>
           <input
@@ -75,7 +75,7 @@ export default function TravelerForm({ index, count, trip, traveler, errors, onC
             style={{ ...inputStyle(errors.courseName), backgroundColor: 'rgba(255,255,255,0.7)' }}
           />
         </Field>
-        <p className="mt-2 text-[11px]" style={{ color: 'rgba(58,42,24,0.6)', ...font.body }}>
+        <p className="mt-2 text-[11px]" style={{ color: 'rgb(var(--ae-ink-rgb) /0.6)', ...font.body }}>
           Auto-filled from the selected trip. For changes, contact the Alpine Explorers team.
         </p>
       </div>
@@ -85,7 +85,7 @@ export default function TravelerForm({ index, count, trip, traveler, errors, onC
         <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field id={`fullname-${index}`} label="Full Name" required error={errors.fullName}>
             <div className="relative">
-              <User size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'rgba(58,42,24,0.45)' }} />
+              <User size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'rgb(var(--ae-ink-rgb) /0.45)' }} />
               <input
                 id={`fullname-${index}`}
                 type="text"
@@ -112,7 +112,7 @@ export default function TravelerForm({ index, count, trip, traveler, errors, onC
 
           <Field id={`dob-${index}`} label="Date of Birth" required error={errors.dob}>
             <div className="relative">
-              <Calendar size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'rgba(58,42,24,0.45)' }} />
+              <Calendar size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'rgb(var(--ae-ink-rgb) /0.45)' }} />
               <input
                 id={`dob-${index}`}
                 type="date"
@@ -147,7 +147,7 @@ export default function TravelerForm({ index, count, trip, traveler, errors, onC
 
           <Field id={`contact-${index}`} label="Contact Number" required hint="(Indian)" error={errors.contact}>
             <div className="relative">
-              <Phone size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'rgba(58,42,24,0.45)' }} />
+              <Phone size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'rgb(var(--ae-ink-rgb) /0.45)' }} />
               <input
                 id={`contact-${index}`}
                 type="tel"
@@ -178,10 +178,10 @@ export default function TravelerForm({ index, count, trip, traveler, errors, onC
         </div>
 
         {/* Photograph */}
-        <div className="mt-6 rounded-xl p-4" style={{ backgroundColor: 'rgba(0,26,77,0.05)', border: '1px solid rgba(0,26,77,0.15)' }}>
+        <div className="mt-6 rounded-xl p-4" style={{ backgroundColor: 'rgb(var(--ae-navy-rgb) /0.05)', border: '1px solid rgb(var(--ae-navy-rgb) /0.15)' }}>
           <div className="flex items-center gap-2 mb-3">
             <span className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: GOLD }}>Photograph</span>
-            <span className="h-px flex-1" style={{ background: 'rgba(197,155,39,0.4)' }} />
+            <span className="h-px flex-1" style={{ background: 'rgb(var(--ae-gold-rgb) /0.4)' }} />
           </div>
           <div className="flex flex-col sm:flex-row sm:items-center gap-4">
             <div
@@ -205,7 +205,7 @@ export default function TravelerForm({ index, count, trip, traveler, errors, onC
               {traveler.photo ? (
                 <p className="text-xs font-semibold truncate mb-2" style={{ color: NAVY, ...font.body }}>{traveler.photo.name}</p>
               ) : (
-                <p className="text-xs mb-2" style={{ color: 'rgba(58,42,24,0.6)', ...font.body }}>
+                <p className="text-xs mb-2" style={{ color: 'rgb(var(--ae-ink-rgb) /0.6)', ...font.body }}>
                   Upload a recent passport-style photograph of the traveler. (JPG / JPEG / PNG)
                 </p>
               )}
@@ -244,7 +244,7 @@ export default function TravelerForm({ index, count, trip, traveler, errors, onC
         <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field id={`education-${index}`} label="Education" required error={errors.education}>
             <div className="relative">
-              <GraduationCap size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'rgba(58,42,24,0.45)' }} />
+              <GraduationCap size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'rgb(var(--ae-ink-rgb) /0.45)' }} />
               <input
                 id={`education-${index}`}
                 type="text"
@@ -260,7 +260,7 @@ export default function TravelerForm({ index, count, trip, traveler, errors, onC
 
           <Field id={`school-${index}`} label="School / College" required error={errors.school}>
             <div className="relative">
-              <Building2 size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'rgba(58,42,24,0.45)' }} />
+              <Building2 size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'rgb(var(--ae-ink-rgb) /0.45)' }} />
               <input
                 id={`school-${index}`}
                 type="text"
@@ -313,10 +313,10 @@ export default function TravelerForm({ index, count, trip, traveler, errors, onC
           </div>
         </div>
 
-        <div className="mt-5 rounded-xl p-4" style={{ backgroundColor: 'rgba(0,26,77,0.05)', border: '1px solid rgba(0,26,77,0.15)' }}>
+        <div className="mt-5 rounded-xl p-4" style={{ backgroundColor: 'rgb(var(--ae-navy-rgb) /0.05)', border: '1px solid rgb(var(--ae-navy-rgb) /0.15)' }}>
           <div className="flex items-center gap-2 mb-3">
             <span className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: GOLD }}>Adventure / Cultural Experience</span>
-            <span className="h-px flex-1" style={{ background: 'rgba(197,155,39,0.4)' }} />
+            <span className="h-px flex-1" style={{ background: 'rgb(var(--ae-gold-rgb) /0.4)' }} />
           </div>
           <ChipGroup
             id={`experience-${index}`}
@@ -357,7 +357,7 @@ export default function TravelerForm({ index, count, trip, traveler, errors, onC
               type="checkbox"
               checked={traveler.declarationAccepted}
               onChange={(e) => onChange('declarationAccepted', e.target.checked)}
-              className="mt-0.5 w-4 h-4 cursor-pointer accent-[#001a4d]"
+              className="mt-0.5 w-4 h-4 cursor-pointer accent-[color:var(--ae-navy)]"
               aria-invalid={!!errors.declaration}
             />
             <span className="text-xs" style={{ color: BROWN }}>
@@ -419,7 +419,7 @@ export default function TravelerForm({ index, count, trip, traveler, errors, onC
         <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field id={`sig-place-${index}`} label="Place" required error={errors.sigPlace}>
             <div className="relative">
-              <MapPin size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'rgba(58,42,24,0.45)' }} />
+              <MapPin size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'rgb(var(--ae-ink-rgb) /0.45)' }} />
               <input
                 id={`sig-place-${index}`}
                 type="text"
@@ -434,7 +434,7 @@ export default function TravelerForm({ index, count, trip, traveler, errors, onC
           </Field>
           <Field id={`sig-date-${index}`} label="Date" required error={errors.sigDate}>
             <div className="relative">
-              <Calendar size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'rgba(58,42,24,0.45)' }} />
+              <Calendar size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'rgb(var(--ae-ink-rgb) /0.45)' }} />
               <input
                 id={`sig-date-${index}`}
                 type="date"
@@ -504,7 +504,7 @@ export default function TravelerForm({ index, count, trip, traveler, errors, onC
             type="checkbox"
             checked={traveler.riskAccepted}
             onChange={(e) => onChange('riskAccepted', e.target.checked)}
-            className="mt-0.5 w-4 h-4 cursor-pointer accent-[#001a4d]"
+            className="mt-0.5 w-4 h-4 cursor-pointer accent-[color:var(--ae-navy)]"
             aria-invalid={!!errors.risk}
           />
           <span className="text-xs" style={{ color: BROWN }}>
@@ -519,7 +519,7 @@ export default function TravelerForm({ index, count, trip, traveler, errors, onC
         <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field id={`risk-place-${index}`} label="Place" required error={errors.riskPlace}>
             <div className="relative">
-              <MapPin size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'rgba(58,42,24,0.45)' }} />
+              <MapPin size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'rgb(var(--ae-ink-rgb) /0.45)' }} />
               <input
                 id={`risk-place-${index}`}
                 type="text"
@@ -534,7 +534,7 @@ export default function TravelerForm({ index, count, trip, traveler, errors, onC
           </Field>
           <Field id={`risk-date-${index}`} label="Date" required error={errors.riskDate}>
             <div className="relative">
-              <Calendar size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'rgba(58,42,24,0.45)' }} />
+              <Calendar size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'rgb(var(--ae-ink-rgb) /0.45)' }} />
               <input
                 id={`risk-date-${index}`}
                 type="date"
@@ -561,7 +561,7 @@ export default function TravelerForm({ index, count, trip, traveler, errors, onC
       </div>
 
       {count > 1 && (
-        <p className="text-[11px] text-center" style={{ color: 'rgba(58,42,24,0.55)', ...font.body }}>
+        <p className="text-[11px] text-center" style={{ color: 'rgb(var(--ae-ink-rgb) /0.55)', ...font.body }}>
           <Heart size={11} className="inline -translate-y-px mr-1" style={{ color: GOLD }} aria-hidden="true" />
           Every traveler fills their own independent application. Traveler {index + 1} of {count}.
         </p>

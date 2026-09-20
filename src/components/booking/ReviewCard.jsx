@@ -1,8 +1,8 @@
 import { Edit3, User, Calendar, Phone, BookOpen, MapPin, Heart, Camera } from 'lucide-react'
 
-const NAVY = '#001a4d'
-const GOLD = '#c59b27'
-const GOLD2 = '#d4af37'
+const NAVY = 'var(--ae-navy)'
+const GOLD = 'var(--ae-gold)'
+const GOLD2 = 'var(--ae-gold2)'
 
 function InfoRow({ label, value }) {
   if (!value) return null
@@ -26,12 +26,12 @@ export default function ReviewCard({ index, data, onEdit }) {
   return (
     <div
       className="rounded-2xl overflow-hidden border"
-      style={{ borderColor: `${GOLD}40`, boxShadow: '0 2px 12px rgba(0,26,77,0.07)' }}
+      style={{ borderColor: `${GOLD}40`, boxShadow: '0 2px 12px rgb(var(--ae-navy-rgb) /0.07)' }}
     >
       {/* Header */}
       <div
         className="px-5 py-3.5 flex items-center justify-between"
-        style={{ background: `linear-gradient(135deg, ${NAVY}, #0d3a80)` }}
+        style={{ background: `linear-gradient(135deg, ${NAVY}, var(--ae-navy-mid))` }}
       >
         <div className="flex items-center gap-3">
           <div
@@ -45,7 +45,7 @@ export default function ReviewCard({ index, data, onEdit }) {
               Traveler {index + 1}
             </p>
             {data.name && (
-              <p className="text-xs mt-0.5" style={{ color: 'rgba(250,245,234,0.75)' }}>
+              <p className="text-xs mt-0.5" style={{ color: 'rgb(var(--ae-cream-rgb) /0.75)' }}>
                 {data.name}
               </p>
             )}

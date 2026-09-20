@@ -2,11 +2,11 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Calendar, User, ArrowRight, X, Clock, Quote } from 'lucide-react'
 
-const NAVY = '#001a4d'
-const GOLD = '#c59b27'
-const GOLD2 = '#d4af37'
-const CREAM = '#faf5ea'
-const BROWN = '#3a2a18'
+const NAVY = 'var(--ae-navy)'
+const GOLD = 'var(--ae-gold)'
+const GOLD2 = 'var(--ae-gold2)'
+const CREAM = 'var(--ae-cream)'
+const BROWN = 'var(--ae-ink)'
 
 const font = {
   vintage: { fontFamily: 'Cinzel, serif' },
@@ -47,7 +47,7 @@ export default function BlogCard({ blog, index }) {
               </span>
             </div>
 
-            <div className="absolute bottom-3 right-4 text-white text-xs flex items-center gap-1 px-2 py-0.5 rounded-full backdrop-blur-md" style={{ backgroundColor: 'rgba(0,26,77,0.55)' }}>
+            <div className="absolute bottom-3 right-4 text-white text-xs flex items-center gap-1 px-2 py-0.5 rounded-full backdrop-blur-md" style={{ backgroundColor: 'rgb(var(--ae-navy-rgb) /0.55)' }}>
               <Clock size={12} />
               <span>{blog.readTime || '5 min read'}</span>
             </div>
@@ -57,7 +57,7 @@ export default function BlogCard({ blog, index }) {
           <div className="p-6">
             <h3
               onClick={() => setModalOpen(true)}
-              className="text-[#001a4d] group-hover:text-[#c59b27] transition font-bold text-xl mb-3 line-clamp-2 cursor-pointer"
+              className="text-[color:var(--ae-navy)] group-hover:text-[color:var(--ae-gold)] transition font-bold text-xl mb-3 line-clamp-2 cursor-pointer"
               style={font.display}
             >
               {blog.title}
@@ -68,10 +68,10 @@ export default function BlogCard({ blog, index }) {
             </p>
 
             {/* Meta info */}
-            <div className="flex flex-wrap items-center justify-between text-xs pt-3 border-t" style={{ color: 'rgba(58,42,24,0.7)', borderColor: 'rgba(180,160,130,0.25)' }}>
+            <div className="flex flex-wrap items-center justify-between text-xs pt-3 border-t" style={{ color: 'rgb(var(--ae-ink-rgb) /0.7)', borderColor: 'rgba(180,160,130,0.25)' }}>
               <div className="flex items-center gap-1.5">
                 <User size={14} style={{ color: GOLD }} />
-                <span className="font-semibold" style={{ color: '#1e3a5f', ...font.body }}>{blog.author}</span>
+                <span className="font-semibold" style={{ color: 'var(--ae-navy-soft)', ...font.body }}>{blog.author}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <Calendar size={14} style={{ color: GOLD }} />
@@ -86,7 +86,7 @@ export default function BlogCard({ blog, index }) {
           <button
             onClick={() => setModalOpen(true)}
             className="group/btn w-full py-2.5 rounded-full text-xs uppercase font-bold tracking-wider text-white transition flex items-center justify-center gap-2"
-            style={{ backgroundColor: NAVY, ...font.vintage, boxShadow: '0 8px 18px rgba(0,26,77,0.25)' }}
+            style={{ backgroundColor: NAVY, ...font.vintage, boxShadow: '0 8px 18px rgb(var(--ae-navy-rgb) /0.25)' }}
             onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = GOLD; e.currentTarget.style.color = NAVY }}
             onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = NAVY; e.currentTarget.style.color = '#fff' }}
           >
@@ -133,13 +133,13 @@ export default function BlogCard({ blog, index }) {
 
               {/* Article Text Body */}
               <div className="p-6 sm:p-8 overflow-y-auto space-y-4 flex-1">
-                <div className="flex items-center justify-between pb-4 border-b text-xs" style={{ color: 'rgba(58,42,24,0.7)', borderColor: 'rgba(180,160,130,0.25)' }}>
+                <div className="flex items-center justify-between pb-4 border-b text-xs" style={{ color: 'rgb(var(--ae-ink-rgb) /0.7)', borderColor: 'rgba(180,160,130,0.25)' }}>
                   <span style={font.body}>By <strong style={{ color: NAVY }}>{blog.author}</strong></span>
                   <span>{new Date(blog.date).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}</span>
-                  <span className="px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(197,155,39,0.15)', color: '#7a5a12', ...font.body }}>{blog.readTime || '5 min read'}</span>
+                  <span className="px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgb(var(--ae-gold-rgb) /0.15)', color: '#7a5a12', ...font.body }}>{blog.readTime || '5 min read'}</span>
                 </div>
 
-                <p className="text-base font-medium leading-relaxed italic p-4 rounded-xl border-l-4" style={{ color: NAVY, backgroundColor: 'rgba(197,155,39,0.1)', borderLeftColor: GOLD, ...font.display }}>
+                <p className="text-base font-medium leading-relaxed italic p-4 rounded-xl border-l-4" style={{ color: NAVY, backgroundColor: 'rgb(var(--ae-gold-rgb) /0.1)', borderLeftColor: GOLD, ...font.display }}>
                   "{blog.excerpt}"
                 </p>
 
@@ -152,8 +152,8 @@ export default function BlogCard({ blog, index }) {
               </div>
 
               {/* Footer */}
-              <div className="p-4 border-t flex items-center justify-between px-6" style={{ backgroundColor: 'rgba(197,155,39,0.06)', borderColor: 'rgba(180,160,130,0.25)' }}>
-                <span className="text-xs" style={{ color: 'rgba(58,42,24,0.7)', ...font.script }}>Alpine Explorers Editorial Chronicles ✦</span>
+              <div className="p-4 border-t flex items-center justify-between px-6" style={{ backgroundColor: 'rgb(var(--ae-gold-rgb) /0.06)', borderColor: 'rgba(180,160,130,0.25)' }}>
+                <span className="text-xs" style={{ color: 'rgb(var(--ae-ink-rgb) /0.7)', ...font.script }}>Alpine Explorers Editorial Chronicles ✦</span>
                 <div className="flex items-center gap-3">
                   <Quote size={15} style={{ color: GOLD }} />
                   <button

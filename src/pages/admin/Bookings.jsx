@@ -268,7 +268,7 @@ export default function Bookings() {
               placeholder="Search bookings..."
               className="w-full px-10 py-2.5 rounded-xl border outline-none text-sm"
               style={{
-                borderColor: 'rgba(0,26,77,0.15)',
+                borderColor: 'rgb(var(--ae-navy-rgb) /0.15)',
                 background: '#fff',
                 color: NAVY,
                 fontFamily: font.body
@@ -281,7 +281,7 @@ export default function Bookings() {
             style={{
               background: showFilters ? GOLD : 'white',
               color: showFilters ? NAVY : NAVY,
-              border: `1.5px solid ${showFilters ? GOLD : 'rgba(0,26,77,0.15)'}`,
+              border: `1.5px solid ${showFilters ? GOLD : 'rgb(var(--ae-navy-rgb) /0.15)'}`,
               fontFamily: font.body
             }}
           >
@@ -298,7 +298,7 @@ export default function Bookings() {
                 value={filterStatus}
                 onChange={(e) => { setFilterStatus(e.target.value); handleFilterChange() }}
                 className="w-full px-3 py-2 rounded-xl border outline-none text-sm"
-                style={{ borderColor: 'rgba(0,26,77,0.15)', background: '#fff', color: NAVY, fontFamily: font.body }}
+                style={{ borderColor: 'rgb(var(--ae-navy-rgb) /0.15)', background: '#fff', color: NAVY, fontFamily: font.body }}
               >
                 <option value="">All Statuses</option>
                 {STATUSES.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
@@ -310,7 +310,7 @@ export default function Bookings() {
                 value={filterPaymentStatus}
                 onChange={(e) => { setFilterPaymentStatus(e.target.value); handleFilterChange() }}
                 className="w-full px-3 py-2 rounded-xl border outline-none text-sm"
-                style={{ borderColor: 'rgba(0,26,77,0.15)', background: '#fff', color: NAVY, fontFamily: font.body }}
+                style={{ borderColor: 'rgb(var(--ae-navy-rgb) /0.15)', background: '#fff', color: NAVY, fontFamily: font.body }}
               >
                 <option value="">All Payments</option>
                 <option value="pending_verification">Pending Verification</option>
@@ -327,7 +327,7 @@ export default function Bookings() {
                 onChange={(e) => { setFilterTour(e.target.value); handleFilterChange() }}
                 placeholder="Tour name"
                 className="w-full px-3 py-2 rounded-xl border outline-none text-sm"
-                style={{ borderColor: 'rgba(0,26,77,0.15)', background: '#fff', color: NAVY, fontFamily: font.body }}
+                style={{ borderColor: 'rgb(var(--ae-navy-rgb) /0.15)', background: '#fff', color: NAVY, fontFamily: font.body }}
               />
             </div>
             <div>
@@ -337,7 +337,7 @@ export default function Bookings() {
                 value={filterTravelDate}
                 onChange={(e) => { setFilterTravelDate(e.target.value); handleFilterChange() }}
                 className="w-full px-3 py-2 rounded-xl border outline-none text-sm"
-                style={{ borderColor: 'rgba(0,26,77,0.15)', background: '#fff', color: NAVY, fontFamily: font.body }}
+                style={{ borderColor: 'rgb(var(--ae-navy-rgb) /0.15)', background: '#fff', color: NAVY, fontFamily: font.body }}
               />
             </div>
             <div>
@@ -347,7 +347,7 @@ export default function Bookings() {
                 value={filterBookingDate}
                 onChange={(e) => { setFilterBookingDate(e.target.value); handleFilterChange() }}
                 className="w-full px-3 py-2 rounded-xl border outline-none text-sm"
-                style={{ borderColor: 'rgba(0,26,77,0.15)', background: '#fff', color: NAVY, fontFamily: font.body }}
+                style={{ borderColor: 'rgb(var(--ae-navy-rgb) /0.15)', background: '#fff', color: NAVY, fontFamily: font.body }}
               />
             </div>
             <div>
@@ -359,7 +359,7 @@ export default function Bookings() {
                 onChange={(e) => { setFilterMinTravelers(e.target.value); handleFilterChange() }}
                 placeholder="1"
                 className="w-full px-3 py-2 rounded-xl border outline-none text-sm"
-                style={{ borderColor: 'rgba(0,26,77,0.15)', background: '#fff', color: NAVY, fontFamily: font.body }}
+                style={{ borderColor: 'rgb(var(--ae-navy-rgb) /0.15)', background: '#fff', color: NAVY, fontFamily: font.body }}
               />
             </div>
             <div>
@@ -371,7 +371,7 @@ export default function Bookings() {
                 onChange={(e) => { setFilterMaxTravelers(e.target.value); handleFilterChange() }}
                 placeholder="10"
                 className="w-full px-3 py-2 rounded-xl border outline-none text-sm"
-                style={{ borderColor: 'rgba(0,26,77,0.15)', background: '#fff', color: NAVY, fontFamily: font.body }}
+                style={{ borderColor: 'rgb(var(--ae-navy-rgb) /0.15)', background: '#fff', color: NAVY, fontFamily: font.body }}
               />
             </div>
             {hasActiveFilters && (
@@ -415,7 +415,7 @@ export default function Bookings() {
                       {getPaymentBadge(booking.payment_status, booking.payment_method)}
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 text-xs mb-3" style={{ color: 'rgba(58,42,24,0.7)', fontFamily: font.body }}>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 text-xs mb-3" style={{ color: 'rgb(var(--ae-ink-rgb) /0.7)', fontFamily: font.body }}>
                     <span><b>Booked:</b> {formatDate(booking.booking_date)}</span>
                     <span><b>Travel:</b> {formatDate(booking.travel_date)}</span>
                     <span><b>Travelers:</b> {booking.number_of_travelers}</span>
@@ -436,7 +436,7 @@ export default function Bookings() {
                     <NavLink
                       to={`/admin/bookings/${booking.id}`}
                       className="flex-1 py-2 text-center rounded-xl text-xs font-bold transition"
-                      style={{ background: 'rgba(0,26,77,0.08)', color: NAVY }}
+                      style={{ background: 'rgb(var(--ae-navy-rgb) /0.08)', color: NAVY }}
                     >
                       View Details
                     </NavLink>
@@ -445,7 +445,7 @@ export default function Bookings() {
                         onClick={() => generatePdf(booking.id)}
                         disabled={pdfGenerating === booking.id || excelGenerating === booking.id}
                         className="p-2.5 rounded-xl transition"
-                        style={{ background: 'rgba(197,155,39,0.12)', color: NAVY, minWidth: 44, minHeight: 44 }}
+                        style={{ background: 'rgb(var(--ae-gold-rgb) /0.12)', color: NAVY, minWidth: 44, minHeight: 44 }}
                         title={pdfGenerating === booking.id ? 'Generating PDF…' : 'Download PDF'}
                       >
                         {pdfGenerating === booking.id ? <Loader2 size={14} className="animate-spin" /> : <FileText size={15} />}
@@ -472,15 +472,15 @@ export default function Bookings() {
               <table className="w-full" style={{ fontFamily: font.body }}>
                 <thead>
                   <tr className="text-left" style={{ borderBottom: '1px solid rgba(180,160,130,0.15)' }}>
-                    <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: 'rgba(0,26,77,0.5)', fontFamily: font.body }}>BOOKING ID</th>
-                    <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: 'rgba(0,26,77,0.5)', fontFamily: font.body }}>TOUR</th>
-                    <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: 'rgba(0,26,77,0.5)', fontFamily: font.body }}>BOOKING DATE</th>
-                    <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: 'rgba(0,26,77,0.5)', fontFamily: font.body }}>TRAVEL DATE</th>
-                    <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: 'rgba(0,26,77,0.5)', fontFamily: font.body }}>TRAVELERS</th>
-                    <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: 'rgba(0,26,77,0.5)', fontFamily: font.body }}>TOTAL AMOUNT</th>
-                    <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: 'rgba(0,26,77,0.5)', fontFamily: font.body }}>PAYMENT</th>
-                    <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: 'rgba(0,26,77,0.5)', fontFamily: font.body }}>STATUS</th>
-                    <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: 'rgba(0,26,77,0.5)', fontFamily: font.body }}>ACTIONS</th>
+                    <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: 'rgb(var(--ae-navy-rgb) /0.5)', fontFamily: font.body }}>BOOKING ID</th>
+                    <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: 'rgb(var(--ae-navy-rgb) /0.5)', fontFamily: font.body }}>TOUR</th>
+                    <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: 'rgb(var(--ae-navy-rgb) /0.5)', fontFamily: font.body }}>BOOKING DATE</th>
+                    <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: 'rgb(var(--ae-navy-rgb) /0.5)', fontFamily: font.body }}>TRAVEL DATE</th>
+                    <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: 'rgb(var(--ae-navy-rgb) /0.5)', fontFamily: font.body }}>TRAVELERS</th>
+                    <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: 'rgb(var(--ae-navy-rgb) /0.5)', fontFamily: font.body }}>TOTAL AMOUNT</th>
+                    <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: 'rgb(var(--ae-navy-rgb) /0.5)', fontFamily: font.body }}>PAYMENT</th>
+                    <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: 'rgb(var(--ae-navy-rgb) /0.5)', fontFamily: font.body }}>STATUS</th>
+                    <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: 'rgb(var(--ae-navy-rgb) /0.5)', fontFamily: font.body }}>ACTIONS</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y" style={{ borderColor: 'rgba(180,160,130,0.1)' }}>
@@ -488,8 +488,8 @@ export default function Bookings() {
                     <tr key={booking.id} className="hover:bg-black/[0.02] transition-colors">
                       <td className="px-5 py-4 font-bold text-[13px]" style={{ color: NAVY, fontFamily: 'Cinzel, serif' }}>{booking.booking_id}</td>
                       <td className="px-5 py-4 text-sm max-w-xs truncate" style={{ color: NAVY }}>{booking.tour_name}</td>
-                      <td className="px-5 py-4 text-sm" style={{ color: 'rgba(58,42,24,0.7)' }}>{formatDate(booking.booking_date)}</td>
-                      <td className="px-5 py-4 text-sm" style={{ color: 'rgba(58,42,24,0.7)' }}>{formatDate(booking.travel_date)}</td>
+                      <td className="px-5 py-4 text-sm" style={{ color: 'rgb(var(--ae-ink-rgb) /0.7)' }}>{formatDate(booking.booking_date)}</td>
+                      <td className="px-5 py-4 text-sm" style={{ color: 'rgb(var(--ae-ink-rgb) /0.7)' }}>{formatDate(booking.travel_date)}</td>
                       <td className="px-5 py-4 text-sm font-semibold" style={{ color: NAVY }}>{booking.number_of_travelers} Traveler{booking.number_of_travelers > 1 ? 's' : ''}</td>
                       <td className="px-5 py-4 text-sm font-bold" style={{ color: GOLD }}>{formatCurrency(booking.total_amount)}</td>
                       <td className="px-5 py-4">
@@ -514,9 +514,9 @@ export default function Bookings() {
                           <NavLink
                             to={`/admin/bookings/${booking.id}`}
                             className="p-2 rounded-xl transition"
-                            style={{ background: 'rgba(0,26,77,0.08)', color: NAVY }}
+                            style={{ background: 'rgb(var(--ae-navy-rgb) /0.08)', color: NAVY }}
                             onMouseEnter={(e) => { e.currentTarget.style.background = GOLD; e.currentTarget.style.color = NAVY }}
-                            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(0,26,77,0.08)'; e.currentTarget.style.color = NAVY }}
+                            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgb(var(--ae-navy-rgb) /0.08)'; e.currentTarget.style.color = NAVY }}
                             title="View"
                           >
                             <Eye size={15} />
@@ -526,9 +526,9 @@ export default function Bookings() {
                               onClick={() => generatePdf(booking.id)}
                               disabled={pdfGenerating === booking.id || excelGenerating === booking.id}
                               className="p-2 rounded-xl transition"
-                              style={{ background: 'rgba(197,155,39,0.12)', color: NAVY }}
+                              style={{ background: 'rgb(var(--ae-gold-rgb) /0.12)', color: NAVY }}
                               onMouseEnter={(e) => { if (pdfGenerating !== booking.id) { e.currentTarget.style.background = GOLD; e.currentTarget.style.color = NAVY }}}
-                              onMouseLeave={(e) => { if (pdfGenerating !== booking.id) { e.currentTarget.style.background = 'rgba(197,155,39,0.12)'; e.currentTarget.style.color = NAVY }}}
+                              onMouseLeave={(e) => { if (pdfGenerating !== booking.id) { e.currentTarget.style.background = 'rgb(var(--ae-gold-rgb) /0.12)'; e.currentTarget.style.color = NAVY }}}
                               title={pdfGenerating === booking.id ? "Generating PDF..." : "Download PDF"}
                             >
                               {pdfGenerating === booking.id ? <Loader2 size={14} className="animate-spin" /> : <FileText size={15} />}
@@ -559,7 +559,7 @@ export default function Bookings() {
         
         {!loading && bookings.length > 0 && total > limit && (
           <div className="px-5 py-4 border-t flex items-center justify-between" style={{ borderColor: 'rgba(180,160,130,0.15)' }}>
-            <p className="text-sm" style={{ color: 'rgba(58,42,24,0.7)', fontFamily: font.body }}>
+            <p className="text-sm" style={{ color: 'rgb(var(--ae-ink-rgb) /0.7)', fontFamily: font.body }}>
               Showing {((page - 1) * limit) + 1} to {Math.min(page * limit, total)} of {total} bookings
             </p>
             <div className="flex items-center gap-2">

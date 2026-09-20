@@ -129,7 +129,7 @@ export default function SignaturePad({ value, onChange, height = 150, id = 'sig'
           onPointerLeave={endStroke}
         />
         <div className="pointer-events-none absolute inset-0 flex items-end justify-center pb-1.5">
-          <span className="text-[10px] tracking-widest uppercase" style={{ color: 'rgba(58,42,24,0.35)', ...font.body }}>
+          <span className="text-[10px] tracking-widest uppercase" style={{ color: 'rgb(var(--ae-ink-rgb) /0.35)', ...font.body }}>
             <PenLine size={11} className="inline mr-1 -translate-y-px" />
             Sign here with mouse / touch
           </span>
@@ -139,9 +139,9 @@ export default function SignaturePad({ value, onChange, height = 150, id = 'sig'
         type="button"
         onClick={clear}
         className="mt-1.5 inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-[11px] font-semibold transition cursor-pointer"
-        style={{ color: 'rgba(58,42,24,0.65)', backgroundColor: 'rgba(220,38,38,0.06)', border: '1px solid rgba(220,38,38,0.25)' }}
+        style={{ color: 'rgb(var(--ae-ink-rgb) /0.65)', backgroundColor: 'rgba(220,38,38,0.06)', border: '1px solid rgba(220,38,38,0.25)' }}
         onMouseEnter={(e) => { e.currentTarget.style.color = '#ffffff'; e.currentTarget.style.backgroundColor = '#dc2626' }}
-        onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(58,42,24,0.65)'; e.currentTarget.style.backgroundColor = 'rgba(220,38,38,0.06)' }}
+        onMouseLeave={(e) => { e.currentTarget.style.color = 'rgb(var(--ae-ink-rgb) /0.65)'; e.currentTarget.style.backgroundColor = 'rgba(220,38,38,0.06)' }}
       >
         <Eraser size={12} aria-hidden="true" />
         Clear Signature
