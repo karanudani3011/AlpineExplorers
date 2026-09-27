@@ -2,6 +2,7 @@ import { Router } from 'express'
 import { db, logActivity } from '../db.js'
 import { authRequired, requirePermission } from '../middleware.js'
 import { decorateRow } from './content.js'
+import { syncContentToSupabase, deleteContentFromSupabase } from '../utils/supabase.js'
 
 const router = Router()
 router.use(authRequired)
@@ -24,7 +25,7 @@ router.get('/:id', requirePermission('blog.view'), (req, res) => {
   res.json(decorateRow(row))
 })
 
-router.post('/', requirePermission('blog.create'), (req, res) => {
+router.post('/', requirePermission('blog.create'), async (req, res) => {
   const b = req.body || {}
   if (!b.title) return res.status(400).json({ error: 'Title is required' })
   const slug = b.slug || slugify(b.title)
@@ -36,10 +37,14 @@ router.post('/', requirePermission('blog.create'), (req, res) => {
     JSON.stringify(b.tags || []), b.publish_date || null, b.featured ? 1 : 0, b.status || 'draft')
   logActivity({ user_name: req.user.full_name || req.user.username || req.user.email, action: 'Blog created', module: 'Blog', details: b.title })
   const row = db.prepare(`SELECT ${SELECT} FROM blogs WHERE id = ?`).get(info.lastInsertRowid)
+  
+  // Sync to Supabase
+  syncContentToSupabase('blogs', row).catch(() => {})
+
   res.status(201).json(decorateRow(row))
 })
 
-router.put('/:id', requirePermission('blog.edit'), (req, res) => {
+router.put('/:id', requirePermission('blog.edit'), async (req, res) => {
   const existing = db.prepare('SELECT * FROM blogs WHERE id = ?').get(req.params.id)
   if (!existing) return res.status(404).json({ error: 'Not found' })
   const b = req.body || {}
@@ -54,28 +59,43 @@ router.put('/:id', requirePermission('blog.edit'), (req, res) => {
   )
   logActivity({ user_name: req.user.full_name || req.user.username || req.user.email, action: 'Blog updated', module: 'Blog', details: b.title || existing.title })
   const row = db.prepare(`SELECT ${SELECT} FROM blogs WHERE id = ?`).get(req.params.id)
+  
+  // Sync to Supabase
+  syncContentToSupabase('blogs', row).catch(() => {})
+
   res.json(decorateRow(row))
 })
 
-router.patch('/:id/status', requirePermission('blog.publish'), (req, res) => {
+router.patch('/:id/status', requirePermission('blog.publish'), async (req, res) => {
   const existing = db.prepare('SELECT * FROM blogs WHERE id = ?').get(req.params.id)
   if (!existing) return res.status(404).json({ error: 'Not found' })
   const status = ['draft', 'published', 'unpublished'].includes(req.body.status) ? req.body.status : 'published'
   db.prepare('UPDATE blogs SET status=?, updated_at=datetime(\'now\') WHERE id=?').run(status, req.params.id)
   logActivity({ user_name: req.user.full_name || req.user.username || req.user.email, action: status === 'published' ? 'Blog published' : `Blog ${status}`, module: 'Blog', details: existing.title })
+  
+  const row = db.prepare(`SELECT ${SELECT} FROM blogs WHERE id = ?`).get(req.params.id)
+  syncContentToSupabase('blogs', row).catch(() => {})
+
   res.json({ message: 'Status updated', status })
 })
 
-router.patch('/:id/featured', requirePermission('blog.edit'), (req, res) => {
+router.patch('/:id/featured', requirePermission('blog.edit'), async (req, res) => {
   db.prepare('UPDATE blogs SET featured=?, updated_at=datetime(\'now\') WHERE id=?').run(req.body.featured ? 1 : 0, req.params.id)
+  const row = db.prepare(`SELECT ${SELECT} FROM blogs WHERE id = ?`).get(req.params.id)
+  syncContentToSupabase('blogs', row).catch(() => {})
+
   res.json({ message: 'Updated' })
 })
 
-router.delete('/:id', requirePermission('blog.delete'), (req, res) => {
+router.delete('/:id', requirePermission('blog.delete'), async (req, res) => {
   const existing = db.prepare('SELECT * FROM blogs WHERE id = ?').get(req.params.id)
   if (!existing) return res.status(404).json({ error: 'Not found' })
   db.prepare('DELETE FROM blogs WHERE id = ?').run(req.params.id)
   logActivity({ user_name: req.user.full_name || req.user.username || req.user.email, action: 'Blog deleted', module: 'Blog', details: existing.title })
+  
+  // Delete from Supabase
+  deleteContentFromSupabase('blogs', req.params.id).catch(() => {})
+
   res.json({ message: 'Deleted' })
 })
 

@@ -53,7 +53,14 @@ export function usePublicBlogs(fallback = []) {
   const [loading, setLoading] = useState(true)
   useEffect(() => {
     let mounted = true
-    api.get('/public/blogs').then((d) => mounted && setBlogs(d.blogs || [])).catch(() => {}).finally(() => mounted && setLoading(false))
+    api.get('/public/blogs')
+      .then((d) => {
+        if (mounted && Array.isArray(d?.blogs) && d.blogs.length > 0) {
+          setBlogs(d.blogs)
+        }
+      })
+      .catch(() => {})
+      .finally(() => mounted && setLoading(false))
     return () => { mounted = false }
   }, [])
   return { blogs, loading }

@@ -19,34 +19,69 @@ const font = {
   body: { fontFamily: 'Inter, sans-serif' },
 }
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.2 } },
-}
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-}
+const DEFAULT_BLOGS = [
+  {
+    id: 1,
+    title: 'Top 10 Himalayan Treks for Beginners',
+    slug: 'top-10-himalayan-treks-beginners',
+    category: 'Trekking',
+    author: 'Alpine Explorers',
+    cover_image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&h=400&fit=crop',
+    short_description: 'Start your trekking journey with these beginner-friendly Himalayan trails.',
+    content: 'Kedarkantha, Brahmatal and Chopta offer the perfect first taste of Himalayan trekking. Trained guides, comfortable camps and curated inclusions make the journey safe and memorable.\n\nEvery winter our trekkers summit peaks between 12,000 and 14,000 feet with proper acclimatization plans and certified instructors.',
+    publish_date: '2026-09-27',
+    featured: 1,
+    status: 'published',
+  },
+  {
+    id: 2,
+    title: 'The Best Time to Visit the Maldives',
+    slug: 'best-time-visit-maldives',
+    category: 'Beaches',
+    author: 'Alpine Explorers',
+    cover_image: 'https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=800&h=400&fit=crop',
+    short_description: 'Plan the perfect island escape with our seasonal guide to the Maldives.',
+    content: 'The Maldives shines from November to April with clear skies and calm seas. Overwater villas, coral reefs and dolphin cruises make it an unmatched tropical retreat packaged by Alpine Explorers.',
+    publish_date: '2026-09-27',
+    featured: 0,
+    status: 'published',
+  },
+  {
+    id: 3,
+    title: 'Family Camping at Sasan Gir',
+    slug: 'family-camping-sasan-gir',
+    category: 'Camping',
+    author: 'Alpine Explorers',
+    cover_image: 'https://images.unsplash.com/photo-1478131143081-80f7f84ca84d?w=800&h=400&fit=crop',
+    short_description: 'Wildlife awareness, campfires and lion territory — the perfect family weekend.',
+    content: 'Our Gir family camp blends wildlife awareness, museum visits, a lion-spotting jeep safari and cozy campfire evenings. One tent per family, sleeping bags provided, and certified nature guides throughout.',
+    publish_date: '2026-09-27',
+    featured: 0,
+    status: 'published',
+  },
+]
 
 export default function Blog() {
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [])
 
-  const { blogs } = usePublicBlogs()
+  const { blogs, loading } = usePublicBlogs(DEFAULT_BLOGS)
 
   const [selectedCategory, setSelectedCategory] = useState('All')
   const [searchTerm, setSearchTerm] = useState('')
 
-  const categories = ['All', ...Array.from(new Set(blogs.map((b) => b.category).filter(Boolean)))]
+  const activeBlogsList = Array.isArray(blogs) && blogs.length > 0 ? blogs : DEFAULT_BLOGS
 
-  const mappedBlogs = blogs.map((b) => ({
+  const categories = ['All', ...Array.from(new Set(activeBlogsList.map((b) => b.category).filter(Boolean)))]
+
+  const mappedBlogs = activeBlogsList.map((b) => ({
     id: b.id,
     title: b.title,
     author: b.author || 'Alpine Explorers',
     date: (b.publish_date || b.created_at || new Date().toISOString()).slice(0, 10),
     category: b.category || 'Travel',
-    image: b.cover_image,
+    image: b.cover_image || 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=800&h=400&fit=crop',
     excerpt: b.short_description || '',
     readTime: '5 min read',
     content: b.content || '',
@@ -167,19 +202,11 @@ export default function Blog() {
       <section className="py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           {filteredBlogs.length > 0 ? (
-            <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-            >
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {filteredBlogs.map((blog, index) => (
-                <motion.div key={blog.id} variants={itemVariants}>
-                  <BlogCard blog={blog} index={index} />
-                </motion.div>
+                <BlogCard key={blog.id} blog={blog} index={index} />
               ))}
-            </motion.div>
+            </div>
           ) : (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
