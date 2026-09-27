@@ -41,25 +41,10 @@ ensureSuperAdmin()
  */
 router.get('/', async (req, res) => {
   try {
-    // 1. Try fetching from Supabase admin_profiles
-    let profiles = []
-    try {
-      const { data, error } = await supabaseAdmin
-        .from('admin_profiles')
-        .select('*')
-        .order('created_at', { ascending: true })
+    // 1. Ensure SQLite admin_profiles has rows
+    let profiles = db.prepare('SELECT * FROM admin_profiles ORDER BY created_at ASC').all()
 
-      if (!error && Array.isArray(data) && data.length > 0) {
-        profiles = data
-      }
-    } catch {}
-
-    // 2. Fallback to SQLite admin_profiles if Supabase table not migrated yet
-    if (profiles.length === 0) {
-      profiles = db.prepare('SELECT * FROM admin_profiles ORDER BY created_at ASC').all()
-    }
-
-    // 3. If still empty, migrate/sync existing users table from SQLite
+    // 2. If empty, migrate from users table
     if (profiles.length === 0) {
       const legacyUsers = db.prepare('SELECT * FROM users').all()
       for (const lu of legacyUsers) {
@@ -74,28 +59,17 @@ router.get('/', async (req, res) => {
       profiles = db.prepare('SELECT * FROM admin_profiles ORDER BY created_at ASC').all()
     }
 
-    // 4. Attach permissions to each profile
-    const staffList = []
-    for (const p of profiles) {
+    // 3. Attach permissions to each profile from SQLite
+    const staffList = profiles.map((p) => {
       let perms = []
-      // Check Supabase admin_permissions
-      try {
-        const { data } = await supabaseAdmin
-          .from('admin_permissions')
-          .select('permission_key')
-          .eq('user_id', p.id)
-        if (Array.isArray(data)) {
-          perms = data.map((x) => x.permission_key)
-        }
-      } catch {}
-
-      // Fallback to SQLite admin_permissions
-      if (perms.length === 0) {
+      if (p.role === 'SUPER_ADMIN') {
+        perms = ['*']
+      } else {
         const localPerms = db.prepare('SELECT permission_key FROM admin_permissions WHERE user_id = ?').all(p.id)
         perms = localPerms.map((x) => x.permission_key)
       }
 
-      staffList.push({
+      return {
         id: p.id,
         auth_user_id: p.auth_user_id || p.id,
         full_name: p.full_name,
@@ -104,12 +78,13 @@ router.get('/', async (req, res) => {
         role: p.role,
         status: p.status,
         created_at: p.created_at,
-        permissions: p.role === 'SUPER_ADMIN' ? ['*'] : perms,
-      })
-    }
+        permissions: perms,
+      }
+    })
 
     res.json({ staff: staffList })
   } catch (err) {
+    console.error('Staff fetch error:', err)
     res.status(500).json({ error: err.message || 'Failed to fetch staff members' })
   }
 })
@@ -246,7 +221,7 @@ router.post('/', requireSuperAdmin, async (req, res) => {
  */
 router.put('/:id', requireSuperAdmin, async (req, res) => {
   const { id } = req.params
-  const { full_name, email, phone, status } = req.body || {}
+  const { full_name, email, phone, status, permissions } = req.body || {}
 
   const cleanName = (full_name || '').trim()
   const cleanEmail = (email || '').trim().toLowerCase()
@@ -274,7 +249,7 @@ router.put('/:id', requireSuperAdmin, async (req, res) => {
   const updatedPhone = cleanPhone !== undefined ? cleanPhone : existing.phone
   const updatedStatus = cleanStatus || existing.status
 
-  // 1. Update Supabase admin_profiles
+  // 1. Update Supabase admin_profiles & permissions
   try {
     await supabaseAdmin
       .from('admin_profiles')
@@ -295,6 +270,10 @@ router.put('/:id', requireSuperAdmin, async (req, res) => {
     }
   } catch {}
 
+  if (Array.isArray(permissions) && existing.role !== 'SUPER_ADMIN') {
+    saveAdminPermissions(existing.id, permissions).catch(() => {})
+  }
+
   // 2. Update SQLite
   try {
     db.prepare(`
@@ -304,6 +283,14 @@ router.put('/:id', requireSuperAdmin, async (req, res) => {
 
     db.prepare('UPDATE users SET full_name = ?, email = ?, phone = ?, status = ? WHERE email = ?')
       .run(updatedName, updatedEmail, updatedPhone, updatedStatus.toLowerCase(), existing.email)
+
+    if (Array.isArray(permissions) && existing.role !== 'SUPER_ADMIN') {
+      db.prepare('DELETE FROM admin_permissions WHERE user_id = ?').run(existing.id)
+      for (const p of permissions) {
+        const permId = crypto.randomUUID()
+        db.prepare('INSERT INTO admin_permissions (id, user_id, permission_key) VALUES (?, ?, ?)').run(permId, existing.id, p)
+      }
+    }
   } catch {}
 
   // 3. Audit Log
@@ -316,7 +303,17 @@ router.put('/:id', requireSuperAdmin, async (req, res) => {
     details: `Updated details for ${updatedName} (${updatedEmail})`,
   })
 
-  res.json({ message: 'Staff updated successfully', staff: { id: existing.id, full_name: updatedName, email: updatedEmail, phone: updatedPhone, status: updatedStatus } })
+  res.json({
+    message: 'Staff updated successfully',
+    staff: {
+      id: existing.id,
+      full_name: updatedName,
+      email: updatedEmail,
+      phone: updatedPhone,
+      status: updatedStatus,
+      permissions: Array.isArray(permissions) ? permissions : undefined,
+    },
+  })
 })
 
 /**

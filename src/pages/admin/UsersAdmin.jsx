@@ -2,6 +2,8 @@ import { useEffect, useState, useMemo } from 'react'
 import {
   Users, Plus, Edit, Trash2, KeyRound, ShieldCheck, Shield, Check,
   Eye, EyeOff, X, Lock, CheckSquare, Square, AlertTriangle, UserCheck, UserX,
+  Compass, PenLine, CalendarDays, FileText, Info, Mail, Settings, LayoutDashboard,
+  Sparkles,
 } from 'lucide-react'
 import { api } from '../../services/api'
 import { useAuth } from '../../contexts/AuthContext'
@@ -13,46 +15,63 @@ import { Field, TextInput } from '../../components/admin/FormFields'
 
 const fonts = { fontFamily: "'Inter', sans-serif" }
 
-// ── MODULE PERMISSION DEFINITIONS (10 MODULES) ──
+// ── MODULE PERMISSION DEFINITIONS (9 CORE MODULES) ──
 export const PERMISSION_MODULES = [
   {
     id: 'dashboard',
     label: 'Dashboard',
-    description: 'Main admin dashboard and overall stats',
+    icon: LayoutDashboard,
+    description: 'Main admin dashboard, statistics and analytics overview',
     permissions: [
       { key: 'dashboard.view', label: 'View Dashboard' },
     ],
   },
   {
-    id: 'services',
-    label: 'Services & Packages',
-    description: 'International, Domestic, Adventure, Camps & Services',
+    id: 'blog',
+    label: 'Blog Management',
+    icon: PenLine,
+    description: 'Travel articles, stories, publications & publishing controls',
     permissions: [
-      { key: 'services.view', label: 'View Services' },
-      { key: 'services.create', label: 'Add Service' },
-      { key: 'services.edit', label: 'Edit Service' },
-      { key: 'services.delete', label: 'Delete Service' },
+      { key: 'blog.view', label: 'View Blog Posts' },
+      { key: 'blog.create', label: 'Create New Post' },
+      { key: 'blog.edit', label: 'Edit Posts' },
+      { key: 'blog.publish', label: 'Publish / Unpublish Posts' },
+      { key: 'blog.delete', label: 'Delete Posts' },
+    ],
+  },
+  {
+    id: 'services',
+    label: 'Services & Tour Packages',
+    icon: Compass,
+    description: 'International, Domestic, Adventure, Camps & Special Services',
+    permissions: [
+      { key: 'services.view', label: 'View Packages & Services' },
+      { key: 'services.create', label: 'Create Package' },
+      { key: 'services.edit', label: 'Edit Package' },
+      { key: 'services.delete', label: 'Delete Package' },
     ],
   },
   {
     id: 'bookings',
     label: 'Bookings / Applications',
-    description: 'Manage customer bookings, applications & exports',
+    icon: FileText,
+    description: 'Manage customer bookings, travelers, forms & PDF/Excel exports',
     permissions: [
       { key: 'bookings.view', label: 'View Bookings' },
       { key: 'bookings.view_details', label: 'View Booking Details' },
-      { key: 'bookings.edit', label: 'Edit Booking' },
-      { key: 'bookings.delete', label: 'Delete Booking' },
+      { key: 'bookings.edit', label: 'Edit Booking Status' },
+      { key: 'bookings.delete', label: 'Delete Bookings' },
       { key: 'bookings.export_pdf', label: 'Export Bookings PDF' },
       { key: 'bookings.export_excel', label: 'Export Bookings Excel' },
-      { key: 'bookings.export_individual_pdf', label: 'Export Individual Booking PDF' },
-      { key: 'bookings.export_individual_excel', label: 'Export Individual Booking Excel' },
+      { key: 'bookings.export_individual_pdf', label: 'Export Traveler Form PDF' },
+      { key: 'bookings.export_individual_excel', label: 'Export Traveler Excel' },
     ],
   },
   {
     id: 'events',
     label: 'Upcoming Events',
-    description: 'Upcoming excursions, tours and events',
+    icon: CalendarDays,
+    description: 'Upcoming excursions, seasonal meetups and events',
     permissions: [
       { key: 'events.view', label: 'View Events' },
       { key: 'events.create', label: 'Create Event' },
@@ -61,63 +80,265 @@ export const PERMISSION_MODULES = [
     ],
   },
   {
-    id: 'blog',
-    label: 'Blog',
-    description: 'Travel articles, stories and publications',
-    permissions: [
-      { key: 'blog.view', label: 'View Blog' },
-      { key: 'blog.create', label: 'Create Blog' },
-      { key: 'blog.edit', label: 'Edit Blog' },
-      { key: 'blog.delete', label: 'Delete Blog' },
-      { key: 'blog.publish', label: 'Publish Blog' },
-    ],
-  },
-  {
     id: 'about',
     label: 'About Us',
-    description: 'Company story, founders and achievements',
+    icon: Info,
+    description: 'Company legacy, leadership story and achievements',
     permissions: [
       { key: 'about.view', label: 'View About Us' },
-      { key: 'about.edit', label: 'Edit About Us' },
+      { key: 'about.edit', label: 'Edit About Us Content' },
     ],
   },
   {
     id: 'contact',
-    label: 'Contact Us',
-    description: 'Customer contact messages and inquiries',
+    label: 'Contact & Inquiries',
+    icon: Mail,
+    description: 'Customer inquiries, messages and contact settings',
     permissions: [
-      { key: 'contact.view', label: 'View Contact Messages' },
-      { key: 'contact.edit', label: 'Manage Contact Messages' },
-      { key: 'contact.delete', label: 'Delete Contact Messages' },
+      { key: 'contact.view', label: 'View Inquiries & Messages' },
+      { key: 'contact.edit', label: 'Manage Contact Inquiries' },
+      { key: 'contact.delete', label: 'Delete Inquiries' },
     ],
   },
   {
     id: 'staff',
-    label: 'User / Staff Management',
-    description: 'Control staff accounts and dashboard permissions',
+    label: 'Staff Management',
+    icon: Users,
+    description: 'Manage staff accounts, credentials and permissions',
     permissions: [
-      { key: 'staff.view', label: 'View Staff' },
-      { key: 'staff.create', label: 'Create Staff' },
-      { key: 'staff.edit', label: 'Edit Staff' },
-      { key: 'staff.permissions', label: 'Manage Staff Permissions' },
-      { key: 'staff.activate', label: 'Activate/Deactivate Staff' },
-      { key: 'staff.delete', label: 'Delete Staff' },
+      { key: 'staff.view', label: 'View Staff List' },
+      { key: 'staff.create', label: 'Create Staff Accounts' },
+      { key: 'staff.edit', label: 'Edit Staff Details' },
+      { key: 'staff.permissions', label: 'Assign & Edit Permissions' },
+      { key: 'staff.activate', label: 'Activate / Deactivate Staff' },
       { key: 'staff.reset_password', label: 'Reset Staff Password' },
+      { key: 'staff.delete', label: 'Delete Staff Accounts' },
     ],
   },
   {
     id: 'settings',
     label: 'Settings',
-    description: 'System configurations and website settings',
+    icon: Settings,
+    description: 'Global system configurations and website settings',
     permissions: [
-      { key: 'settings.view', label: 'View Settings' },
-      { key: 'settings.edit', label: 'Edit Settings' },
+      { key: 'settings.view', label: 'View System Settings' },
+      { key: 'settings.edit', label: 'Edit System Settings' },
     ],
   },
 ]
 
 // All individual permission keys list
 const ALL_PERMISSION_KEYS = PERMISSION_MODULES.flatMap((m) => m.permissions.map((p) => p.key))
+
+// Quick permission presets
+const PRESET_TEMPLATES = [
+  {
+    id: 'all',
+    label: 'Full Access',
+    icon: Sparkles,
+    keys: ALL_PERMISSION_KEYS,
+  },
+  {
+    id: 'blog_editor',
+    label: 'Blog Editor',
+    icon: PenLine,
+    keys: ['dashboard.view', 'blog.view', 'blog.create', 'blog.edit', 'blog.publish', 'blog.delete'],
+  },
+  {
+    id: 'tours_manager',
+    label: 'Tours & Bookings',
+    icon: Compass,
+    keys: [
+      'dashboard.view',
+      'services.view', 'services.create', 'services.edit',
+      'bookings.view', 'bookings.view_details', 'bookings.edit', 'bookings.export_pdf', 'bookings.export_excel',
+      'events.view', 'events.create', 'events.edit',
+    ],
+  },
+  {
+    id: 'support',
+    label: 'Support & Inquiries',
+    icon: Mail,
+    keys: ['dashboard.view', 'contact.view', 'contact.edit', 'bookings.view', 'bookings.view_details'],
+  },
+  {
+    id: 'dashboard_only',
+    label: 'Dashboard Only',
+    icon: LayoutDashboard,
+    keys: ['dashboard.view'],
+  },
+]
+
+/**
+ * Reusable Personalized Access & Permissions Selector Component
+ */
+function PermissionsPicker({ value = [], onChange, title = 'Personalized Admin Access', subtitle }) {
+  const togglePermission = (key) => {
+    if (value.includes(key)) {
+      onChange(value.filter((k) => k !== key))
+    } else {
+      onChange([...value, key])
+    }
+  }
+
+  const toggleModuleAll = (modulePermissions) => {
+    const keys = modulePermissions.map((p) => p.key)
+    const allSelected = keys.every((k) => value.includes(k))
+    if (allSelected) {
+      onChange(value.filter((k) => !keys.includes(k)))
+    } else {
+      onChange(Array.from(new Set([...value, ...keys])))
+    }
+  }
+
+  const applyPreset = (presetKeys) => {
+    onChange(presetKeys)
+  }
+
+  return (
+    <div className="space-y-4 pt-2">
+      {/* Header with Title & Presets */}
+      <div className="rounded-2xl p-4 border" style={{ background: 'rgb(var(--ae-navy-rgb) /0.03)', borderColor: 'rgb(var(--ae-navy-rgb) /0.12)' }}>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b" style={{ borderColor: 'rgba(180,160,130,0.2)' }}>
+          <div>
+            <h4 className="text-sm font-bold flex items-center gap-2" style={{ color: NAVY }}>
+              <Shield size={16} style={{ color: GOLD }} />
+              {title}
+            </h4>
+            <p className="text-xs text-gray-500 mt-0.5">
+              {subtitle || 'Select which sections & actions this staff member can access in the admin panel.'}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="text-xs font-bold px-2.5 py-1 rounded-full" style={{ background: 'rgb(var(--ae-gold-rgb) /0.15)', color: NAVY }}>
+              {value.length} of {ALL_PERMISSION_KEYS.length} Selected
+            </span>
+          </div>
+        </div>
+
+        {/* Quick Role Presets */}
+        <div className="pt-3">
+          <span className="text-[10px] font-bold uppercase tracking-wider block mb-2" style={{ color: 'rgb(var(--ae-navy-rgb) /0.6)' }}>
+            Quick Role Presets:
+          </span>
+          <div className="flex flex-wrap gap-2">
+            {PRESET_TEMPLATES.map((preset) => {
+              const IconComp = preset.icon
+              const isMatch = preset.keys.length === value.length && preset.keys.every((k) => value.includes(k))
+              return (
+                <button
+                  key={preset.id}
+                  type="button"
+                  onClick={() => applyPreset(preset.keys)}
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all"
+                  style={{
+                    background: isMatch ? NAVY : '#fff',
+                    color: isMatch ? '#fff' : NAVY,
+                    border: `1px solid ${isMatch ? NAVY : 'rgb(var(--ae-navy-rgb) /0.18)'}`,
+                    boxShadow: isMatch ? '0 2px 8px rgb(var(--ae-navy-rgb) /0.2)' : 'none',
+                  }}
+                >
+                  <IconComp size={13} style={{ color: isMatch ? GOLD : GOLD }} />
+                  {preset.label}
+                </button>
+              )
+            })}
+            <button
+              type="button"
+              onClick={() => onChange([])}
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold text-gray-500 hover:text-red-600 bg-white border border-gray-200 transition"
+            >
+              Clear All
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Module Permission Cards */}
+      <div className="space-y-3.5 max-h-[50vh] overflow-y-auto pr-1">
+        {PERMISSION_MODULES.map((mod) => {
+          const ModIcon = mod.icon
+          const allModSelected = mod.permissions.every((p) => value.includes(p.key))
+          const someModSelected = mod.permissions.some((p) => value.includes(p.key))
+          const modCount = mod.permissions.filter((p) => value.includes(p.key)).length
+
+          return (
+            <div
+              key={mod.id}
+              className="rounded-2xl border p-3.5 sm:p-4 transition-all"
+              style={{
+                borderColor: someModSelected ? 'rgb(var(--ae-gold-rgb) /0.5)' : 'rgb(var(--ae-navy-rgb) /0.12)',
+                background: someModSelected ? 'rgb(var(--ae-gold-rgb) /0.03)' : '#fff',
+              }}
+            >
+              <div className="flex items-center justify-between pb-2 mb-3 border-b border-gray-100">
+                <div className="flex items-center gap-2.5">
+                  <div
+                    className="w-8 h-8 rounded-xl flex items-center justify-center"
+                    style={{
+                      background: someModSelected ? 'rgb(var(--ae-gold-rgb) /0.15)' : 'rgb(var(--ae-navy-rgb) /0.06)',
+                      color: someModSelected ? NAVY : 'rgb(var(--ae-navy-rgb) /0.5)',
+                    }}
+                  >
+                    <ModIcon size={16} />
+                  </div>
+                  <div>
+                    <h4 className="text-xs sm:text-sm font-bold tracking-wide uppercase flex items-center gap-2" style={{ color: NAVY }}>
+                      {mod.label}
+                      {modCount > 0 && (
+                        <span className="text-[10px] px-1.5 py-0.2 rounded-full font-bold bg-amber-100 text-amber-900">
+                          {modCount}/{mod.permissions.length}
+                        </span>
+                      )}
+                    </h4>
+                    <p className="text-[11px] text-gray-500">{mod.description}</p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => toggleModuleAll(mod.permissions)}
+                  className="text-xs font-bold hover:underline py-1 px-2 rounded hover:bg-black/5"
+                  style={{ color: GOLD }}
+                >
+                  {allModSelected ? 'Uncheck All' : 'Check All'}
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {mod.permissions.map((perm) => {
+                  const checked = value.includes(perm.key)
+                  return (
+                    <label
+                      key={perm.key}
+                      onClick={() => togglePermission(perm.key)}
+                      className="flex items-center gap-2.5 p-2 rounded-xl cursor-pointer select-none transition hover:bg-black/[0.03] border border-transparent hover:border-gray-200"
+                    >
+                      <div
+                        className="w-4 h-4 rounded flex items-center justify-center transition shrink-0"
+                        style={{
+                          background: checked ? GOLD : '#fff',
+                          border: `1.5px solid ${checked ? GOLD : 'rgb(var(--ae-navy-rgb) /0.25)'}`,
+                          color: checked ? NAVY : 'transparent',
+                        }}
+                      >
+                        <Check size={12} strokeWidth={3} />
+                      </div>
+                      <span className={`text-xs ${checked ? 'font-bold' : 'font-medium'}`} style={{ color: NAVY }}>
+                        {perm.label}
+                      </span>
+                    </label>
+                  )
+                })}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
 
 export default function UsersAdmin() {
   const { user: me } = useAuth()
@@ -156,6 +377,7 @@ export default function UsersAdmin() {
     email: '',
     phone: '',
     status: 'ACTIVE',
+    permissions: [],
   })
 
   const [selectedPermissions, setSelectedPermissions] = useState([])
@@ -189,7 +411,7 @@ export default function UsersAdmin() {
       password: '',
       confirm: '',
       status: 'ACTIVE',
-      permissions: [], // Default: NO permissions selected
+      permissions: ['dashboard.view', 'blog.view'], // Default starter permissions
     })
     setShowPassword(false)
     setShowConfirmPassword(false)
@@ -210,7 +432,7 @@ export default function UsersAdmin() {
         ...createForm,
         email: createForm.email.trim().toLowerCase(),
       })
-      addToast('Staff account created successfully', 'success')
+      addToast('Staff account created with personalized access!', 'success')
       setCreateModalOpen(false)
       loadStaff()
     } catch (err) {
@@ -228,6 +450,7 @@ export default function UsersAdmin() {
       email: staff.email || '',
       phone: staff.phone || '',
       status: staff.status || 'ACTIVE',
+      permissions: staff.permissions || [],
     })
     setEditModalOpen(true)
   }
@@ -240,7 +463,7 @@ export default function UsersAdmin() {
     setActionLoading(true)
     try {
       await api.put(`/staff/${selectedStaff.id}`, editForm)
-      addToast('Staff details updated successfully', 'success')
+      addToast('Staff details and access permissions updated!', 'success')
       setEditModalOpen(false)
       loadStaff()
     } catch (err) {
@@ -250,35 +473,11 @@ export default function UsersAdmin() {
     }
   }
 
-  // ── MANAGE PERMISSIONS ──
+  // ── MANAGE PERMISSIONS MODAL ──
   const openPermissionsModal = (staff) => {
     setSelectedStaff(staff)
     setSelectedPermissions(staff.permissions || [])
     setPermissionsModalOpen(true)
-  }
-
-  const togglePermission = (key) => {
-    setSelectedPermissions((prev) =>
-      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
-    )
-  }
-
-  const toggleModuleAll = (modulePermissions) => {
-    const keys = modulePermissions.map((p) => p.key)
-    const allSelected = keys.every((k) => selectedPermissions.includes(k))
-    if (allSelected) {
-      setSelectedPermissions((prev) => prev.filter((k) => !keys.includes(k)))
-    } else {
-      setSelectedPermissions((prev) => Array.from(new Set([...prev, ...keys])))
-    }
-  }
-
-  const handleSelectAll = () => {
-    setSelectedPermissions(ALL_PERMISSION_KEYS)
-  }
-
-  const handleDeselectAll = () => {
-    setSelectedPermissions([])
   }
 
   const handleSavePermissions = async () => {
@@ -379,35 +578,34 @@ export default function UsersAdmin() {
     }
   }
 
-  // Generate permission summary text
+  // Generate permission summary badge/text
   const getPermissionSummary = (staff) => {
     if (staff.role === 'SUPER_ADMIN') {
-      return <span className="font-bold text-xs" style={{ color: GOLD }}>All Permissions</span>
+      return <span className="font-bold text-xs" style={{ color: GOLD }}>Full Admin Access</span>
     }
     const perms = staff.permissions || []
     if (perms.length === 0) {
-      return <span className="text-xs text-gray-400 italic">No permissions</span>
+      return <span className="text-xs text-gray-400 italic">No access granted</span>
     }
 
-    // Extract unique module labels
     const moduleSet = new Set()
     perms.forEach((p) => {
       const mod = p.split('.')[0]
-      if (mod === 'bookings') moduleSet.add('Bookings')
-      else if (mod === 'services') moduleSet.add('Services')
+      if (mod === 'dashboard') moduleSet.add('Dashboard')
       else if (mod === 'blog') moduleSet.add('Blog')
+      else if (mod === 'services') moduleSet.add('Services')
+      else if (mod === 'bookings') moduleSet.add('Bookings')
       else if (mod === 'events') moduleSet.add('Events')
-      else if (mod === 'contact') moduleSet.add('Contact')
       else if (mod === 'about') moduleSet.add('About')
+      else if (mod === 'contact') moduleSet.add('Contact')
       else if (mod === 'staff') moduleSet.add('Staff')
       else if (mod === 'settings') moduleSet.add('Settings')
-      else if (mod === 'dashboard') moduleSet.add('Dashboard')
     })
 
     const modules = Array.from(moduleSet)
     if (modules.length <= 3) {
       return (
-        <span className="text-xs font-medium" style={{ color: NAVY }}>
+        <span className="text-xs font-semibold px-2 py-0.5 rounded-md" style={{ background: 'rgb(var(--ae-navy-rgb) /0.06)', color: NAVY }}>
           {modules.join(' • ')}
         </span>
       )
@@ -424,7 +622,7 @@ export default function UsersAdmin() {
       <PageHeader
         icon={Users}
         title="STAFF MANAGEMENT"
-        subtitle="Create staff accounts and control their dashboard access."
+        subtitle="Create staff accounts, configure personalized access and manage permissions."
         actions={
           <Btn onClick={openCreateModal}>
             <Plus size={15} /> ADD STAFF
@@ -494,7 +692,7 @@ export default function UsersAdmin() {
 
                     <div className="pt-2 border-t flex flex-col gap-2" style={{ borderColor: 'rgba(180,160,130,0.1)' }}>
                       <div className="text-xs flex items-center justify-between">
-                        <span className="text-gray-400">Permissions:</span>
+                        <span className="text-gray-400">Access:</span>
                         <div>{getPermissionSummary(staff)}</div>
                       </div>
 
@@ -502,7 +700,7 @@ export default function UsersAdmin() {
                         <button
                           onClick={() => openEditModal(staff)}
                           className="p-2 rounded-lg text-xs font-bold hover:bg-black/5"
-                          title="Edit"
+                          title="Edit Details & Access"
                           style={{ color: NAVY }}
                         >
                           <Edit size={15} />
@@ -566,8 +764,7 @@ export default function UsersAdmin() {
                     <th className="py-3 px-4 text-[10px] uppercase tracking-wider font-bold" style={{ color: 'rgb(var(--ae-navy-rgb) /0.55)' }}>Phone</th>
                     <th className="py-3 px-4 text-[10px] uppercase tracking-wider font-bold" style={{ color: 'rgb(var(--ae-navy-rgb) /0.55)' }}>Role</th>
                     <th className="py-3 px-4 text-[10px] uppercase tracking-wider font-bold" style={{ color: 'rgb(var(--ae-navy-rgb) /0.55)' }}>Status</th>
-                    <th className="py-3 px-4 text-[10px] uppercase tracking-wider font-bold" style={{ color: 'rgb(var(--ae-navy-rgb) /0.55)' }}>Created</th>
-                    <th className="py-3 px-4 text-[10px] uppercase tracking-wider font-bold" style={{ color: 'rgb(var(--ae-navy-rgb) /0.55)' }}>Permissions</th>
+                    <th className="py-3 px-4 text-[10px] uppercase tracking-wider font-bold" style={{ color: 'rgb(var(--ae-navy-rgb) /0.55)' }}>Personalized Access</th>
                     <th className="py-3 px-4 text-[10px] uppercase tracking-wider font-bold text-right" style={{ color: 'rgb(var(--ae-navy-rgb) /0.55)' }}>Actions</th>
                   </tr>
                 </thead>
@@ -619,10 +816,6 @@ export default function UsersAdmin() {
                           </Badge>
                         </td>
 
-                        <td className="py-3.5 px-4 text-xs text-gray-500">
-                          {staff.created_at ? new Date(staff.created_at).toLocaleDateString() : '—'}
-                        </td>
-
                         <td className="py-3.5 px-4 max-w-xs">{getPermissionSummary(staff)}</td>
 
                         <td className="py-3.5 px-4 text-right">
@@ -630,7 +823,7 @@ export default function UsersAdmin() {
                             <button
                               onClick={() => openEditModal(staff)}
                               className="p-1.5 rounded-lg hover:bg-black/5 transition"
-                              title="Edit Details"
+                              title="Edit Details & Access"
                               style={{ color: NAVY }}
                             >
                               <Edit size={15} />
@@ -688,14 +881,14 @@ export default function UsersAdmin() {
         )}
       </Card>
 
-      {/* ── MODAL: CREATE STAFF ACCOUNT ── */}
+      {/* ── MODAL: CREATE STAFF ACCOUNT (WITH INLINE PERMISSIONS SELECTOR) ── */}
       <Modal
         open={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
-        title="CREATE STAFF ACCOUNT"
-        width={680}
+        title="CREATE STAFF ACCOUNT & PERSONALIZE ACCESS"
+        width={760}
       >
-        <form onSubmit={handleCreateStaff}>
+        <form onSubmit={handleCreateStaff} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="Full Name" required>
               <TextInput
@@ -705,7 +898,7 @@ export default function UsersAdmin() {
               />
             </Field>
 
-            <Field label="Email" required>
+            <Field label="Email Address (Login Username)" required>
               <TextInput
                 type="email"
                 value={createForm.email}
@@ -714,7 +907,7 @@ export default function UsersAdmin() {
               />
             </Field>
 
-            <Field label="Phone">
+            <Field label="Phone Number">
               <TextInput
                 value={createForm.phone}
                 onChange={(v) => setCreateForm({ ...createForm, phone: v })}
@@ -722,7 +915,7 @@ export default function UsersAdmin() {
               />
             </Field>
 
-            <Field label="Status" required>
+            <Field label="Account Status" required>
               <select
                 value={createForm.status}
                 onChange={(e) => setCreateForm({ ...createForm, status: e.target.value })}
@@ -734,8 +927,8 @@ export default function UsersAdmin() {
                   fontFamily: "'Inter', sans-serif",
                 }}
               >
-                <option value="ACTIVE">ACTIVE</option>
-                <option value="INACTIVE">INACTIVE</option>
+                <option value="ACTIVE">ACTIVE (Can log in)</option>
+                <option value="INACTIVE">INACTIVE (Locked)</option>
               </select>
             </Field>
 
@@ -788,9 +981,13 @@ export default function UsersAdmin() {
             </Field>
           </div>
 
-          <p className="text-xs text-gray-500 mt-4">
-            * Note: Newly created staff will have <b>no permissions by default</b>. You can assign permissions below or right after creation via the Permissions button.
-          </p>
+          {/* Inline Personalized Access / Permissions Picker */}
+          <PermissionsPicker
+            value={createForm.permissions}
+            onChange={(newPerms) => setCreateForm({ ...createForm, permissions: newPerms })}
+            title="Personalized Admin Panel Access"
+            subtitle="Choose which modules (Dashboard, Blog, Tours, Bookings, Events, etc.) this staff member can see and manage."
+          />
 
           <div className="flex justify-end gap-3 mt-6 pt-4 border-t" style={{ borderColor: 'rgba(180,160,130,0.2)' }}>
             <Btn variant="ghost" onClick={() => setCreateModalOpen(false)} disabled={actionLoading}>
@@ -803,57 +1000,70 @@ export default function UsersAdmin() {
         </form>
       </Modal>
 
-      {/* ── MODAL: EDIT STAFF ── */}
+      {/* ── MODAL: EDIT STAFF ACCOUNT (WITH INLINE PERMISSIONS) ── */}
       <Modal
         open={editModalOpen}
         onClose={() => setEditModalOpen(false)}
-        title="EDIT STAFF ACCOUNT"
-        width={540}
+        title="EDIT STAFF ACCOUNT & ACCESS"
+        width={760}
       >
         <div className="space-y-4">
-          <Field label="Full Name" required>
-            <TextInput
-              value={editForm.full_name}
-              onChange={(v) => setEditForm({ ...editForm, full_name: v })}
-            />
-          </Field>
-
-          <Field label="Email" required>
-            <TextInput
-              type="email"
-              value={editForm.email}
-              onChange={(v) => setEditForm({ ...editForm, email: v })}
-            />
-          </Field>
-
-          <Field label="Phone">
-            <TextInput
-              value={editForm.phone}
-              onChange={(v) => setEditForm({ ...editForm, phone: v })}
-            />
-          </Field>
-
-          {selectedStaff?.role !== 'SUPER_ADMIN' && (
-            <Field label="Status" required>
-              <select
-                value={editForm.status}
-                onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
-                className="w-full px-3.5 py-2.5 rounded-xl border outline-none text-sm font-semibold"
-                style={{
-                  borderColor: 'rgb(var(--ae-navy-rgb) /0.18)',
-                  background: '#fff',
-                  color: NAVY,
-                }}
-              >
-                <option value="ACTIVE">ACTIVE</option>
-                <option value="INACTIVE">INACTIVE</option>
-              </select>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Field label="Full Name" required>
+              <TextInput
+                value={editForm.full_name}
+                onChange={(v) => setEditForm({ ...editForm, full_name: v })}
+              />
             </Field>
-          )}
 
-          <p className="text-[11px] text-gray-400 italic">
-            Password cannot be edited here. Use the dedicated &quot;Reset Password&quot; action instead.
-          </p>
+            <Field label="Email" required>
+              <TextInput
+                type="email"
+                value={editForm.email}
+                onChange={(v) => setEditForm({ ...editForm, email: v })}
+              />
+            </Field>
+
+            <Field label="Phone">
+              <TextInput
+                value={editForm.phone}
+                onChange={(v) => setEditForm({ ...editForm, phone: v })}
+              />
+            </Field>
+
+            {selectedStaff?.role !== 'SUPER_ADMIN' && (
+              <Field label="Status" required>
+                <select
+                  value={editForm.status}
+                  onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-xl border outline-none text-sm font-semibold"
+                  style={{
+                    borderColor: 'rgb(var(--ae-navy-rgb) /0.18)',
+                    background: '#fff',
+                    color: NAVY,
+                  }}
+                >
+                  <option value="ACTIVE">ACTIVE</option>
+                  <option value="INACTIVE">INACTIVE</option>
+                </select>
+              </Field>
+            )}
+          </div>
+
+          {selectedStaff?.role !== 'SUPER_ADMIN' ? (
+            <PermissionsPicker
+              value={editForm.permissions}
+              onChange={(newPerms) => setEditForm({ ...editForm, permissions: newPerms })}
+              title="Personalized Admin Access"
+              subtitle={`Configure which modules ${selectedStaff?.full_name || 'this staff member'} can access.`}
+            />
+          ) : (
+            <div className="p-4 rounded-xl border bg-amber-50/50 border-amber-200">
+              <p className="text-xs text-amber-900 font-semibold">
+                ★ Super Administrator always has unrestricted access to all modules and system settings.
+              </p>
+            </div>
+          )}
         </div>
 
         <div className="flex justify-end gap-3 mt-6 pt-4 border-t" style={{ borderColor: 'rgba(180,160,130,0.2)' }}>
@@ -866,118 +1076,36 @@ export default function UsersAdmin() {
         </div>
       </Modal>
 
-      {/* ── MODAL: MANAGE STAFF PERMISSIONS ── */}
+      {/* ── MODAL: MANAGE STAFF PERMISSIONS (STANDALONE SHIELD BUTTON) ── */}
       <Modal
         open={permissionsModalOpen}
         onClose={() => setPermissionsModalOpen(false)}
         title="MANAGE STAFF PERMISSIONS"
-        width={800}
+        width={760}
       >
         <div>
-          <div className="flex items-center justify-between pb-3 mb-4 border-b" style={{ borderColor: 'rgba(180,160,130,0.2)' }}>
+          <div className="flex items-center justify-between pb-3 mb-2 border-b" style={{ borderColor: 'rgba(180,160,130,0.2)' }}>
             <div>
               <p className="text-sm font-bold" style={{ color: NAVY }}>
                 Staff Member: <span style={{ color: GOLD }}>{selectedStaff?.full_name}</span>
               </p>
               <p className="text-xs text-gray-500">{selectedStaff?.email}</p>
             </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={handleSelectAll}
-                className="px-3 py-1.5 rounded-lg text-xs font-bold transition hover:bg-black/5"
-                style={{ border: `1px solid ${GOLD}`, color: NAVY }}
-              >
-                Select All
-              </button>
-              <button
-                type="button"
-                onClick={handleDeselectAll}
-                className="px-3 py-1.5 rounded-lg text-xs font-bold transition hover:bg-black/5 text-gray-600 border"
-                style={{ borderColor: 'rgb(var(--ae-navy-rgb) /0.15)' }}
-              >
-                Deselect All
-              </button>
-            </div>
           </div>
 
-          <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
-            {PERMISSION_MODULES.map((mod) => {
-              const allModSelected = mod.permissions.every((p) => selectedPermissions.includes(p.key))
-              const someModSelected = mod.permissions.some((p) => selectedPermissions.includes(p.key))
+          <PermissionsPicker
+            value={selectedPermissions}
+            onChange={setSelectedPermissions}
+            title="Personalized Access & Permissions"
+          />
 
-              return (
-                <div
-                  key={mod.id}
-                  className="rounded-2xl border p-4 transition-all"
-                  style={{
-                    borderColor: someModSelected ? 'rgb(var(--ae-gold-rgb) /0.5)' : 'rgb(var(--ae-navy-rgb) /0.12)',
-                    background: someModSelected ? 'rgb(var(--ae-gold-rgb) /0.03)' : '#fff',
-                  }}
-                >
-                  <div className="flex items-center justify-between pb-2 mb-3 border-b border-gray-100">
-                    <div>
-                      <h4 className="text-sm font-bold tracking-wide uppercase" style={{ color: NAVY }}>
-                        {mod.label}
-                      </h4>
-                      <p className="text-[11px] text-gray-500">{mod.description}</p>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => toggleModuleAll(mod.permissions)}
-                      className="text-xs font-bold hover:underline"
-                      style={{ color: GOLD }}
-                    >
-                      {allModSelected ? 'Uncheck All' : 'Check All'}
-                    </button>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                    {mod.permissions.map((perm) => {
-                      const checked = selectedPermissions.includes(perm.key)
-                      return (
-                        <label
-                          key={perm.key}
-                          onClick={() => togglePermission(perm.key)}
-                          className="flex items-center gap-2.5 p-2 rounded-xl cursor-pointer select-none transition hover:bg-black/[0.03]"
-                        >
-                          <div
-                            className="w-5 h-5 rounded-md flex items-center justify-center transition"
-                            style={{
-                              background: checked ? GOLD : '#fff',
-                              border: `1.5px solid ${checked ? GOLD : 'rgb(var(--ae-navy-rgb) /0.25)'}`,
-                              color: checked ? NAVY : 'transparent',
-                            }}
-                          >
-                            <Check size={13} strokeWidth={3} />
-                          </div>
-                          <span className={`text-xs ${checked ? 'font-bold' : 'font-medium'}`} style={{ color: NAVY }}>
-                            {perm.label}
-                          </span>
-                        </label>
-                      )
-                    })}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-
-          <div className="flex items-center justify-between mt-6 pt-4 border-t" style={{ borderColor: 'rgba(180,160,130,0.2)' }}>
-            <span className="text-xs font-semibold" style={{ color: 'rgb(var(--ae-navy-rgb) /0.6)' }}>
-              {selectedPermissions.length} of {ALL_PERMISSION_KEYS.length} permissions granted
-            </span>
-
-            <div className="flex items-center gap-3">
-              <Btn variant="ghost" onClick={() => setPermissionsModalOpen(false)} disabled={actionLoading}>
-                CANCEL
-              </Btn>
-              <Btn onClick={handleSavePermissions} disabled={actionLoading}>
-                {actionLoading ? 'Saving…' : 'SAVE PERMISSIONS'}
-              </Btn>
-            </div>
+          <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t" style={{ borderColor: 'rgba(180,160,130,0.2)' }}>
+            <Btn variant="ghost" onClick={() => setPermissionsModalOpen(false)} disabled={actionLoading}>
+              CANCEL
+            </Btn>
+            <Btn onClick={handleSavePermissions} disabled={actionLoading}>
+              {actionLoading ? 'Saving…' : 'SAVE PERMISSIONS'}
+            </Btn>
           </div>
         </div>
       </Modal>
