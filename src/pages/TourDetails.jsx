@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import InquiryModal from '../components/InquiryModal'
+import TourImageSlider from '../components/TourImageSlider'
 import { testimonials } from '../data/data'
 import { getTour, getCatalog, formatPrice } from '../services/catalog'
 import {
@@ -71,17 +72,12 @@ export default function TourDetails() {
 
       {/* Hero Section */}
       <section className="relative h-[65vh] sm:h-[75vh] flex items-end overflow-hidden">
-        <motion.img
-          src={tour.image}
-          alt={tour.title}
-          className="absolute inset-0 w-full h-full object-cover"
-          initial={{ scale: 1.1 }}
-          animate={{ scale: 1 }}
-          transition={{ duration: 1.2 }}
-        />
+        <div className="absolute inset-0 w-full h-full">
+          <TourImageSlider images={tour.images?.length ? tour.images : (tour.image ? [tour.image] : [])} alt={tour.title} interval={4500} />
+        </div>
 
         {/* Ambient Dark Gradient */}
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-black/20" />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-black/20 pointer-events-none" />
 
         {/* Content */}
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 w-full text-white">
@@ -173,6 +169,47 @@ export default function TourDetails() {
                 {tour.description}
               </p>
             </div>
+
+            {/* Tour Photo & Video Gallery */}
+            {tour.images?.length > 1 && (
+              <div className="bg-white p-6 sm:p-8 rounded-3xl border border-gray-200 shadow-sm space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="font-display text-2xl sm:text-3xl font-bold text-slate-900">
+                    Tour Gallery & Highlights
+                  </h2>
+                  <span className="text-xs font-semibold px-3 py-1 bg-blue-50 text-blue-700 rounded-full border border-blue-200">
+                    {tour.images.length} Photos / Videos
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
+                  {tour.images.map((imgUrl, idx) => {
+                    const isVideo = /\.(mp4|webm|mov|mkv)(\?.*)?$/i.test(imgUrl) || (imgUrl && imgUrl.includes('/video/upload/'))
+                    return (
+                      <div
+                        key={idx}
+                        className="group relative aspect-[4/3] rounded-2xl overflow-hidden shadow-sm hover:shadow-md border border-gray-200 bg-slate-100 transition-all hover:-translate-y-1"
+                      >
+                        {isVideo ? (
+                          <video src={imgUrl} className="w-full h-full object-cover" muted autoPlay loop playsInline />
+                        ) : (
+                          <img
+                            src={imgUrl}
+                            alt={`${tour.title} photo ${idx + 1}`}
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                            loading="lazy"
+                          />
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2.5">
+                          <span className="text-white text-xs font-medium drop-shadow">
+                            Photo {idx + 1}
+                          </span>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Tour Highlights */}
             <div className="bg-white p-6 sm:p-8 rounded-3xl border border-gray-200 shadow-sm space-y-6">
@@ -363,10 +400,12 @@ export default function TourDetails() {
               <div>
                 <span className="text-xs text-gray-500 uppercase tracking-wider block font-semibold">Total Price</span>
                 <div className="flex items-baseline gap-2 mt-1">
-                  <span className="text-4xl font-extrabold text-slate-950">{hasPrice ? `$${totalPrice}` : 'On Request'}</span>
+                  <span className="text-4xl font-extrabold text-slate-950">
+                    {hasPrice ? new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(totalPrice) : 'On Request'}
+                  </span>
                   {hasPrice && tour.originalPrice > tour.price && (
                     <span className="text-sm text-gray-400 line-through">
-                      ${tour.originalPrice * travelersCount}
+                      {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(tour.originalPrice * travelersCount)}
                     </span>
                   )}
                   <span className="text-xs text-gray-500">{hasPrice ? `for ${travelersCount} guest(s)` : 'Contact us for pricing'}</span>

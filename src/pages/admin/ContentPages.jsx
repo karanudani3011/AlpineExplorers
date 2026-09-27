@@ -32,7 +32,7 @@ export function InternationalPage() {
         { name: 'short_description', label: 'Short Description', type: 'textarea', rows: 2 },
         { name: 'full_description', label: 'Full Description', type: 'textarea', rows: 4, span: 2 },
         { name: 'image', label: 'Cover Image', type: 'image', preset: IMAGE_PRESETS.international, span: 2 },
-        { name: 'gallery', label: 'Gallery Image URLs', type: 'list', placeholder: 'Paste an image URL + Enter', span: 2 },
+        { name: 'gallery', label: 'Tour Gallery Photos & Videos (Sliding Images)', type: 'gallery', span: 2 },
         { name: 'air_ticket', label: 'Inclusions', type: 'switch', toggleLabel: 'Air Ticket', default: true },
         { name: 'passport_visa', label: 'Passport & Visa', type: 'switch', toggleLabel: 'Passport & Visa', default: true },
         { name: 'pickup_drop', label: 'Pickup & Drop', type: 'switch', toggleLabel: 'Pickup & Drop', default: true },
@@ -58,7 +58,7 @@ export function DomesticPage() {
         { key: 'destination', label: 'Destination', render: (r) => <div style={NAVYc}><div className="font-bold">{r.destination}</div><div className="text-[10px] opacity-60">{r.state}</div></div> },
         { key: 'duration', label: 'Duration', render: (r) => T(r.duration) },
         { key: 'season', label: 'Season', render: (r) => T(r.season) },
-        { key: 'price', label: 'Price' },
+        { key: 'price', label: 'Price', render: PRICE },
       ],
       fields: [
         { name: 'destination', label: 'Destination', type: 'text', required: true },
@@ -69,7 +69,7 @@ export function DomesticPage() {
         { name: 'short_description', label: 'Short Description', type: 'textarea', rows: 2 },
         { name: 'full_description', label: 'Full Description', type: 'textarea', rows: 4, span: 2 },
         { name: 'image', label: 'Cover Image', type: 'image', preset: IMAGE_PRESETS.domestic, span: 2 },
-        { name: 'gallery', label: 'Gallery Image URLs', type: 'list', placeholder: 'Paste an image URL + Enter', span: 2 },
+        { name: 'gallery', label: 'Tour Gallery Photos & Videos (Sliding Images)', type: 'gallery', span: 2 },
         { name: 'transportation', label: 'Transportation', type: 'switch', toggleLabel: 'Transportation', default: true },
         { name: 'accommodation', label: 'Accommodation', type: 'switch', toggleLabel: 'Accommodation', default: true },
         { name: 'food', label: 'Food', type: 'switch', toggleLabel: 'Food', default: true },
@@ -105,6 +105,7 @@ export function AdventurePage() {
         { name: 'activities', label: 'Activities', type: 'list', placeholder: 'Add activity + Enter', suggestions: ['Rock Climbing', 'Rappelling', 'Snow Craft', 'Paragliding', 'Rafting', 'Trekking', 'Sports'], span: 2 },
         { name: 'includes', label: 'Inclusions', type: 'list', placeholder: 'Add inclusion + Enter', span: 2 },
         { name: 'image', label: 'Cover Image', type: 'image', preset: IMAGE_PRESETS.adventure, span: 2 },
+        { name: 'gallery', label: 'Tour Gallery Photos & Videos (Sliding Images)', type: 'gallery', span: 2 },
         { name: 'status', label: 'Status', type: 'select', options: ['active', 'inactive'] },
       ],
     }} />
@@ -137,7 +138,7 @@ export function CampsPage() {
         { name: 'rules', label: 'Rules', type: 'list', placeholder: 'Add rule + Enter', span: 2 },
         { name: 'what_to_bring', label: 'What To Bring', type: 'list', placeholder: 'Add item + Enter', span: 2 },
         { name: 'image', label: 'Cover Image', type: 'image', preset: IMAGE_PRESETS.camping, span: 2 },
-        { name: 'gallery', label: 'Gallery Image URLs', type: 'list', placeholder: 'Paste image URL + Enter', span: 2 },
+        { name: 'gallery', label: 'Camp Gallery Photos & Videos (Sliding Images)', type: 'gallery', span: 2 },
         { name: 'status', label: 'Status', type: 'select', options: ['active', 'inactive'] },
       ],
     }} />

@@ -3,7 +3,7 @@ import { Plus, Search } from 'lucide-react'
 import { api } from '../../services/api'
 import { useToasts } from './useToasts'
 import { PageHeader, Btn, Card, Spinner, Modal, cls } from './admin-ui'
-import { Field, TextInput, Select, Toggle, ImageUpload, TagPicker, ListEditor } from './FormFields'
+import { Field, TextInput, Select, Toggle, ImageUpload, GalleryUpload, TagPicker, ListEditor } from './FormFields'
 import { DataTable } from './DataTable'
 
 const fonts = { fontFamily: "'Inter'" }
@@ -112,6 +112,7 @@ export default function CrudPage({ config }) {
         {f.type === 'select' && <Select value={form[f.name] ?? ''} onChange={set(f.name)} options={f.options} placeholder={f.placeholder || 'Select…'} />}
         {f.type === 'tags' && <TagPicker value={form[f.name] || []} onChange={set(f.name)} suggestions={f.suggestions} />}
         {f.type === 'list' && <ListEditor value={form[f.name] || []} onChange={set(f.name)} placeholder={f.placeholder} />}
+        {f.type === 'gallery' && <GalleryUpload value={form[f.name] || []} onChange={set(f.name)} />}
         {f.type === 'image' && <ImageUpload value={form[f.name] || ''} onChange={set(f.name)} label={f.label} preset={f.preset} />}
         {f.type === 'textarea' && <TextInput type="textarea" value={form[f.name] ?? ''} onChange={set(f.name)} placeholder={f.placeholder} rows={f.rows || 4} />}
         {(f.type === 'text' || f.type === 'number') && <TextInput type={f.type === 'number' ? 'number' : 'text'} value={form[f.name] ?? ''} onChange={set(f.name)} placeholder={f.placeholder} />}

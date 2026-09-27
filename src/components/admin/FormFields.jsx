@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { Plus, Upload, X } from 'lucide-react'
 import { api } from '../../services/api'
 import { FieldLabel, inputStyle, Btn, cls, NAVY, GOLD } from './admin-ui'
@@ -101,31 +101,60 @@ function TagInput({ onCommit }) {
 
 export function ImageUpload({ value = '', onChange, label = 'Image', preset }) {
   const ref = useRef(null)
+  const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState('')
+
+  const isVideo = (url) => /\.(mp4|webm|mov|mkv)(\?.*)?$/i.test(url) || (url && url.includes('/video/upload/'))
+
   const handleFile = async (file) => {
     if (!file) return
+    setUploading(true)
+    setError('')
     const fd = new FormData()
     fd.append('file', file)
+    fd.append('category', 'tours')
     try {
       const data = await api.postForm('/media', fd)
       onChange(data.media.url)
     } catch (e) {
+      console.error('Image upload failed:', e)
+      setError(e.message || 'Upload failed')
       onChange(URL.createObjectURL(file))
+    } finally {
+      setUploading(false)
     }
   }
+
   return (
     <div className="flex items-start gap-4">
-      <div className="w-24 h-20 rounded-lg overflow-hidden border flex items-center justify-center shrink-0"
+      <div className="w-24 h-20 rounded-lg overflow-hidden border flex items-center justify-center shrink-0 relative"
         style={{ borderColor: 'rgb(var(--ae-navy-rgb) /0.15)', background: '#f8f5ee' }}>
-        {value
-          ? <img src={value} alt="preview" className="w-full h-full object-cover" />
-          : <span className="text-[10px] text-center px-1" style={{ color: '#999' }}>No image</span>}
+        {value ? (
+          isVideo(value) ? (
+            <video src={value} className="w-full h-full object-cover" muted autoPlay loop playsInline />
+          ) : (
+            <img src={value} alt="preview" className="w-full h-full object-cover" />
+          )
+        ) : (
+          <span className="text-[10px] text-center px-1" style={{ color: '#999' }}>
+            {uploading ? 'Uploading…' : 'No media'}
+          </span>
+        )}
+        {uploading && (
+          <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-white text-[10px] font-semibold">
+            Uploading…
+          </div>
+        )}
       </div>
       <div className="flex-1">
-        <input ref={ref} type="file" accept="image/*" hidden onChange={(e) => handleFile(e.target.files[0])} />
-        <div className="flex gap-2 flex-wrap">
-          <Btn variant="ghostGold" onClick={() => ref.current?.click()}><Upload size={13} /> Upload</Btn>
+        <input ref={ref} type="file" accept="image/*,video/*" hidden onChange={(e) => handleFile(e.target.files[0])} />
+        <div className="flex gap-2 flex-wrap items-center">
+          <Btn variant="ghostGold" onClick={() => ref.current?.click()} disabled={uploading}>
+            <Upload size={13} /> {uploading ? 'Uploading to Cloudinary…' : 'Upload to Cloudinary'}
+          </Btn>
           {value && <Btn variant="ghost" onClick={() => onChange('')}><X size={13} /> Remove</Btn>}
         </div>
+        {error && <p className="text-[11px] text-red-500 mt-1">{error}</p>}
         {preset && (
           <div>
             <div className="text-[10px] uppercase tracking-wide mt-2 mb-1" style={{ color: 'rgb(var(--ae-ink-rgb) /0.5)', fontFamily: 'Inter' }}>Or pick presets</div>
@@ -141,6 +170,130 @@ export function ImageUpload({ value = '', onChange, label = 'Image', preset }) {
           </div>
         )}
       </div>
+    </div>
+  )
+}
+
+export function GalleryUpload({ value = [], onChange }) {
+  const fileInputRef = useRef(null)
+  const [urlInput, setUrlInput] = useState('')
+  const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState('')
+
+  const list = Array.isArray(value) ? value : (typeof value === 'string' ? JSON.parse(value || '[]') : [])
+
+  const handleFiles = async (files) => {
+    if (!files || files.length === 0) return
+    setUploading(true)
+    setError('')
+    const fd = new FormData()
+    Array.from(files).forEach((f) => fd.append('files', f))
+    fd.append('category', 'tours')
+
+    try {
+      const res = await api.postForm('/media/multiple', fd)
+      if (res.urls && res.urls.length) {
+        onChange([...list, ...res.urls])
+      }
+    } catch (e) {
+      console.error('Batch upload error:', e)
+      // Fallback single uploads
+      try {
+        const newUrls = []
+        for (const file of Array.from(files)) {
+          const singleFd = new FormData()
+          singleFd.append('file', file)
+          singleFd.append('category', 'tours')
+          const singleRes = await api.postForm('/media', singleFd)
+          if (singleRes.media?.url) newUrls.push(singleRes.media.url)
+        }
+        if (newUrls.length) onChange([...list, ...newUrls])
+      } catch (err2) {
+        setError(err2.message || 'Gallery upload failed')
+      }
+    } finally {
+      setUploading(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
+
+  const removeAt = (index) => {
+    const updated = list.filter((_, i) => i !== index)
+    onChange(updated)
+  }
+
+  const addManualUrl = () => {
+    const trimmed = urlInput.trim()
+    if (trimmed) {
+      onChange([...list, trimmed])
+      setUrlInput('')
+    }
+  }
+
+  const isVideo = (url) => /\.(mp4|webm|mov|mkv)(\?.*)?$/i.test(url) || (url && url.includes('/video/upload/'))
+
+  return (
+    <div className="space-y-3">
+      {/* Upload button & Manual URL entry */}
+      <div className="flex flex-wrap items-center gap-2">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*,video/*"
+          multiple
+          hidden
+          onChange={(e) => handleFiles(e.target.files)}
+        />
+        <Btn variant="ghostGold" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
+          <Upload size={13} /> {uploading ? 'Uploading to Cloudinary…' : 'Upload Photos / Videos'}
+        </Btn>
+
+        <div className="flex items-center gap-1.5 flex-1 min-w-[240px]">
+          <input
+            type="text"
+            placeholder="Or paste image/video URL + Click Add"
+            value={urlInput}
+            onChange={(e) => setUrlInput(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addManualUrl() } }}
+            style={{ ...inputStyle(), fontFamily: fonts.fontFamily, padding: '6px 10px', fontSize: '12px' }}
+          />
+          <Btn variant="ghost" onClick={addManualUrl}><Plus size={13} /> Add</Btn>
+        </div>
+      </div>
+
+      {error && <p className="text-[11px] text-red-500">{error}</p>}
+
+      {/* Gallery Previews Grid */}
+      {list.length > 0 ? (
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 p-2 rounded-xl bg-amber-50/40 border border-amber-200/50">
+          {list.map((url, i) => (
+            <div key={`${url}-${i}`} className="group relative aspect-video rounded-lg overflow-hidden border border-gray-200 bg-slate-100 shadow-sm">
+              {isVideo(url) ? (
+                <video src={url} className="w-full h-full object-cover" muted playsInline />
+              ) : (
+                <img src={url} alt={`Gallery item ${i + 1}`} className="w-full h-full object-cover" />
+              )}
+              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <button
+                  type="button"
+                  onClick={() => removeAt(i)}
+                  className="w-7 h-7 rounded-full bg-red-600 hover:bg-red-700 text-white flex items-center justify-center shadow"
+                  title="Remove from gallery"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+              <span className="absolute bottom-1 left-1 bg-black/60 text-white text-[9px] px-1.5 py-0.5 rounded font-mono">
+                #{i + 1}
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="p-3 rounded-lg border border-dashed border-gray-300 text-center text-xs text-gray-500 bg-slate-50">
+          No gallery images yet. Click "Upload Photos / Videos" to select images for sliding display.
+        </div>
+      )}
     </div>
   )
 }

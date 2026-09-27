@@ -1,7 +1,20 @@
 const BASE = import.meta.env.PROD ? '/api' : '/api'
 
 export const API = {
-  getToken: () => localStorage.getItem('ae_token') || '',
+  getToken: () => {
+    const localToken = localStorage.getItem('ae_token')
+    if (localToken) return localToken
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i)
+        if (key && (key.startsWith('sb-') || key.includes('supabase')) && key.endsWith('-auth-token')) {
+          const val = JSON.parse(localStorage.getItem(key) || '{}')
+          if (val && val.access_token) return val.access_token
+        }
+      }
+    } catch {}
+    return ''
+  },
   setToken: (t) => localStorage.setItem('ae_token', t || ''),
   clearToken: () => localStorage.removeItem('ae_token'),
 }
@@ -28,13 +41,30 @@ async function request(path, { method = 'GET', body, form } = {}) {
   return data
 }
 
+async function requestBlob(path) {
+  const headers = {}
+  const token = API.getToken()
+  if (token) headers.Authorization = `Bearer ${token}`
+  const url = path.startsWith('/api') ? path : `${BASE}${path}`
+  const res = await fetch(url, { method: 'GET', headers })
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}))
+    const err = new Error(data.error || `Download failed (${res.status})`)
+    err.status = res.status
+    throw err
+  }
+  return res.blob()
+}
+
 export const api = {
   get: (path) => request(path),
+  getBlob: (path) => requestBlob(path),
   post: (path, body) => request(path, { method: 'POST', body }),
   postForm: (path, form) => request(path, { method: 'POST', form }),
   put: (path, body) => request(path, { method: 'PUT', body }),
   putForm: (path, form) => request(path, { method: 'PUT', form }),
   patch: (path, body) => request(path, { method: 'PATCH', body }),
   del: (path) => request(path, { method: 'DELETE' }),
+  getToken: () => API.getToken(),
   BASE,
 }

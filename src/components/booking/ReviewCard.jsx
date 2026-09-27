@@ -4,6 +4,17 @@ const NAVY = 'var(--ae-navy)'
 const GOLD = 'var(--ae-gold)'
 const GOLD2 = 'var(--ae-gold2)'
 
+function calcAge(dob) {
+  if (!dob) return ''
+  const d = new Date(`${dob}T00:00:00`)
+  if (Number.isNaN(d.getTime())) return ''
+  const now = new Date()
+  let age = now.getFullYear() - d.getFullYear()
+  const m = now.getMonth() - d.getMonth()
+  if (m < 0 || (m === 0 && now.getDate() < d.getDate())) age -= 1
+  return age >= 0 && age < 120 ? age : ''
+}
+
 function InfoRow({ label, value }) {
   if (!value) return null
   return (
@@ -22,10 +33,39 @@ function InfoRow({ label, value }) {
  *  - data:     traveler state object
  *  - onEdit:   () => void — called when "Edit" is clicked
  */
-export default function ReviewCard({ index, data, onEdit }) {
+export default function ReviewCard({ index, traveler, data, onEdit }) {
+  const d = traveler || data || {}
+
+  const name = d.fullName || d.name || ''
+  const dob = d.dob || ''
+  const age = d.age || (dob ? calcAge(dob) : '')
+  const sex = d.sex || d.gender || ''
+  const bloodGroup = d.bloodGroup || ''
+  const contact = d.contact || d.phone || ''
+  const education = d.education || ''
+  const school = d.school || ''
+  const experience =
+    d.experienceYesNo === 'Yes'
+      ? `Yes — ${d.experienceDetails || 'Details provided'}`
+      : d.experienceYesNo === 'No'
+      ? 'No'
+      : d.experience || ''
+  const participantType =
+    d.participantType === 'minor'
+      ? 'Minor'
+      : d.participantType === 'adult'
+      ? 'Adult'
+      : d.participantType || ''
+  const guardianName = d.guardianName || ''
+  const guardianContact = d.guardianContact || ''
+
+  const photoUrl = typeof d.photo === 'string' ? d.photo : d.photo?.dataUrl || null
+  const applicantSig = d.signature || d.sigApplicant || null
+  const riskSig = d.riskSignature || d.sigRisk || null
+
   return (
     <div
-      className="rounded-2xl overflow-hidden border"
+      className="rounded-2xl overflow-hidden border bg-white"
       style={{ borderColor: `${GOLD}40`, boxShadow: '0 2px 12px rgb(var(--ae-navy-rgb) /0.07)' }}
     >
       {/* Header */}
@@ -44,36 +84,38 @@ export default function ReviewCard({ index, data, onEdit }) {
             <p className="text-white font-bold text-sm uppercase tracking-wider">
               Traveler {index + 1}
             </p>
-            {data.name && (
+            {name && (
               <p className="text-xs mt-0.5" style={{ color: 'rgb(var(--ae-cream-rgb) /0.75)' }}>
-                {data.name}
+                {name}
               </p>
             )}
           </div>
         </div>
-        <button
-          type="button"
-          onClick={onEdit}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition"
-          style={{ backgroundColor: 'rgba(255,255,255,0.12)', color: '#ffffff' }}
-          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = GOLD; e.currentTarget.style.color = NAVY }}
-          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.12)'; e.currentTarget.style.color = '#ffffff' }}
-        >
-          <Edit3 size={12} />
-          Edit
-        </button>
+        {onEdit && (
+          <button
+            type="button"
+            onClick={onEdit}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer"
+            style={{ backgroundColor: 'rgba(255,255,255,0.12)', color: '#ffffff' }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = GOLD; e.currentTarget.style.color = NAVY }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.12)'; e.currentTarget.style.color = '#ffffff' }}
+          >
+            <Edit3 size={12} />
+            Edit
+          </button>
+        )}
       </div>
 
       {/* Body */}
       <div className="p-5 bg-white">
         <div className="flex gap-5 items-start">
           {/* Photo thumbnail */}
-          {data.photo ? (
+          {photoUrl ? (
             <div
               className="shrink-0 w-20 h-24 rounded-xl overflow-hidden border-2"
               style={{ borderColor: `${GOLD}50` }}
             >
-              <img src={data.photo} alt={`Traveler ${index + 1}`} className="w-full h-full object-cover" />
+              <img src={photoUrl} alt={`Traveler ${index + 1}`} className="w-full h-full object-cover" />
             </div>
           ) : (
             <div
@@ -87,57 +129,48 @@ export default function ReviewCard({ index, data, onEdit }) {
 
           {/* Info grid */}
           <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5">
-            <InfoRow label="Full Name" value={data.name} />
+            <InfoRow label="Full Name" value={name} />
             <InfoRow
               label="Date of Birth"
-              value={data.dob ? new Date(data.dob).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : ''}
+              value={dob ? new Date(dob).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : ''}
             />
-            <InfoRow label="Age" value={data.age ? `${data.age} years` : ''} />
-            <InfoRow label="Gender" value={data.sex} />
-            <InfoRow label="Blood Group" value={data.bloodGroup} />
-            <InfoRow label="Contact" value={data.contact} />
-            <InfoRow label="Education" value={data.education} />
-            <InfoRow label="School / College" value={data.school} />
-            <InfoRow
-              label="Experience"
-              value={
-                data.experience === 'Yes'
-                  ? `Yes — ${data.experienceDetails || 'Details not provided'}`
-                  : data.experience === 'No'
-                  ? 'No'
-                  : ''
-              }
-            />
-            <InfoRow label="Participant" value={data.participantType} />
-            {data.participantType === 'Minor' && (
+            <InfoRow label="Age" value={age ? `${age} years` : ''} />
+            <InfoRow label="Gender" value={sex} />
+            <InfoRow label="Blood Group" value={bloodGroup} />
+            <InfoRow label="Contact" value={contact} />
+            <InfoRow label="Education" value={education} />
+            <InfoRow label="School / College" value={school} />
+            <InfoRow label="Experience" value={experience} />
+            <InfoRow label="Participant" value={participantType} />
+            {participantType === 'Minor' && (
               <>
-                <InfoRow label="Guardian" value={data.guardianName} />
-                <InfoRow label="Guardian Contact" value={data.guardianContact} />
+                <InfoRow label="Guardian" value={guardianName} />
+                <InfoRow label="Guardian Contact" value={guardianContact} />
               </>
             )}
           </div>
         </div>
 
         {/* Signature previews */}
-        {(data.sigApplicant || data.sigRisk) && (
+        {(applicantSig || riskSig) && (
           <div className="mt-4 pt-4 border-t border-gray-100 grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {data.sigApplicant && (
+            {applicantSig && (
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-wider mb-1.5" style={{ color: NAVY }}>
                   Applicant Signature
                 </p>
-                <div className="rounded-xl overflow-hidden border" style={{ borderColor: `${GOLD}30` }}>
-                  <img src={data.sigApplicant} alt="Applicant signature" className="w-full h-16 object-contain bg-white" />
+                <div className="rounded-xl overflow-hidden border bg-white p-1" style={{ borderColor: `${GOLD}30` }}>
+                  <img src={applicantSig} alt="Applicant signature" className="w-full h-16 object-contain" />
                 </div>
               </div>
             )}
-            {data.sigRisk && (
+            {riskSig && (
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-wider mb-1.5" style={{ color: NAVY }}>
                   Risk Certificate Signature
                 </p>
-                <div className="rounded-xl overflow-hidden border" style={{ borderColor: `${GOLD}30` }}>
-                  <img src={data.sigRisk} alt="Risk signature" className="w-full h-16 object-contain bg-white" />
+                <div className="rounded-xl overflow-hidden border bg-white p-1" style={{ borderColor: `${GOLD}30` }}>
+                  <img src={riskSig} alt="Risk signature" className="w-full h-16 object-contain" />
                 </div>
               </div>
             )}

@@ -168,6 +168,15 @@ export default function TourApplicationForm({ courseName = '' }) {
   const [errors, setErrors] = useState({})
   const photoInput = useRef(null)
 
+  useEffect(() => {
+    if (f.name && !f.riskName) {
+      setF((prev) => ({ ...prev, riskName: prev.name }))
+    }
+    if ((f.course || courseName) && !f.riskCourse) {
+      setF((prev) => ({ ...prev, riskCourse: prev.course || courseName }))
+    }
+  }, [f.name, f.course, courseName, f.riskName, f.riskCourse])
+
   const set = (key) => (e) => {
     let v = e.target.value
     if (e.target.files && e.target.files[0]) {
@@ -455,8 +464,19 @@ export default function TourApplicationForm({ courseName = '' }) {
 
             <p className="text-[13px] sm:text-[14px] leading-relaxed" style={{ color: INK }}>
               It is certified that I agree to detail my son / daughter / ward / Mr. Myself{' '}
-              <Blank value={f.riskName} onChange={set('riskName')} className="w-36 sm:w-44" />{' '}
-              For <Blank value={f.riskCourse} onChange={set('riskCourse')} className="w-32 sm:w-40" />{' '}
+              <Blank
+                value={f.riskName || f.name || ''}
+                onChange={set('riskName')}
+                className="w-36 sm:w-44 font-bold"
+                placeholder={f.name || 'Participant Name'}
+              />{' '}
+              For{' '}
+              <Blank
+                value={f.riskCourse || f.course || courseName || ''}
+                onChange={set('riskCourse')}
+                className="w-32 sm:w-40 font-bold"
+                placeholder={f.course || courseName || 'Course Name'}
+              />{' '}
               course at my own risk and no compensation will be paid to me in case of accident or death
               and I will not hold the CLUB - TRUST or its staff wholly or partially responsible for any
               mishappening.

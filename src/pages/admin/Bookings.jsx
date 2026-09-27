@@ -117,56 +117,44 @@ export default function Bookings() {
   }
 
   const generatePdf = async (bookingId, type = 'booking') => {
-    setPdfGenerating(bookingId)
+    setPdfGenerating(bookingId || 'all')
     try {
-      let url
-      if (type === 'all') {
-        url = `${api.BASE}/bookings/download/all/pdf`
-      } else {
-        url = `${api.BASE}/bookings/${bookingId}/download/pdf`
-      }
-      const res = await fetch(url, {
-        headers: { 'Authorization': `Bearer ${api.getToken()}` }
-      })
-      if (!res.ok) throw new Error('Failed to generate PDF')
-      const blob = await res.blob()
+      const path = type === 'all' ? '/bookings/download/all/pdf' : `/bookings/${bookingId}/download/pdf`
+      const blob = await api.getBlob(path)
       const downloadUrl = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = downloadUrl
       a.download = type === 'all' ? 'all-bookings.pdf' : `booking-${bookingId}.pdf`
+      document.body.appendChild(a)
       a.click()
+      a.remove()
       window.URL.revokeObjectURL(downloadUrl)
       addToast('PDF downloaded successfully')
     } catch (e) {
-      addToast('Unable to generate PDF. Please try again.', 'error')
+      console.error('PDF export error:', e)
+      addToast(e.message || 'Unable to generate PDF. Please try again.', 'error')
     } finally {
       setPdfGenerating(null)
     }
   }
 
   const generateExcel = async (bookingId, type = 'booking') => {
-    setExcelGenerating(bookingId)
+    setExcelGenerating(bookingId || 'all')
     try {
-      let url
-      if (type === 'all') {
-        url = `${api.BASE}/bookings/download/all/excel`
-      } else {
-        url = `${api.BASE}/bookings/${bookingId}/download/excel`
-      }
-      const res = await fetch(url, {
-        headers: { 'Authorization': `Bearer ${api.getToken()}` }
-      })
-      if (!res.ok) throw new Error('Failed to generate Excel')
-      const blob = await res.blob()
+      const path = type === 'all' ? '/bookings/download/all/excel' : `/bookings/${bookingId}/download/excel`
+      const blob = await api.getBlob(path)
       const downloadUrl = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = downloadUrl
       a.download = type === 'all' ? 'all-bookings.xlsx' : `booking-${bookingId}.xlsx`
+      document.body.appendChild(a)
       a.click()
+      a.remove()
       window.URL.revokeObjectURL(downloadUrl)
       addToast('Excel downloaded successfully')
     } catch (e) {
-      addToast('Unable to generate Excel. Please try again.', 'error')
+      console.error('Excel export error:', e)
+      addToast(e.message || 'Unable to generate Excel. Please try again.', 'error')
     } finally {
       setExcelGenerating(null)
     }

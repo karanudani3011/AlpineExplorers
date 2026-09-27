@@ -140,7 +140,7 @@ export const CONTENT_CONFIGS = {
   adventure: {
     table: 'adventure_packages',
     module: 'adventure',
-    fields: ['title', 'category', 'location', 'duration', 'season', 'ex', 'description', 'activities', 'includes', 'image', 'status'],
+    fields: ['title', 'category', 'location', 'duration', 'season', 'ex', 'description', 'activities', 'includes', 'image', 'gallery', 'status'],
   },
   camping: {
     table: 'camping_packages',

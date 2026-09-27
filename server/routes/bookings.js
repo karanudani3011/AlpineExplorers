@@ -197,6 +197,20 @@ router.post('/', async (req, res) => {
   res.status(201).json({ message: 'Booking created successfully', bookingId: booking_id, id: Number(bookingId) })
 })
 
+router.get('/my-bookings', (req, res) => {
+  const email = (req.query.email || '').trim().toLowerCase()
+  if (!email) return res.json({ bookings: [] })
+  try {
+    const rows = db.prepare(
+      'SELECT * FROM bookings WHERE LOWER(booking_contact_email) = ? ORDER BY id DESC'
+    ).all(email)
+    res.json({ bookings: rows || [] })
+  } catch (err) {
+    console.error('Error fetching traveler bookings:', err)
+    res.status(500).json({ error: 'Failed to fetch bookings' })
+  }
+})
+
 router.use(authRequired)
 
 router.get('/stats', requirePermission('bookings.view'), (req, res) => {
@@ -502,32 +516,9 @@ router.delete('/:id', requirePermission('bookings.delete'), async (req, res) => 
   res.json({ message: 'Booking deleted successfully' })
 })
 
-// PDF Downloads
-router.get('/:id/download/pdf', requirePermission('bookings.export_individual_pdf'), async (req, res) => {
-  try {
-    const pdfBuffer = await generateBookingPdf(Number(req.params.id))
-    const booking = getBookingById(req.params.id)
-    res.setHeader('Content-Type', 'application/pdf')
-    res.setHeader('Content-Disposition', `attachment; filename="booking-${booking?.booking_id || req.params.id}.pdf"`)
-    res.send(pdfBuffer)
-  } catch (e) {
-    res.status(500).json({ error: 'Unable to generate PDF' })
-  }
-})
+// PDF & Excel Downloads — NOTE: Specific static routes MUST come BEFORE parameterized /:id routes in Express!
 
-router.get('/traveler/:travelerId/download/pdf', requirePermission('bookings.export_individual_pdf'), async (req, res) => {
-  try {
-    const pdfBuffer = await generateIndividualTravelerPdf(Number(req.params.travelerId))
-    const traveler = getTravelerById(req.params.travelerId)
-    const booking = traveler ? getBookingById(traveler.booking_id) : null
-    res.setHeader('Content-Type', 'application/pdf')
-    res.setHeader('Content-Disposition', `attachment; filename="traveler-${traveler?.traveler_number || req.params.travelerId}-${booking?.booking_id || 'booking'}.pdf"`)
-    res.send(pdfBuffer)
-  } catch (e) {
-    res.status(500).json({ error: 'Unable to generate PDF' })
-  }
-})
-
+// 1. All Bookings PDF
 router.get('/download/all/pdf', requirePermission('bookings.export_pdf'), async (req, res) => {
   try {
     const pdfBuffer = await generateAllBookingsPdf()
@@ -535,36 +526,12 @@ router.get('/download/all/pdf', requirePermission('bookings.export_pdf'), async 
     res.setHeader('Content-Disposition', 'attachment; filename="all-bookings.pdf"')
     res.send(pdfBuffer)
   } catch (e) {
+    console.error('Error generating all PDF:', e)
     res.status(500).json({ error: 'Unable to generate PDF' })
   }
 })
 
-// Excel Downloads
-router.get('/:id/download/excel', requirePermission('bookings.export_individual_excel'), async (req, res) => {
-  try {
-    const excelBuffer = await generateBookingExcel(Number(req.params.id))
-    const booking = getBookingById(req.params.id)
-    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    res.setHeader('Content-Disposition', `attachment; filename="booking-${booking?.booking_id || req.params.id}.xlsx"`)
-    res.send(excelBuffer)
-  } catch (e) {
-    res.status(500).json({ error: 'Unable to generate Excel' })
-  }
-})
-
-router.get('/traveler/:travelerId/download/excel', requirePermission('bookings.export_individual_excel'), async (req, res) => {
-  try {
-    const excelBuffer = await generateIndividualTravelerExcel(Number(req.params.travelerId))
-    const traveler = getTravelerById(req.params.travelerId)
-    const booking = traveler ? getBookingById(traveler.booking_id) : null
-    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    res.setHeader('Content-Disposition', `attachment; filename="traveler-${traveler?.traveler_number || req.params.travelerId}-${booking?.booking_id || 'booking'}.xlsx"`)
-    res.send(excelBuffer)
-  } catch (e) {
-    res.status(500).json({ error: 'Unable to generate Excel' })
-  }
-})
-
+// 2. All Bookings Excel
 router.get('/download/all/excel', requirePermission('bookings.export_excel'), async (req, res) => {
   try {
     const excelBuffer = await generateAllBookingsExcel()
@@ -572,6 +539,69 @@ router.get('/download/all/excel', requirePermission('bookings.export_excel'), as
     res.setHeader('Content-Disposition', 'attachment; filename="all-bookings.xlsx"')
     res.send(excelBuffer)
   } catch (e) {
+    console.error('Error generating all Excel:', e)
+    res.status(500).json({ error: 'Unable to generate Excel' })
+  }
+})
+
+// 3. Individual Traveler PDF
+router.get('/traveler/:travelerId/download/pdf', requirePermission('bookings.export_individual_pdf'), async (req, res) => {
+  try {
+    const travelerId = isNaN(Number(req.params.travelerId)) ? req.params.travelerId : Number(req.params.travelerId)
+    const pdfBuffer = await generateIndividualTravelerPdf(travelerId)
+    const traveler = getTravelerById(travelerId)
+    const booking = traveler ? getBookingById(traveler.booking_id) : null
+    res.setHeader('Content-Type', 'application/pdf')
+    res.setHeader('Content-Disposition', `attachment; filename="traveler-${traveler?.traveler_number || req.params.travelerId}-${booking?.booking_id || 'booking'}.pdf"`)
+    res.send(pdfBuffer)
+  } catch (e) {
+    console.error('Error generating traveler PDF:', e)
+    res.status(500).json({ error: 'Unable to generate PDF' })
+  }
+})
+
+// 4. Individual Traveler Excel
+router.get('/traveler/:travelerId/download/excel', requirePermission('bookings.export_individual_excel'), async (req, res) => {
+  try {
+    const travelerId = isNaN(Number(req.params.travelerId)) ? req.params.travelerId : Number(req.params.travelerId)
+    const excelBuffer = await generateIndividualTravelerExcel(travelerId)
+    const traveler = getTravelerById(travelerId)
+    const booking = traveler ? getBookingById(traveler.booking_id) : null
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    res.setHeader('Content-Disposition', `attachment; filename="traveler-${traveler?.traveler_number || req.params.travelerId}-${booking?.booking_id || 'booking'}.xlsx"`)
+    res.send(excelBuffer)
+  } catch (e) {
+    console.error('Error generating traveler Excel:', e)
+    res.status(500).json({ error: 'Unable to generate Excel' })
+  }
+})
+
+// 5. Booking PDF (by id or booking_id)
+router.get('/:id/download/pdf', requirePermission('bookings.export_individual_pdf'), async (req, res) => {
+  try {
+    const bookingId = isNaN(Number(req.params.id)) ? req.params.id : Number(req.params.id)
+    const pdfBuffer = await generateBookingPdf(bookingId)
+    const booking = getBookingById(bookingId)
+    res.setHeader('Content-Type', 'application/pdf')
+    res.setHeader('Content-Disposition', `attachment; filename="booking-${booking?.booking_id || req.params.id}.pdf"`)
+    res.send(pdfBuffer)
+  } catch (e) {
+    console.error('Error generating booking PDF:', e)
+    res.status(500).json({ error: 'Unable to generate PDF' })
+  }
+})
+
+// 6. Booking Excel (by id or booking_id)
+router.get('/:id/download/excel', requirePermission('bookings.export_individual_excel'), async (req, res) => {
+  try {
+    const bookingId = isNaN(Number(req.params.id)) ? req.params.id : Number(req.params.id)
+    const excelBuffer = await generateBookingExcel(bookingId)
+    const booking = getBookingById(bookingId)
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    res.setHeader('Content-Disposition', `attachment; filename="booking-${booking?.booking_id || req.params.id}.xlsx"`)
+    res.send(excelBuffer)
+  } catch (e) {
+    console.error('Error generating booking Excel:', e)
     res.status(500).json({ error: 'Unable to generate Excel' })
   }
 })

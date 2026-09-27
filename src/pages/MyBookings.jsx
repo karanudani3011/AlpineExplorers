@@ -10,6 +10,7 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { useSupabaseAuth } from '../hooks/useSupabaseAuth'
 import { supabase } from '../services/supabaseClient'
+import { api } from '../services/api'
 
 const NAVY = 'var(--ae-navy)'
 const NAVY_MID = 'var(--ae-navy-mid)'
@@ -66,16 +67,24 @@ export default function MyBookings() {
     if (!user) return
     setLoading(true)
     try {
-      // Supabase query with RLS: user only sees their own bookings
+      // 1. Fetch from our SQLite database backend
+      const userEmail = user.email || ''
+      const res = await api.get(`/bookings/my-bookings?email=${encodeURIComponent(userEmail)}`)
+      if (res && Array.isArray(res.bookings) && res.bookings.length > 0) {
+        setBookings(res.bookings)
+        return
+      }
+
+      // 2. Fallback to Supabase if any
       const { data, error } = await supabase
         .from('bookings')
         .select('*')
         .order('created_at', { ascending: false })
 
-      if (!error && data) {
+      if (!error && Array.isArray(data) && data.length > 0) {
         setBookings(data)
       } else {
-        setBookings([])
+        setBookings(res?.bookings || [])
       }
     } catch {
       setBookings([])

@@ -9,9 +9,7 @@ import { getCatalog } from '../services/catalog'
 
 function formatPrice(p) {
   if (!p || p <= 0) return 'On Request'
-  return p >= 10000
-    ? new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(p)
-    : `$${p}`
+  return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(p)
 }
 
 function buildSearchIndex(catalogTours = []) {

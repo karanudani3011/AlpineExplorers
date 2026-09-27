@@ -24,6 +24,16 @@ CREATE TABLE IF NOT EXISTS users (
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+CREATE TABLE IF NOT EXISTS traveler_accounts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  full_name TEXT NOT NULL,
+  email TEXT NOT NULL UNIQUE,
+  phone TEXT,
+  password_hash TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'active' CHECK(status IN ('active','inactive')),
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 CREATE TABLE IF NOT EXISTS international_packages (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   destination TEXT NOT NULL,
@@ -81,6 +91,7 @@ CREATE TABLE IF NOT EXISTS adventure_packages (
   activities TEXT DEFAULT '[]',
   includes TEXT DEFAULT '[]',
   image TEXT,
+  gallery TEXT DEFAULT '[]',
   status TEXT NOT NULL DEFAULT 'active' CHECK(status IN ('active','inactive')),
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))

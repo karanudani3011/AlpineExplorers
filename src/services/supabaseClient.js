@@ -1,17 +1,13 @@
-﻿import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js'
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
+const DEFAULT_URL = 'https://qhbsilnramjkagdjitlp.supabase.co'
+const DEFAULT_ANON_KEY =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoYnNpbG5yYW1qa2FnZGppdGxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg5NDYzOTUsImV4cCI6MjEwNDUyMjM5NX0.VYof3R8a367R5zorFz7qaWl4mrMtx1thC2hTNHM-yW4'
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || DEFAULT_URL
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || DEFAULT_ANON_KEY
 
 const isConfigured = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY)
-
-if (!isConfigured) {
-  console.warn(
-    '[supabaseClient] Missing VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY in .env — ' +
-      'Supabase auth & booking features are disabled until they are added. ' +
-      'Copy .env.example to .env, fill in your Supabase project URL and anon key, then restart the dev server.'
-  )
-}
 
 const unconfiguredMessage =
   'Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to a .env file, then restart the dev server.'

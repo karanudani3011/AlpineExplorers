@@ -116,20 +116,19 @@ export default function BookingDetail() {
   const generatePdf = async () => {
     setPdfGenerating(true)
     try {
-      const res = await fetch(`${api.BASE}/bookings/${id}/download/pdf`, {
-        headers: { 'Authorization': `Bearer ${api.getToken()}` }
-      })
-      if (!res.ok) throw new Error('Failed to generate PDF')
-      const blob = await res.blob()
+      const blob = await api.getBlob(`/bookings/${id}/download/pdf`)
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
       a.download = `booking-${booking?.booking_id || id}.pdf`
+      document.body.appendChild(a)
       a.click()
+      a.remove()
       window.URL.revokeObjectURL(url)
       addToast('PDF downloaded successfully')
     } catch (e) {
-      addToast('Unable to generate PDF. Please try again.', 'error')
+      console.error('PDF export error:', e)
+      addToast(e.message || 'Unable to generate PDF. Please try again.', 'error')
     } finally {
       setPdfGenerating(false)
     }
@@ -138,20 +137,19 @@ export default function BookingDetail() {
   const generateExcel = async () => {
     setExcelGenerating(true)
     try {
-      const res = await fetch(`${api.BASE}/bookings/${id}/download/excel`, {
-        headers: { 'Authorization': `Bearer ${api.getToken()}` }
-      })
-      if (!res.ok) throw new Error('Failed to generate Excel')
-      const blob = await res.blob()
+      const blob = await api.getBlob(`/bookings/${id}/download/excel`)
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
       a.download = `booking-${booking?.booking_id || id}.xlsx`
+      document.body.appendChild(a)
       a.click()
+      a.remove()
       window.URL.revokeObjectURL(url)
       addToast('Excel downloaded successfully')
     } catch (e) {
-      addToast('Unable to generate Excel. Please try again.', 'error')
+      console.error('Excel export error:', e)
+      addToast(e.message || 'Unable to generate Excel. Please try again.', 'error')
     } finally {
       setExcelGenerating(false)
     }
@@ -159,39 +157,37 @@ export default function BookingDetail() {
 
   const generateIndividualPdf = async (travelerId, travelerNumber) => {
     try {
-      const res = await fetch(`${api.BASE}/bookings/traveler/${travelerId}/download/pdf`, {
-        headers: { 'Authorization': `Bearer ${api.getToken()}` }
-      })
-      if (!res.ok) throw new Error('Failed')
-      const blob = await res.blob()
+      const blob = await api.getBlob(`/bookings/traveler/${travelerId}/download/pdf`)
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
       a.download = `traveler-${travelerNumber}-${booking?.booking_id || id}.pdf`
+      document.body.appendChild(a)
       a.click()
+      a.remove()
       window.URL.revokeObjectURL(url)
       addToast('Individual PDF downloaded successfully')
     } catch (e) {
-      addToast('Unable to generate PDF. Please try again.', 'error')
+      console.error('Traveler PDF export error:', e)
+      addToast(e.message || 'Unable to generate PDF. Please try again.', 'error')
     }
   }
 
   const generateIndividualExcel = async (travelerId, travelerNumber) => {
     try {
-      const res = await fetch(`${api.BASE}/bookings/traveler/${travelerId}/download/excel`, {
-        headers: { 'Authorization': `Bearer ${api.getToken()}` }
-      })
-      if (!res.ok) throw new Error('Failed')
-      const blob = await res.blob()
+      const blob = await api.getBlob(`/bookings/traveler/${travelerId}/download/excel`)
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
       a.download = `traveler-${travelerNumber}-${booking?.booking_id || id}.xlsx`
+      document.body.appendChild(a)
       a.click()
+      a.remove()
       window.URL.revokeObjectURL(url)
       addToast('Individual Excel downloaded successfully')
     } catch (e) {
-      addToast('Unable to generate Excel. Please try again.', 'error')
+      console.error('Traveler Excel export error:', e)
+      addToast(e.message || 'Unable to generate Excel. Please try again.', 'error')
     }
   }
 
@@ -724,6 +720,11 @@ function InfoRow({ label, value }) {
       <span style={{ color: NAVY }}>{value}</span>
     </div>
   )
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '—'
+  return new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
 function calculateAge(dob) {

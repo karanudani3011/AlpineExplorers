@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useRef, useEffect } from 'react'
 import { Trash2, Camera, User, Phone, Calendar, MapPin, GraduationCap, Building2, Heart } from 'lucide-react'
 import SignaturePad from './SignaturePad'
 import { Field, ChipGroup, SectionTitle, inputBase, fieldStyle, NAVY, GOLD, BROWN, ERR, font } from './bookingUi'
@@ -22,7 +22,17 @@ const inputStyle = (hasError) => ({ ...inputBase, ...fieldStyle(hasError) })
 export default function TravelerForm({ index, count, trip, traveler, errors, onChange, onSetError, maxDob }) {
   const photoInputRef = useRef(null)
 
-  const nameOfCourse = traveler.courseName || trip.title
+  const nameOfCourse = traveler.courseName || trip?.title || ''
+
+  // Auto-sync risk certificate fields if empty or untouched
+  useEffect(() => {
+    if (traveler.fullName && !traveler.riskParticipantName) {
+      onChange('riskParticipantName', traveler.fullName)
+    }
+    if (nameOfCourse && !traveler.riskCourseName) {
+      onChange('riskCourseName', nameOfCourse)
+    }
+  }, [traveler.fullName, traveler.riskParticipantName, traveler.riskCourseName, nameOfCourse, onChange])
 
   const handlePhotoFile = (file) => {
     if (!file) return
@@ -465,33 +475,52 @@ export default function TravelerForm({ index, count, trip, traveler, errors, onC
 
       <div>
         <SectionTitle>Risk Certificate</SectionTitle>
-        <div className="mt-4 rounded-xl p-4" style={{ backgroundColor: '#ffffff', border: '1px solid rgba(180,160,130,0.5)' }}>
-          <p className="text-xs leading-relaxed" style={{ color: BROWN, ...font.body }}>
+        <div className="mt-4 rounded-xl p-4 bg-amber-50/50 border" style={{ borderColor: 'rgba(180,160,130,0.5)' }}>
+          <p className="text-xs sm:text-sm leading-relaxed font-medium" style={{ color: BROWN, ...font.body }}>
             &quot;It is certified that I agree to detail my son / daughter / ward / Mr. / Myself{' '}
-            <span style={{ color: GOLD }}>_______________</span> for{' '}
-            <span style={{ color: GOLD }}>_______________</span> course at my own risk and no compensation
-            will be paid to me in case of accident or death and I will not hold the CLUB-TRUST or its staff
-            wholly or partially responsible for any mishappening.&quot;
+            <span
+              className="inline-block border-b-2 px-2 py-0.5 rounded font-bold"
+              style={{
+                color: NAVY,
+                borderColor: GOLD,
+                backgroundColor: 'rgba(217, 119, 6, 0.12)',
+              }}
+            >
+              {traveler.riskParticipantName || traveler.fullName || '____________________'}
+            </span>{' '}
+            for{' '}
+            <span
+              className="inline-block border-b-2 px-2 py-0.5 rounded font-bold"
+              style={{
+                color: NAVY,
+                borderColor: GOLD,
+                backgroundColor: 'rgba(217, 119, 6, 0.12)',
+              }}
+            >
+              {traveler.riskCourseName || nameOfCourse || '____________________'}
+            </span>{' '}
+            course at my own risk and no compensation will be paid to me in case of accident or death and I will not hold the CLUB-TRUST or its staff wholly or partially responsible for any mishappening.&quot;
           </p>
         </div>
         <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Field id={`risk-participant-${index}`} label="Participant Name" required error={errors.riskParticipantName}>
+          <Field id={`risk-participant-${index}`} label="Participant Name for Risk Certificate" required error={errors.riskParticipantName}>
             <input
               id={`risk-participant-${index}`}
               type="text"
               placeholder="Full name of participant"
-              value={traveler.riskParticipantName}
+              value={traveler.riskParticipantName || traveler.fullName || ''}
               onChange={(e) => onChange('riskParticipantName', e.target.value)}
               aria-invalid={!!errors.riskParticipantName}
               aria-describedby={errors.riskParticipantName ? `risk-participant-${index}-error` : undefined}
               style={inputStyle(errors.riskParticipantName)}
             />
           </Field>
-          <Field id={`risk-course-${index}`} label="Course Name" required error={errors.riskCourseName}>
+          <Field id={`risk-course-${index}`} label="Course Name for Risk Certificate" required error={errors.riskCourseName}>
             <input
               id={`risk-course-${index}`}
               type="text"
-              value={traveler.riskCourseName}
+              placeholder="Name of course"
+              value={traveler.riskCourseName || nameOfCourse || ''}
               onChange={(e) => onChange('riskCourseName', e.target.value)}
               aria-invalid={!!errors.riskCourseName}
               aria-describedby={errors.riskCourseName ? `risk-course-${index}-error` : undefined}

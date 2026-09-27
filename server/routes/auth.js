@@ -12,8 +12,66 @@ import {
 const router = Router()
 
 /**
+ * POST /api/auth/register
+ * Traveler account registration endpoint.
+ */
+router.post('/register', async (req, res) => {
+  try {
+    const { fullName, full_name, email, password, phone } = req.body || {}
+    const name = (fullName || full_name || '').trim()
+    const cleanEmail = (email || '').trim().toLowerCase()
+
+    if (!name) return res.status(400).json({ error: 'Full name is required' })
+    if (!cleanEmail) return res.status(400).json({ error: 'Email address is required' })
+    if (!password || String(password).length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters long' })
+    }
+
+    const existsTraveler = db.prepare('SELECT id FROM traveler_accounts WHERE LOWER(email) = ?').get(cleanEmail)
+    const existsUser = db.prepare('SELECT id FROM users WHERE LOWER(email) = ?').get(cleanEmail)
+    if (existsTraveler || existsUser) {
+      return res.status(400).json({ error: 'An account with this email address already exists. Please login instead.' })
+    }
+
+    const hash = bcrypt.hashSync(String(password), 10)
+    const info = db.prepare(
+      'INSERT INTO traveler_accounts (full_name, email, phone, password_hash, status) VALUES (?,?,?,?,?)'
+    ).run(name, cleanEmail, phone || null, hash, 'active')
+
+    const userPayload = {
+      id: `trav-${info.lastInsertRowid}`,
+      auth_user_id: `trav-${info.lastInsertRowid}`,
+      full_name: name,
+      email: cleanEmail,
+      phone: phone || '',
+      role: 'TRAVELER',
+      status: 'ACTIVE',
+      permissions: [],
+    }
+
+    const token = signToken(userPayload, [])
+
+    logActivity({
+      user_name: name,
+      action: 'Traveler registered',
+      module: 'Auth',
+      details: `${name} (${cleanEmail})`,
+    })
+
+    res.status(201).json({
+      token,
+      user: userPayload,
+      session: { access_token: token, user: userPayload },
+    })
+  } catch (err) {
+    console.error('Registration error:', err)
+    res.status(500).json({ error: err.message || 'Registration failed' })
+  }
+})
+
+/**
  * POST /api/auth/login
- * Unified login endpoint for both Super Admin and Staff.
+ * Unified login endpoint for Super Admin, Staff, and Travelers.
  * Accepts: email (or username) and password.
  */
 router.post('/login', async (req, res) => {
@@ -92,6 +150,21 @@ router.post('/login', async (req, res) => {
         authenticatedProfile = localProfile
       }
     }
+
+    if (!authenticatedProfile) {
+      const trav = db.prepare('SELECT * FROM traveler_accounts WHERE LOWER(email) = ?').get(identifier)
+      if (trav && bcrypt.compareSync(String(password), trav.password_hash)) {
+        authenticatedProfile = {
+          id: `trav-${trav.id}`,
+          auth_user_id: `trav-${trav.id}`,
+          full_name: trav.full_name,
+          email: trav.email,
+          phone: trav.phone || '',
+          role: 'TRAVELER',
+          status: (trav.status || 'ACTIVE').toUpperCase(),
+        }
+      }
+    }
   }
 
   // If still not authenticated
@@ -105,11 +178,14 @@ router.post('/login', async (req, res) => {
     return res.status(403).json({ error: 'This account is deactivated. Contact the Super Admin.' })
   }
 
-  const normRole = (authenticatedProfile.role || '').toUpperCase() === 'SUPER_ADMIN' ? 'SUPER_ADMIN' : 'STAFF'
+  const rawRole = (authenticatedProfile.role || '').toUpperCase()
+  const normRole = rawRole === 'SUPER_ADMIN' ? 'SUPER_ADMIN' : rawRole === 'TRAVELER' ? 'TRAVELER' : 'STAFF'
 
   // Fetch permissions
   if (normRole === 'SUPER_ADMIN') {
     permissions = ['*']
+  } else if (normRole === 'TRAVELER') {
+    permissions = []
   } else {
     // 1. Try Supabase permissions
     try {
@@ -208,6 +284,22 @@ router.get('/me', authRequired, async (req, res) => {
         phone: legacy.phone || '',
         role: legacy.role === 'super_admin' ? 'SUPER_ADMIN' : 'STAFF',
         status: legacy.status === 'active' ? 'ACTIVE' : 'INACTIVE',
+      }
+    }
+  }
+
+  if (!profile) {
+    const rawId = String(userId).replace('trav-', '')
+    const trav = db.prepare('SELECT * FROM traveler_accounts WHERE id = ? OR email = ?').get(rawId, req.user.email)
+    if (trav) {
+      profile = {
+        id: `trav-${trav.id}`,
+        auth_user_id: `trav-${trav.id}`,
+        full_name: trav.full_name,
+        email: trav.email,
+        phone: trav.phone || '',
+        role: 'TRAVELER',
+        status: (trav.status || 'ACTIVE').toUpperCase(),
       }
     }
   }

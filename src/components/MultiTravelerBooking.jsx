@@ -1,13 +1,17 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { Link, useNavigate } from 'react-router-dom'
 import {
-  Users, ChevronRight, CheckCircle2, ArrowRight, ArrowLeft,
+  Users, CheckCircle2, ArrowRight, ArrowLeft,
   Mountain, MapPin, Clock, Calendar, CreditCard, Download,
-  Home, FileText, AlertCircle, Loader2
+  Home, AlertCircle, Loader2, Ticket, MessageSquare, ExternalLink
 } from 'lucide-react'
 import { api } from '../services/api'
+import { supabase } from '../services/supabaseClient'
 import TravelerForm from './booking/TravelerForm'
 import ReviewCard from './booking/ReviewCard'
+import PaymentScreen from './booking/PaymentScreen'
+import { PAYMENT_CONFIG } from '../config/paymentConfig'
 
 const NAVY = 'var(--ae-navy)'
 const NAVY_MID = 'var(--ae-navy-mid)'
@@ -18,49 +22,57 @@ const ERR = '#dc2626'
 /* ──────────────────────────── Helpers ──────────────────────────── */
 
 function formatINR(amount) {
-  if (!amount || amount <= 0) return null
+  if (!amount || amount <= 0) return '₹0'
   return new Intl.NumberFormat('en-IN', {
     style: 'currency', currency: 'INR', maximumFractionDigits: 0,
   }).format(amount)
 }
 
-function generateBookingId() {
-  const year = new Date().getFullYear()
-  const rand = Math.floor(1000 + Math.random() * 9000)
-  return `AE-${year}-${rand}`
+function formatDate(dateStr) {
+  if (!dateStr) return 'Flexible / To be confirmed'
+  return new Date(dateStr).toLocaleDateString('en-IN', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
 }
 
-function makeTraveler() {
+function generateBookingId() {
+  const year = new Date().getFullYear()
+  const rand = Math.floor(10000 + Math.random() * 90000)
+  return `ALP-${year}-${rand}`
+}
+
+function makeTraveler(user = null, profile = null, defaultCourse = '') {
   return {
-    course: '',
-    name: '',
+    courseName: defaultCourse,
+    fullName: profile?.full_name || user?.user_metadata?.full_name || '',
     dob: '',
     age: '',
     sex: '',
     bloodGroup: '',
     address: '',
-    contact: '',
+    contact: profile?.phone || '',
     education: '',
     school: '',
     schoolAddress: '',
     schoolPhone: '',
     hobbies: '',
-    experience: '',
+    experienceYesNo: 'No',
     experienceDetails: '',
-    declarationAgreed: false,
-    declarationPlace: '',
-    declarationDate: '',
-    riskName: '',
-    riskCourse: '',
-    riskAgreed: false,
+    declarationAccepted: false,
+    sigPlace: '',
+    sigDate: '',
+    riskParticipantName: '',
+    riskCourseName: defaultCourse,
+    riskAccepted: false,
     riskPlace: '',
     riskDate: '',
-    participantType: 'Adult',
+    participantType: 'adult',
     guardianName: '',
     guardianContact: '',
-    photo: '',
-    sigApplicant: '',
-    sigGuardian: '',
+    photo: null,
+    signature: '',
     sigRisk: '',
     isExpanded: true,
     isCompleted: false,
@@ -71,7 +83,7 @@ const INDIAN_PHONE = /^(\+91)?0?[6-9]\d{9}$/
 
 function validateTraveler(t) {
   const e = {}
-  if (!t.name.trim()) e.name = 'Please enter full name'
+  if (!t.fullName.trim()) e.fullName = 'Please enter full name'
   if (!t.dob) e.dob = 'Please select date of birth'
   if (!t.sex) e.sex = 'Please select gender'
   if (!t.bloodGroup) e.bloodGroup = 'Please select blood group'
@@ -84,41 +96,41 @@ function validateTraveler(t) {
   if (!t.education.trim()) e.education = 'Please enter education qualification'
   if (!t.school.trim()) e.school = 'Please enter school / college name'
   if (!t.photo) e.photo = 'Please upload photograph'
-  if (!t.declarationAgreed) e.declarationAgreed = 'Please accept the terms and conditions'
-  if (!t.declarationPlace.trim()) e.declarationPlace = 'Please enter place'
-  if (!t.declarationDate) e.declarationDate = 'Please enter date'
-  if (!t.sigApplicant) e.sigApplicant = 'Please provide applicant signature'
-  if (!t.riskName.trim()) e.riskName = 'Please enter participant name for risk certificate'
-  if (!t.riskAgreed) e.riskAgreed = 'Please accept the risk certificate'
+  if (!t.declarationAccepted) e.declaration = 'Please accept the declaration'
+  if (!t.sigPlace.trim()) e.sigPlace = 'Please enter place'
+  if (!t.sigDate) e.sigDate = 'Please enter date'
+  if (!t.signature) e.signature = 'Please provide applicant signature'
+  if (!t.riskParticipantName.trim()) e.riskParticipantName = 'Please enter participant name for risk certificate'
+  if (!t.riskCourseName.trim()) e.riskCourseName = 'Please enter course name for risk certificate'
+  if (!t.riskAccepted) e.risk = 'Please accept the risk certificate'
   if (!t.riskPlace.trim()) e.riskPlace = 'Please enter place'
   if (!t.riskDate) e.riskDate = 'Please enter date'
-  if (!t.sigRisk) e.sigRisk = 'Please provide signature for risk certificate'
+  if (!t.riskSignature) e.riskSignature = 'Please provide signature for risk certificate'
   if (!t.participantType) e.participantType = 'Please select participant type'
-  if (t.participantType === 'Minor') {
+  if (t.participantType === 'minor') {
     if (!t.guardianName.trim()) e.guardianName = 'Please enter guardian name'
     if (!t.guardianContact.trim()) {
       e.guardianContact = 'Please enter guardian contact number'
     } else if (!INDIAN_PHONE.test(t.guardianContact.replace(/\s+/g, ''))) {
       e.guardianContact = 'Please enter a valid Indian mobile number'
     }
-    if (!t.sigGuardian) e.sigGuardian = 'Please provide guardian signature'
   }
   return e
 }
 
 /* ──────────────────────────── Step Indicator ──────────────────────────── */
 
-const STEPS = ['Travelers', 'Application', 'Review', 'Done']
+const STEPS = ['Travelers', 'Application', 'Summary', 'Payment', 'Confirmation']
 
 function StepBar({ step }) {
   return (
-    <div className="flex items-center justify-center gap-0 mb-8">
+    <div className="flex items-center justify-center gap-0 mb-8 overflow-x-auto py-2">
       {STEPS.map((label, i) => {
         const done = i < step
         const active = i === step
         const last = i === STEPS.length - 1
         return (
-          <div key={label} className="flex items-center">
+          <div key={label} className="flex items-center shrink-0">
             <div className="flex flex-col items-center gap-1">
               <div
                 className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all"
@@ -139,7 +151,7 @@ function StepBar({ step }) {
             </div>
             {!last && (
               <div
-                className="w-12 sm:w-20 h-0.5 mx-1 mb-4 sm:mb-5 rounded transition-all"
+                className="w-8 sm:w-16 h-0.5 mx-1 mb-4 sm:mb-5 rounded transition-all"
                 style={{ backgroundColor: done ? GOLD : '#e2e8f0' }}
               />
             )}
@@ -150,19 +162,171 @@ function StepBar({ step }) {
   )
 }
 
+/* ──────────────────────────── Final Booking Confirmation Screen ──────────────────────────── */
+
+function BookingConfirmation({ booking, tour }) {
+  const navigate = useNavigate()
+  const isPaid = booking.payment_status === 'paid'
+  const isPendingVerification = booking.payment_status === 'pending_verification'
+  const bookingRef = booking.booking_reference || booking.booking_id
+
+  const buildWhatsAppUrl = () => {
+    const msg = `Hello Alpine Explorers,
+I have completed the payment for my booking.
+Booking ID: ${bookingRef}
+Tour/Package: ${booking.tour_name}
+Applicant Name: ${booking.customer_name}
+Amount Paid: ₹${Number(booking.total_amount || 0).toLocaleString('en-IN')}
+Please verify my payment.
+Thank you.`
+
+    return `https://wa.me/${PAYMENT_CONFIG.whatsappNumber}?text=${encodeURIComponent(msg)}`
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="rounded-2xl overflow-hidden text-center bg-white shadow-xl border"
+      style={{ borderColor: 'rgb(var(--ae-gold2-rgb) /0.4)' }}
+    >
+      <div className="py-10 px-6" style={{ background: `linear-gradient(135deg, ${NAVY}, ${NAVY_MID})` }}>
+        <div
+          className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+          style={{ backgroundColor: 'rgb(var(--ae-gold2-rgb) /0.2)', border: '2px solid rgb(var(--ae-gold2-rgb) /0.5)' }}
+        >
+          <CheckCircle2 size={36} style={{ color: GOLD2 }} />
+        </div>
+        <h2 className="text-2xl font-bold text-white mb-2" style={{ fontFamily: 'Cinzel, serif' }}>
+          {isPaid ? 'Booking Confirmed!' : 'Booking Request Received!'}
+        </h2>
+        <p className="text-sm text-cream-100/90 max-w-md mx-auto" style={{ color: 'rgb(var(--ae-cream-rgb) /0.85)' }}>
+          {isPaid
+            ? 'Thank you! Your payment is confirmed and your booking is secured.'
+            : isPendingVerification
+            ? 'Thank you! We received your UPI payment confirmation and our team is verifying it.'
+            : 'Thank you! Our team will review your application and payment details shortly.'}
+        </p>
+      </div>
+
+      <div className="px-6 py-6 border-b" style={{ borderColor: 'rgba(180,160,130,0.2)' }}>
+        <div
+          className="inline-block px-6 py-3 rounded-2xl"
+          style={{ backgroundColor: 'rgb(var(--ae-gold-rgb) /0.1)', border: '1px solid rgb(var(--ae-gold-rgb) /0.4)' }}
+        >
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] mb-1" style={{ color: GOLD }}>
+            Booking Reference
+          </p>
+          <p className="text-2xl font-black" style={{ color: NAVY, fontFamily: 'Cinzel, serif' }}>
+            {bookingRef}
+          </p>
+        </div>
+      </div>
+
+      <div className="px-6 py-5 grid grid-cols-1 sm:grid-cols-2 gap-4 text-left text-xs">
+        <div>
+          <span className="text-gray-500 block uppercase font-bold text-[10px]">Tour / Package Name</span>
+          <span className="text-sm font-semibold text-gray-900">{booking.tour_name}</span>
+        </div>
+        <div>
+          <span className="text-gray-500 block uppercase font-bold text-[10px]">Applicant Name</span>
+          <span className="text-sm font-semibold text-gray-900">{booking.customer_name}</span>
+        </div>
+        <div>
+          <span className="text-gray-500 block uppercase font-bold text-[10px]">Travel Date</span>
+          <span className="text-sm font-semibold text-gray-900">{formatDate(booking.tour_date)}</span>
+        </div>
+        <div>
+          <span className="text-gray-500 block uppercase font-bold text-[10px]">Total Travelers</span>
+          <span className="text-sm font-semibold text-gray-900">{booking.total_travelers} Guest(s)</span>
+        </div>
+        <div>
+          <span className="text-gray-500 block uppercase font-bold text-[10px]">Booking Amount</span>
+          <span className="text-sm font-bold text-amber-800">{formatINR(booking.total_amount)}</span>
+        </div>
+        <div>
+          <span className="text-gray-500 block uppercase font-bold text-[10px]">Payment Status</span>
+          <div className="mt-0.5">
+            {isPaid ? (
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 uppercase tracking-wider">
+                Paid
+              </span>
+            ) : isPendingVerification ? (
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 uppercase tracking-wider">
+                Pending Verification
+              </span>
+            ) : (
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-gray-100 text-gray-700 uppercase tracking-wider">
+                Pending
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="px-6 pb-7 pt-2 flex flex-wrap gap-3 justify-center">
+        <a
+          href={buildWhatsAppUrl()}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="px-6 py-2.5 rounded-xl text-sm font-bold text-white transition flex items-center gap-1.5 shadow-md"
+          style={{ backgroundColor: '#047857' }}
+        >
+          <MessageSquare size={15} /> Send WhatsApp Confirmation <ExternalLink size={13} />
+        </a>
+
+        <button
+          type="button"
+          onClick={() => window.print()}
+          className="px-6 py-2.5 rounded-xl text-sm font-bold transition flex items-center gap-1.5"
+          style={{ color: NAVY, border: `1px solid rgb(var(--ae-navy-rgb) /0.25)` }}
+        >
+          <Download size={14} /> Print Application
+        </button>
+
+        <button
+          type="button"
+          onClick={() => navigate('/my-bookings')}
+          className="px-6 py-2.5 rounded-xl text-sm font-bold text-white transition flex items-center gap-1.5 shadow-md"
+          style={{ backgroundColor: NAVY }}
+        >
+          <Ticket size={14} /> View My Bookings
+        </button>
+      </div>
+    </motion.div>
+  )
+}
+
 /* ──────────────────────────── MAIN COMPONENT ──────────────────────────── */
 
-export default function MultiTravelerBooking({ tour }) {
-  const [step, setStep] = useState(0)
+export default function MultiTravelerBooking({ tour, user, profile }) {
+  const [step, setStep] = useState(0) // 0: Count, 1: Form, 2: Summary, 3: Payment, 4: Done
   const [travelerCount, setTravelerCount] = useState(1)
-  const [travelers, setTravelers] = useState([makeTraveler()])
+  const [travelers, setTravelers] = useState([makeTraveler(user, profile, tour?.title || '')])
   const [allErrors, setAllErrors] = useState([{}])
   const [confirmedCorrect, setConfirmedCorrect] = useState(false)
   const [bookingId] = useState(generateBookingId)
+  const [confirmedBooking, setConfirmedBooking] = useState(null)
   const topRef = useRef(null)
 
   const scrollTop = () =>
     window.setTimeout(() => topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60)
+
+  // Keep traveler 1 auto-filled if profile/user loads
+  useEffect(() => {
+    if (user || profile) {
+      setTravelers((prev) => {
+        if (!prev.length) return prev
+        const next = [...prev]
+        if (!next[0].fullName) next[0].fullName = profile?.full_name || user?.user_metadata?.full_name || ''
+        if (!next[0].contact) next[0].contact = profile?.phone || ''
+        if (!next[0].courseName) next[0].courseName = tour?.title || ''
+        if (!next[0].riskCourseName) next[0].riskCourseName = tour?.title || ''
+        return next
+      })
+    }
+  }, [user, profile, tour])
 
   /* ── Traveler count controls ── */
   const adjustCount = (delta) => {
@@ -170,7 +334,7 @@ export default function MultiTravelerBooking({ tour }) {
     setTravelerCount(next)
     setTravelers((prev) => {
       if (next > prev.length) {
-        const added = Array.from({ length: next - prev.length }, makeTraveler)
+        const added = Array.from({ length: next - prev.length }, () => makeTraveler(null, null, tour?.title || ''))
         return [...prev, ...added]
       }
       return prev.slice(0, next)
@@ -183,14 +347,13 @@ export default function MultiTravelerBooking({ tour }) {
     })
   }
 
-  /* ── Update a single field for a traveler ── */
+  /* ── Update field for a traveler ── */
   const updateTraveler = useCallback((index, field, value) => {
     setTravelers((prev) => {
       const next = [...prev]
       next[index] = { ...next[index], [field]: value }
       return next
     })
-    // Clear that field's error live
     setAllErrors((prev) => {
       const next = [...prev]
       if (next[index]?.[field]) {
@@ -210,7 +373,6 @@ export default function MultiTravelerBooking({ tour }) {
     })
   }, [])
 
-  /* ── STEP 0 → STEP 1 ── */
   const proceedToForms = () => {
     setStep(1)
     scrollTop()
@@ -223,18 +385,18 @@ export default function MultiTravelerBooking({ tour }) {
 
     if (hasErrors) {
       setAllErrors(errors)
-      // Expand first traveler with errors
       const firstBadIdx = errors.findIndex((e) => Object.keys(e).length > 0)
       setTravelers((prev) => {
         const next = [...prev]
-        next[firstBadIdx] = { ...next[firstBadIdx], isExpanded: true }
+        if (firstBadIdx !== -1) {
+          next[firstBadIdx] = { ...next[firstBadIdx], isExpanded: true }
+        }
         return next
       })
       scrollTop()
       return
     }
 
-    // Mark all completed
     setTravelers((prev) =>
       prev.map((t) => ({ ...t, isCompleted: true, isExpanded: false }))
     )
@@ -242,7 +404,6 @@ export default function MultiTravelerBooking({ tour }) {
     scrollTop()
   }
 
-  /* ── STEP 2 → STEP 1 (edit a traveler) ── */
   const editTraveler = (index) => {
     setTravelers((prev) =>
       prev.map((t, i) => ({ ...t, isExpanded: i === index }))
@@ -254,72 +415,121 @@ export default function MultiTravelerBooking({ tour }) {
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
 
-  /* ── STEP 2 → STEP 3 (submit) ── */
-  const handleSubmit = async () => {
-    if (!confirmedCorrect) return
+  const totalPrice = tour.price > 0 ? tour.price * travelerCount : null
+
+  /* ── STEP 2 → STEP 3 (Submit application & open PaymentScreen) ── */
+  const handleProceedToPayment = async () => {
+    if (!confirmedCorrect || submitting) return
     setSubmitting(true)
     setSubmitError('')
 
+    const payload = {
+      booking_id: bookingId,
+      tour_id: tour.id ? String(tour.id) : '',
+      tour_name: tour.title,
+      tour_category: tour.category || 'Adventure',
+      location: tour.location || tour.destination || '',
+      duration: tour.duration || '',
+      travel_date: tour.date || new Date().toISOString().slice(0, 10),
+      price_per_person: tour.price || null,
+      number_of_travelers: travelerCount,
+      total_amount: totalPrice,
+      booking_contact_name: travelers[0]?.fullName || '',
+      booking_contact_email: user?.email || '',
+      booking_contact_phone: travelers[0]?.contact || '',
+      status: 'pending',
+      payment_status: 'pending',
+      travelers: travelers.map((t) => ({
+        courseName: t.courseName || tour.title,
+        fullName: t.fullName,
+        dob: t.dob,
+        age: t.age || '',
+        sex: t.sex,
+        bloodGroup: t.bloodGroup,
+        address: t.address,
+        contact: t.contact,
+        education: t.education,
+        school: t.school,
+        schoolAddress: t.schoolAddress,
+        schoolPhone: t.schoolPhone,
+        hobbies: t.hobbies,
+        photo: t.photo || null,
+        experienceYesNo: t.experienceYesNo || 'No',
+        experienceDetails: t.experienceDetails || '',
+        declarationAccepted: t.declarationAccepted,
+        declarationPlace: t.sigPlace,
+        declarationDate: t.sigDate,
+        signature: t.signature,
+        participantType: t.participantType === 'minor' ? 'Minor' : 'Adult',
+        guardianName: t.guardianName,
+        guardianContact: t.guardianContact,
+        sigGuardian: t.sigGuardian || null,
+        riskAccepted: t.riskAccepted,
+        riskParticipantName: t.riskParticipantName,
+        riskCourseName: t.riskCourseName || tour.title,
+        riskPlace: t.riskPlace,
+        riskDate: t.riskDate,
+        riskSignature: t.riskSignature,
+      }))
+    }
+
     try {
-      const payload = {
-        booking_id: bookingId,
-        tour_id: tour.id ? String(tour.id) : '',
-        tour_name: tour.title,
-        tour_category: tour.category || 'Adventure',
-        location: tour.location || '',
-        duration: tour.duration || '',
-        travel_date: tour.date || new Date().toISOString().slice(0, 10),
-        price_per_person: tour.price || null,
-        number_of_travelers: travelerCount,
-        total_amount: totalPrice,
-        booking_contact_name: travelers[0]?.name || '',
-        booking_contact_email: '',
-        booking_contact_phone: travelers[0]?.contact || '',
-        travelers: travelers.map((t) => ({
-          courseName: t.course || tour.title,
-          fullName: t.name,
-          dob: t.dob,
-          age: t.age || '',
-          sex: t.sex,
-          bloodGroup: t.bloodGroup,
-          address: t.address,
-          contact: t.contact,
-          education: t.education,
-          school: t.school,
-          schoolAddress: t.schoolAddress,
-          schoolPhone: t.schoolPhone,
-          hobbies: t.hobbies,
-          photo: t.photo || null,
-          experienceYesNo: t.experience || 'No',
-          experienceDetails: t.experienceDetails || '',
-          declarationAccepted: t.declarationAgreed,
-          declarationPlace: t.declarationPlace,
-          declarationDate: t.declarationDate,
-          signature: t.sigApplicant,
-          participantType: t.participantType === 'Minor' ? 'Minor' : 'Adult',
-          guardianName: t.guardianName,
-          guardianContact: t.guardianContact,
-          sigGuardian: t.sigGuardian,
-          riskAccepted: t.riskAgreed,
-          riskParticipantName: t.riskName,
-          riskCourseName: t.riskCourse || tour.title,
-          riskPlace: t.riskPlace,
-          riskDate: t.riskDate,
-          riskSignature: t.sigRisk,
-        }))
+      // 1. Save to SQLite database
+      await api.post('/bookings', payload)
+
+      // 2. Save/Sync to Supabase if configured
+      try {
+        await supabase
+          .from('bookings')
+          .upsert({
+            booking_reference: bookingId,
+            user_id: user?.id || null,
+            tour_id: String(tour.id || ''),
+            tour_name: tour.title,
+            tour_location: tour.location || tour.destination || null,
+            tour_date: tour.date || null,
+            duration: tour.duration || null,
+            price_per_person: tour.price || null,
+            total_travelers: travelerCount,
+            total_amount: totalPrice,
+            customer_name: travelers[0]?.fullName || '',
+            customer_email: user?.email || '',
+            customer_phone: travelers[0]?.contact || '',
+            status: 'pending',
+            payment_status: 'pending',
+          }, { onConflict: 'booking_reference' })
+      } catch (supErr) {
+        console.warn('Supabase booking sync note:', supErr.message)
       }
 
-      await api.post('/bookings', payload)
-      setStep(3)
+      const bookingRecord = {
+        booking_reference: bookingId,
+        booking_id: bookingId,
+        user_id: user?.id || null,
+        tour_id: String(tour.id || ''),
+        tour_name: tour.title,
+        tour_location: tour.location || tour.destination || null,
+        tour_date: tour.date || null,
+        duration: tour.duration || null,
+        price_per_person: tour.price || null,
+        total_travelers: travelerCount,
+        total_amount: totalPrice,
+        customer_name: travelers[0]?.fullName || '',
+        customer_email: user?.email || '',
+        customer_phone: travelers[0]?.contact || '',
+        status: 'pending',
+        payment_status: 'pending',
+      }
+
+      setConfirmedBooking(bookingRecord)
+      setStep(3) // Step 3: Payment
       scrollTop()
     } catch (err) {
-      setSubmitError(err?.message || 'Unable to submit booking. Please try again.')
+      setSubmitError(err?.message || 'Unable to submit application. Please try again.')
     } finally {
       setSubmitting(false)
     }
   }
-
-  const totalPrice = tour.price > 0 ? tour.price * travelerCount : null
 
   /* ══════════════════════════ RENDER ══════════════════════════ */
 
@@ -353,13 +563,13 @@ export default function MultiTravelerBooking({ tour }) {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-[10px] font-bold uppercase tracking-wider mb-0.5" style={{ color: GOLD }}>
-                  Selected Tour
+                  Selected Tour / Course
                 </p>
                 <p className="text-white font-bold text-base truncate" style={{ fontFamily: 'Cinzel, serif' }}>
                   {tour.title}
                 </p>
                 <div className="flex flex-wrap gap-3 mt-1.5 text-xs" style={{ color: 'rgb(var(--ae-cream-rgb) /0.75)' }}>
-                  <span className="flex items-center gap-1"><MapPin size={11} /> {tour.location}</span>
+                  <span className="flex items-center gap-1"><MapPin size={11} /> {tour.location || tour.destination}</span>
                   <span className="flex items-center gap-1"><Clock size={11} /> {tour.duration}</span>
                   {tour.date && (
                     <span className="flex items-center gap-1">
@@ -390,7 +600,7 @@ export default function MultiTravelerBooking({ tour }) {
                 How many people are traveling?
               </h2>
               <p className="text-sm text-gray-500 mb-8">
-                We'll generate a separate application form for each traveler.
+                We will generate an official Alpine Explorers application form for each traveler.
               </p>
 
               <div className="flex items-center justify-center gap-6 mb-8">
@@ -398,14 +608,12 @@ export default function MultiTravelerBooking({ tour }) {
                   type="button"
                   onClick={() => adjustCount(-1)}
                   disabled={travelerCount <= 1}
-                  className="w-14 h-14 rounded-2xl font-bold text-2xl flex items-center justify-center transition disabled:opacity-30"
+                  className="w-14 h-14 rounded-2xl font-bold text-2xl flex items-center justify-center transition disabled:opacity-30 cursor-pointer"
                   style={{
                     backgroundColor: `${NAVY}08`,
                     color: NAVY,
                     border: `2px solid ${NAVY}15`,
                   }}
-                  onMouseEnter={(e) => { if (travelerCount > 1) e.currentTarget.style.backgroundColor = `${NAVY}15` }}
-                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = `${NAVY}08` }}
                 >
                   −
                 </button>
@@ -425,26 +633,24 @@ export default function MultiTravelerBooking({ tour }) {
                 <button
                   type="button"
                   onClick={() => adjustCount(1)}
-                  className="w-14 h-14 rounded-2xl font-bold text-2xl flex items-center justify-center transition"
+                  className="w-14 h-14 rounded-2xl font-bold text-2xl flex items-center justify-center transition cursor-pointer"
                   style={{
                     background: `linear-gradient(135deg, ${NAVY}, ${NAVY_MID})`,
                     color: '#ffffff',
                   }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = `linear-gradient(135deg, ${GOLD}, ${GOLD2})` }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = `linear-gradient(135deg, ${NAVY}, ${NAVY_MID})` }}
                 >
                   +
                 </button>
               </div>
 
-              {/* Count pills */}
+              {/* Quick Count pills */}
               <div className="flex flex-wrap justify-center gap-2 mb-8">
                 {[1, 2, 3, 4, 5].map((n) => (
                   <button
                     key={n}
                     type="button"
-                    onClick={() => { const delta = n - travelerCount; adjustCount(delta) }}
-                    className="px-4 py-1.5 rounded-full text-sm font-semibold transition"
+                    onClick={() => adjustCount(n - travelerCount)}
+                    className="px-4 py-1.5 rounded-full text-sm font-semibold transition cursor-pointer"
                     style={{
                       backgroundColor: travelerCount === n ? NAVY : `${NAVY}08`,
                       color: travelerCount === n ? '#ffffff' : NAVY,
@@ -473,17 +679,17 @@ export default function MultiTravelerBooking({ tour }) {
                 </div>
               )}
 
-              <button
-                type="button"
-                onClick={proceedToForms}
-                className="flex items-center justify-center gap-2 mx-auto px-10 py-4 rounded-2xl text-white font-bold text-sm transition"
-                style={{ background: `linear-gradient(135deg, ${NAVY}, ${NAVY_MID})`, boxShadow: '0 4px 16px rgb(var(--ae-navy-rgb) /0.25)' }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = `linear-gradient(135deg, ${GOLD}, ${GOLD2})`; e.currentTarget.style.color = NAVY }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = `linear-gradient(135deg, ${NAVY}, ${NAVY_MID})`; e.currentTarget.style.color = '#ffffff' }}
-              >
-                Continue to Application Forms
-                <ArrowRight size={16} />
-              </button>
+              <div>
+                <button
+                  type="button"
+                  onClick={proceedToForms}
+                  className="inline-flex items-center justify-center gap-2 px-10 py-4 rounded-2xl text-white font-bold text-sm transition cursor-pointer shadow-lg"
+                  style={{ background: `linear-gradient(135deg, ${NAVY}, ${NAVY_MID})` }}
+                >
+                  <span>Continue to Application Forms</span>
+                  <ArrowRight size={16} />
+                </button>
+              </div>
             </div>
           </motion.div>
         )}
@@ -498,15 +704,21 @@ export default function MultiTravelerBooking({ tour }) {
             transition={{ duration: 0.3 }}
             className="space-y-4"
           >
-            {/* Progress overview */}
+            {/* Header banner */}
             <div
-              className="rounded-2xl p-4 flex flex-wrap items-center gap-3"
-              style={{ backgroundColor: 'white', border: `1px solid ${GOLD}25`, boxShadow: '0 1px 8px rgb(var(--ae-navy-rgb) /0.06)' }}
+              className="rounded-2xl p-4 flex flex-wrap items-center gap-3 bg-white border shadow-sm"
+              style={{ borderColor: 'rgba(180,160,130,0.3)' }}
             >
-              <Users size={16} style={{ color: GOLD }} />
-              <span className="text-sm font-bold" style={{ color: NAVY }}>
-                {travelerCount} Traveler{travelerCount > 1 ? 's' : ''} — Complete all application forms below
-              </span>
+              <Users size={18} style={{ color: GOLD }} />
+              <div>
+                <span className="text-sm font-bold block" style={{ color: NAVY }}>
+                  Alpine Explorers Original Application Form ({travelerCount} Traveler{travelerCount > 1 ? 's' : ''})
+                </span>
+                <span className="text-xs text-gray-500">
+                  Please fill out all required fields, upload a photo, and sign the form below.
+                </span>
+              </div>
+
               <div className="flex gap-2 ml-auto flex-wrap">
                 {travelers.map((t, i) => (
                   <button
@@ -518,7 +730,7 @@ export default function MultiTravelerBooking({ tour }) {
                         document.getElementById(`traveler-${i}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
                       }, 60)
                     }}
-                    className="px-2.5 py-1 rounded-full text-[11px] font-bold transition"
+                    className="px-2.5 py-1 rounded-full text-[11px] font-bold transition cursor-pointer"
                     style={{
                       backgroundColor: t.isCompleted ? `${GOLD}15` : t.isExpanded ? `${NAVY}10` : '#f1f5f9',
                       color: t.isCompleted ? GOLD : t.isExpanded ? NAVY : '#64748b',
@@ -533,22 +745,44 @@ export default function MultiTravelerBooking({ tour }) {
 
             {/* Traveler accordion forms */}
             {travelers.map((t, i) => (
-              <div key={i} id={`traveler-${i}`}>
-                <TravelerForm
-                  index={i}
-                  count={travelerCount}
-                  tour={tour}
-                  data={t}
-                  onChange={(field, value) => updateTraveler(i, field, value)}
-                  errors={allErrors[i] || {}}
-                  isExpanded={t.isExpanded}
-                  onToggle={() => toggleExpand(i)}
-                  isCompleted={t.isCompleted}
-                />
-                {/* Show error summary if that traveler has errors and is collapsed */}
+              <div key={i} id={`traveler-${i}`} className="bg-white rounded-2xl p-6 border shadow-md" style={{ borderColor: 'rgba(180,160,130,0.25)' }}>
+                <div className="flex items-center justify-between pb-4 border-b mb-4" style={{ borderColor: 'rgba(180,160,130,0.2)' }}>
+                  <h3 className="text-base font-bold flex items-center gap-2" style={{ color: NAVY, fontFamily: 'Cinzel, serif' }}>
+                    <span className="w-6 h-6 rounded-full bg-amber-500 text-white flex items-center justify-center text-xs font-bold">
+                      {i + 1}
+                    </span>
+                    Traveler {i + 1} Application Form
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => toggleExpand(i)}
+                    className="text-xs font-semibold text-gray-500 hover:text-gray-900 cursor-pointer"
+                  >
+                    {t.isExpanded ? 'Collapse' : 'Expand'}
+                  </button>
+                </div>
+
+                {t.isExpanded && (
+                  <TravelerForm
+                    index={i}
+                    count={travelerCount}
+                    trip={tour}
+                    traveler={t}
+                    errors={allErrors[i] || {}}
+                    onChange={(field, value) => updateTraveler(i, field, value)}
+                    onSetError={(field, err) => {
+                      setAllErrors((prev) => {
+                        const next = [...prev]
+                        next[i] = { ...(next[i] || {}), [field]: err }
+                        return next
+                      })
+                    }}
+                  />
+                )}
+
                 {!t.isExpanded && allErrors[i] && Object.keys(allErrors[i]).length > 0 && (
                   <div
-                    className="mt-1 ml-2 flex items-center gap-2 text-xs font-semibold text-red-600 cursor-pointer"
+                    className="mt-2 flex items-center gap-2 text-xs font-semibold text-red-600 cursor-pointer"
                     onClick={() => toggleExpand(i)}
                   >
                     <AlertCircle size={13} />
@@ -559,14 +793,12 @@ export default function MultiTravelerBooking({ tour }) {
             ))}
 
             {/* Navigation */}
-            <div className="flex items-center justify-between pt-2">
+            <div className="flex items-center justify-between pt-4">
               <button
                 type="button"
                 onClick={() => { setStep(0); scrollTop() }}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition"
-                style={{ color: NAVY, backgroundColor: 'white', border: `1.5px solid #e2e8f0` }}
-                onMouseEnter={(e) => e.currentTarget.style.borderColor = NAVY}
-                onMouseLeave={(e) => e.currentTarget.style.borderColor = '#e2e8f0'}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition cursor-pointer bg-white border"
+                style={{ color: NAVY, borderColor: '#e2e8f0' }}
               >
                 <ArrowLeft size={15} /> Back
               </button>
@@ -574,18 +806,17 @@ export default function MultiTravelerBooking({ tour }) {
               <button
                 type="button"
                 onClick={proceedToReview}
-                className="flex items-center gap-2 px-8 py-3 rounded-xl text-white font-bold text-sm transition"
-                style={{ background: `linear-gradient(135deg, ${NAVY}, ${NAVY_MID})`, boxShadow: '0 4px 14px rgb(var(--ae-navy-rgb) /0.22)' }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = `linear-gradient(135deg, ${GOLD}, ${GOLD2})`; e.currentTarget.style.color = NAVY }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = `linear-gradient(135deg, ${NAVY}, ${NAVY_MID})`; e.currentTarget.style.color = '#ffffff' }}
+                className="flex items-center gap-2 px-8 py-3 rounded-xl text-white font-bold text-sm transition cursor-pointer shadow-lg"
+                style={{ background: `linear-gradient(135deg, ${NAVY}, ${NAVY_MID})` }}
               >
-                Review Application <ArrowRight size={15} />
+                <span>Review Application</span>
+                <ArrowRight size={15} />
               </button>
             </div>
           </motion.div>
         )}
 
-        {/* ─────────── STEP 2: Review ─────────── */}
+        {/* ─────────── STEP 2: Booking Summary ─────────── */}
         {step === 2 && (
           <motion.div
             key="step2"
@@ -597,10 +828,10 @@ export default function MultiTravelerBooking({ tour }) {
           >
             <div className="text-center mb-2">
               <h2 className="text-2xl font-bold" style={{ color: NAVY, fontFamily: 'Cinzel, serif' }}>
-                Review Application
+                Application Summary
               </h2>
               <p className="text-sm text-gray-500 mt-1">
-                Please verify all information before proceeding to payment.
+                Please verify all traveler details and signatures before proceeding to payment.
               </p>
             </div>
 
@@ -610,68 +841,63 @@ export default function MultiTravelerBooking({ tour }) {
                 <ReviewCard
                   key={i}
                   index={i}
-                  data={t}
+                  traveler={t}
                   onEdit={() => editTraveler(i)}
                 />
               ))}
             </div>
 
-            {/* Booking summary */}
+            {/* Price breakdown */}
             <div
-              className="rounded-2xl p-5"
-              style={{ background: `linear-gradient(135deg, ${NAVY}08, ${GOLD}06)`, border: `1px solid ${GOLD}30` }}
+              className="rounded-2xl p-5 bg-white border"
+              style={{ borderColor: 'rgb(var(--ae-gold2-rgb) /0.35)', boxShadow: '0 2px 12px rgb(var(--ae-navy-rgb) /0.06)' }}
             >
               <h3 className="text-sm font-bold uppercase tracking-wider mb-4" style={{ color: NAVY }}>
-                Booking Summary
+                Booking Summary & Pricing
               </h3>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Tour</span>
-                  <span className="font-semibold" style={{ color: NAVY }}>{tour.title}</span>
+                  <span className="text-gray-600">Selected Package</span>
+                  <span className="font-semibold text-gray-900">{tour.title}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Location</span>
-                  <span className="font-semibold" style={{ color: NAVY }}>{tour.location}</span>
+                  <span className="font-semibold text-gray-900">{tour.location || tour.destination}</span>
                 </div>
                 {tour.date && (
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Tour Date</span>
-                    <span className="font-semibold" style={{ color: NAVY }}>
-                      {new Date(tour.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
-                    </span>
+                    <span className="text-gray-600">Travel Date</span>
+                    <span className="font-semibold text-gray-900">{formatDate(tour.date)}</span>
                   </div>
                 )}
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Number of Travelers</span>
-                  <span className="font-semibold" style={{ color: NAVY }}>{travelerCount}</span>
+                  <span className="text-gray-600">Total Travelers</span>
+                  <span className="font-semibold text-gray-900">{travelerCount} Guest(s)</span>
                 </div>
                 {tour.price > 0 && (
                   <>
                     <div className="flex justify-between items-center">
                       <span className="text-gray-600">Price per Person</span>
-                      <span className="font-semibold" style={{ color: NAVY }}>{formatINR(tour.price)}</span>
+                      <span className="font-semibold text-gray-900">{formatINR(tour.price)}</span>
                     </div>
                     <div className="border-t border-dashed my-2" style={{ borderColor: `${GOLD}50` }} />
                     <div className="flex justify-between items-center pt-1">
-                      <span className="font-bold text-base" style={{ color: NAVY }}>Total Amount</span>
-                      <span className="font-extrabold text-xl" style={{ color: GOLD }}>
+                      <span className="font-bold text-base" style={{ color: NAVY }}>Total Payable Amount</span>
+                      <span className="font-extrabold text-2xl" style={{ color: GOLD }}>
                         {formatINR(totalPrice)}
                       </span>
                     </div>
-                    <p className="text-[11px] text-right text-gray-400">
-                      {formatINR(tour.price)} × {travelerCount} traveler{travelerCount > 1 ? 's' : ''}
-                    </p>
                   </>
                 )}
               </div>
             </div>
 
-            {/* Final confirmation checkbox */}
+            {/* Confirmation checkbox */}
             <label
-              className="flex items-start gap-3 cursor-pointer rounded-xl p-4 transition"
+              className="flex items-start gap-3 cursor-pointer rounded-xl p-4 transition border bg-white"
               style={{
-                border: `1.5px solid ${confirmedCorrect ? GOLD : '#e2e8f0'}`,
-                backgroundColor: confirmedCorrect ? `${GOLD}08` : 'white',
+                borderColor: confirmedCorrect ? GOLD : '#e2e8f0',
+                backgroundColor: confirmedCorrect ? `${GOLD}08` : '#ffffff',
               }}
             >
               <input
@@ -681,24 +907,22 @@ export default function MultiTravelerBooking({ tour }) {
                 className="mt-0.5 w-4 h-4 rounded cursor-pointer accent-amber-600"
               />
               <span className="text-sm" style={{ color: NAVY }}>
-                I confirm that all traveler information provided by me is correct and complete.
+                I confirm that all traveler information, declarations, and signatures provided above are true, complete, and accurate.
               </span>
             </label>
 
-            {/* Navigation */}
-            <div className="flex items-center justify-between pt-2">
+            {/* Action buttons */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
               <button
                 type="button"
                 onClick={() => { setStep(1); scrollTop() }}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition"
-                style={{ color: NAVY, backgroundColor: 'white', border: `1.5px solid #e2e8f0` }}
-                onMouseEnter={(e) => e.currentTarget.style.borderColor = NAVY}
-                onMouseLeave={(e) => e.currentTarget.style.borderColor = '#e2e8f0'}
+                className="w-full sm:w-auto px-5 py-3 rounded-xl text-sm font-semibold transition cursor-pointer bg-white border"
+                style={{ color: NAVY, borderColor: '#e2e8f0' }}
               >
-                <ArrowLeft size={15} /> Edit Applications
+                <ArrowLeft size={15} className="inline mr-1" /> Edit Application Form
               </button>
 
-              <div className="flex flex-col items-end gap-2">
+              <div className="w-full sm:w-auto flex flex-col items-end gap-2">
                 {submitError && (
                   <div className="p-2.5 rounded-xl text-xs font-semibold text-red-600 bg-red-50 border border-red-200">
                     {submitError}
@@ -706,35 +930,22 @@ export default function MultiTravelerBooking({ tour }) {
                 )}
                 <button
                   type="button"
-                  onClick={handleSubmit}
+                  onClick={handleProceedToPayment}
                   disabled={!confirmedCorrect || submitting}
-                  className="flex items-center gap-2 px-8 py-3 rounded-xl text-white font-bold text-sm transition disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl text-white font-bold text-sm transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-lg"
                   style={{
                     background: confirmedCorrect && !submitting
                       ? `linear-gradient(135deg, ${NAVY}, ${NAVY_MID})`
                       : '#94a3b8',
-                    boxShadow: confirmedCorrect && !submitting ? '0 4px 14px rgb(var(--ae-navy-rgb) /0.22)' : 'none',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (confirmedCorrect && !submitting) {
-                      e.currentTarget.style.background = `linear-gradient(135deg, ${GOLD}, ${GOLD2})`
-                      e.currentTarget.style.color = NAVY
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (confirmedCorrect && !submitting) {
-                      e.currentTarget.style.background = `linear-gradient(135deg, ${NAVY}, ${NAVY_MID})`
-                      e.currentTarget.style.color = '#ffffff'
-                    }
                   }}
                 >
                   {submitting ? (
                     <>
-                      <Loader2 size={15} className="animate-spin" /> Submitting...
+                      <Loader2 size={16} className="animate-spin" /> Preparing Payment...
                     </>
                   ) : (
                     <>
-                      <CreditCard size={15} /> Continue to Payment
+                      <CreditCard size={16} /> Continue to Payment <ArrowRight size={16} />
                     </>
                   )}
                 </button>
@@ -743,96 +954,42 @@ export default function MultiTravelerBooking({ tour }) {
           </motion.div>
         )}
 
-        {/* ─────────── STEP 3: Success ─────────── */}
-        {step === 3 && (
+        {/* ─────────── STEP 3: Payment ─────────── */}
+        {step === 3 && confirmedBooking && (
           <motion.div
             key="step3"
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -15 }}
+            transition={{ duration: 0.3 }}
+          >
+            <PaymentScreen
+              booking={confirmedBooking}
+              tour={tour}
+              onBack={() => setStep(2)}
+              onPaymentSuccess={(updated) => {
+                setConfirmedBooking(updated)
+                setStep(4)
+                scrollTop()
+              }}
+              onUpiSubmitted={(updated) => {
+                setConfirmedBooking(updated)
+                setStep(4)
+                scrollTop()
+              }}
+            />
+          </motion.div>
+        )}
+
+        {/* ─────────── STEP 4: Payment Completed / Confirmation ─────────── */}
+        {step === 4 && confirmedBooking && (
+          <motion.div
+            key="step4"
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.4, ease: 'easeOut' }}
-            className="text-center"
+            transition={{ duration: 0.4 }}
           >
-            <div className="bg-white rounded-2xl p-8 sm:p-12" style={{ boxShadow: '0 4px 24px rgb(var(--ae-navy-rgb) /0.10)', border: `1px solid ${GOLD}30` }}>
-              {/* Success icon */}
-              <div
-                className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6"
-                style={{ background: `linear-gradient(135deg, ${GOLD}25, ${GOLD}10)`, border: `3px solid ${GOLD}` }}
-              >
-                <CheckCircle2 size={36} style={{ color: GOLD }} />
-              </div>
-
-              <h2 className="text-2xl sm:text-3xl font-extrabold mb-2" style={{ color: NAVY, fontFamily: 'Cinzel, serif' }}>
-                Application Submitted Successfully
-              </h2>
-              <p className="text-sm text-gray-500 mb-8 max-w-md mx-auto">
-                Thank you for choosing Alpine Explorers! Your application has been received.
-                Our team will contact you shortly to confirm your booking.
-              </p>
-
-              {/* Booking details */}
-              <div
-                className="rounded-2xl p-5 mb-8 text-left max-w-sm mx-auto"
-                style={{ background: `linear-gradient(135deg, ${NAVY}06, ${GOLD}06)`, border: `1px solid ${GOLD}30` }}
-              >
-                <div className="space-y-3 text-sm">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-500 font-medium">Booking ID</span>
-                    <span className="font-extrabold tracking-widest" style={{ color: NAVY }}>{bookingId}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-500 font-medium">Tour</span>
-                    <span className="font-semibold text-right max-w-[60%]" style={{ color: NAVY }}>{tour.title}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-500 font-medium">Travelers</span>
-                    <span className="font-semibold" style={{ color: NAVY }}>{travelerCount}</span>
-                  </div>
-                  {totalPrice && (
-                    <div className="flex justify-between items-center pt-2 border-t" style={{ borderColor: `${GOLD}30` }}>
-                      <span className="font-bold" style={{ color: NAVY }}>Total Amount</span>
-                      <span className="font-extrabold text-base" style={{ color: GOLD }}>{formatINR(totalPrice)}</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-500 font-medium">Status</span>
-                    <span
-                      className="px-2.5 py-0.5 rounded-full text-[11px] font-bold"
-                      style={{ backgroundColor: 'rgba(16,185,129,0.1)', color: '#059669' }}
-                    >
-                      ✓ Submitted
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Action buttons */}
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <button
-                  type="button"
-                  onClick={() => window.print()}
-                  className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition"
-                  style={{
-                    backgroundColor: 'white',
-                    color: NAVY,
-                    border: `1.5px solid ${NAVY}20`,
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.borderColor = NAVY}
-                  onMouseLeave={(e) => e.currentTarget.style.borderColor = `${NAVY}20`}
-                >
-                  <Download size={15} /> Download Application
-                </button>
-
-                <a
-                  href="/home"
-                  className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold text-sm text-white transition"
-                  style={{ background: `linear-gradient(135deg, ${NAVY}, ${NAVY_MID})` }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = `linear-gradient(135deg, ${GOLD}, ${GOLD2})`; e.currentTarget.style.color = NAVY }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = `linear-gradient(135deg, ${NAVY}, ${NAVY_MID})`; e.currentTarget.style.color = '#ffffff' }}
-                >
-                  <Home size={15} /> Continue to Home
-                </a>
-              </div>
-            </div>
+            <BookingConfirmation booking={confirmedBooking} tour={tour} />
           </motion.div>
         )}
       </AnimatePresence>

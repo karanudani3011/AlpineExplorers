@@ -122,9 +122,13 @@ export default function TourCard({ tour }) {
                 <div className="flex items-baseline gap-2">
                   {tour.price > 0 ? (
                     <>
-                      <span className="text-2xl font-bold text-[color:var(--ae-navy)]">${tour.price}</span>
+                      <span className="text-2xl font-bold text-[color:var(--ae-navy)]">
+                        {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(tour.price)}
+                      </span>
                       {tour.originalPrice > tour.price && (
-                        <span className="text-xs text-gray-600 line-through">${tour.originalPrice}</span>
+                        <span className="text-xs text-gray-600 line-through">
+                          {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(tour.originalPrice)}
+                        </span>
                       )}
                       <span className="text-[10px] text-gray-600 font-semibold">/ guest</span>
                     </>

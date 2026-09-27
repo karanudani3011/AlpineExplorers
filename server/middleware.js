@@ -98,31 +98,26 @@ export function requireRole(...roles) {
   }
 }
 
-const uploadDir = path.join(__dirname, '..', 'uploads')
-if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true })
+const storage = multer.memoryStorage()
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadDir),
-  filename: (req, file, cb) => {
-    const safe = file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_')
-    cb(null, `${Date.now()}-${safe}`)
-  },
-})
-
-const allowed = ['image/png', 'image/jpeg', 'image/webp', 'image/jpg', 'image/gif', 'image/svg+xml']
-const limits = { fileSize: 8 * 1024 * 1024 }
+const allowedImageTypes = ['image/png', 'image/jpeg', 'image/webp', 'image/jpg', 'image/gif', 'image/svg+xml']
+const allowedVideoTypes = ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-matroska', 'video/mpeg']
+const limits = { fileSize: 50 * 1024 * 1024 } // 50MB for video/image
 
 export const upload = multer({
   storage,
   limits,
   fileFilter: (req, file, cb) => {
-    if (allowed.includes(file.mimetype)) cb(null, true)
-    else cb(new Error('Only image files are allowed'))
+    if (allowedImageTypes.includes(file.mimetype) || allowedVideoTypes.includes(file.mimetype)) {
+      cb(null, true)
+    } else {
+      cb(new Error('Only image and video files are allowed'))
+    }
   },
 })
 
 export function uploadError(err, req, res, next) {
-  if (err instanceof multer.MulterError || err?.message?.includes('image')) {
+  if (err instanceof multer.MulterError || err?.message?.includes('image') || err?.message?.includes('video')) {
     return res.status(400).json({ error: err.message || 'Upload failed' })
   }
   next(err)

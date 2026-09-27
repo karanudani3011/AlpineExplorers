@@ -439,7 +439,7 @@ export default function Home() {
                   style={{ boxShadow: '0 10px 28px rgba(60,40,20,0.12)' }}
                 >
                   <Link to={`/tour/${tour.id}`} className="block relative h-52 overflow-hidden flex-shrink-0">
-                    <TourImageSlider images={tourImages[tour.id] || [tour.image]} alt={tour.title} />
+                    <TourImageSlider images={tour.images?.length ? tour.images : (tourImages[tour.id] || (tour.image ? [tour.image] : []))} alt={tour.title} />
                     <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgb(var(--ae-navy-rgb) /0.45) 0%, rgb(var(--ae-navy-rgb) /0.05) 60%, transparent 100%)' }} />
                     <span className="absolute top-3 left-3 text-[9px] font-bold uppercase tracking-[0.18em] px-3 py-1 rounded-full"
                       style={{ backgroundColor: 'rgb(var(--ae-gold2-rgb) /0.95)', color: NAVY }}>

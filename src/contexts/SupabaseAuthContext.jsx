@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { supabase } from '../services/supabaseClient'
+import { api, API } from '../services/api'
 
 export const SupabaseAuthContext = createContext(null)
 
@@ -23,6 +24,8 @@ export function SupabaseAuthProvider({ children }) {
       setProfile(null)
       return null
     }
+
+    // Try Supabase first if available
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -34,75 +37,77 @@ export function SupabaseAuthProvider({ children }) {
         setProfile(data)
         return data
       }
+    } catch {}
 
-      // If profiles table isn't migrated yet or record doesn't exist, create a fallback profile object
-      const fallback = {
-        id: userId,
-        email: fallbackEmail,
-        full_name: fallbackName,
-        phone: '',
-      }
-      setProfile(fallback)
-      return fallback
-    } catch {
-      const fallback = {
-        id: userId,
-        email: fallbackEmail,
-        full_name: fallbackName,
-        phone: '',
-      }
-      setProfile(fallback)
-      return fallback
+    // Fallback profile object from state/stored data
+    const fallback = {
+      id: userId,
+      email: fallbackEmail,
+      full_name: fallbackName,
+      phone: '',
     }
+    setProfile(fallback)
+    return fallback
   }, [])
 
   useEffect(() => {
     let mounted = true
 
-    // 1. Initial user check
-    supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
+    // 1. Check local session first
+    const savedUserStr = localStorage.getItem('ae_traveler_user')
+    const savedToken = API.getToken()
+
+    if (savedUserStr && savedToken) {
+      try {
+        const parsed = JSON.parse(savedUserStr)
+        if (mounted) {
+          setUser(parsed)
+          setProfile(parsed)
+          setSession({ access_token: savedToken, user: parsed })
+        }
+      } catch {}
+    }
+
+    // 2. Initial Supabase check (safely caught if unreachable)
+    supabase.auth.getSession().then(({ data }) => {
       if (!mounted) return
-      console.log('[SupabaseAuth] Initial session:', initialSession?.user?.email || 'none')
-      setSession(initialSession)
-      const currentUser = initialSession?.user ?? null
-      setUser(currentUser)
-      if (currentUser) {
+      if (data?.session?.user) {
+        setSession(data.session)
+        const currentUser = data.session.user
+        setUser(currentUser)
         fetchProfile(
           currentUser.id,
           currentUser.email,
           currentUser.user_metadata?.full_name || ''
         )
-      } else {
-        setProfile(null)
       }
       setLoading(false)
+    }).catch(() => {
+      if (mounted) setLoading(false)
     })
 
-    // 2. Listen to Supabase auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, currentSession) => {
+    // 3. Listen to Supabase auth state changes safely
+    let subscription = null
+    try {
+      const subRes = supabase.auth.onAuthStateChange(async (event, currentSession) => {
         if (!mounted) return
-        console.log('[SupabaseAuth] Auth state change:', event, currentSession?.user?.email || 'no user')
-        setSession(currentSession)
-        const currentUser = currentSession?.user ?? null
-        setUser(currentUser)
-
-        if (currentUser) {
+        if (currentSession?.user) {
+          setSession(currentSession)
+          const currentUser = currentSession.user
+          setUser(currentUser)
           await fetchProfile(
             currentUser.id,
             currentUser.email,
             currentUser.user_metadata?.full_name || ''
           )
-        } else {
-          setProfile(null)
         }
-        setLoading(false)
-      }
-    )
+      })
+      subscription = subRes?.data?.subscription
+    } catch {}
 
     return () => {
       mounted = false
-      subscription?.unsubscribe()
+      subscription?.unsubscribe?.()
     }
   }, [fetchProfile])
 
@@ -126,43 +131,53 @@ export function SupabaseAuthProvider({ children }) {
       throw new Error('Please enter both email and password.')
     }
 
-    console.log('[SupabaseAuth] Attempting sign in for:', cleanEmail)
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: cleanEmail,
-      password,
-    })
+    console.log('[Auth] Attempting sign in for:', cleanEmail)
 
-    if (error) {
-      console.error('[SupabaseAuth] Sign in error:', error)
-      if (
-        error.code === 'email_not_confirmed' ||
-        error.message?.toLowerCase().includes('email not confirmed')
-      ) {
-        const err = new Error('Email not confirmed. Please check your inbox or contact support.')
-        err.code = 'email_not_confirmed'
-        throw err
+    // 1. Try our backend API (SQLite database)
+    try {
+      const res = await api.post('/auth/login', { email: cleanEmail, password })
+      if (res && res.token && res.user) {
+        API.setToken(res.token)
+        localStorage.setItem('ae_traveler_user', JSON.stringify(res.user))
+        setUser(res.user)
+        setProfile(res.user)
+        const sess = { access_token: res.token, user: res.user }
+        setSession(sess)
+
+        // Try Supabase in background if available
+        supabase.auth.signInWithPassword({ email: cleanEmail, password }).catch(() => {})
+
+        return { user: res.user, session: sess }
       }
-      if (
-        error.code === 'invalid_credentials' ||
-        error.message?.toLowerCase().includes('invalid login') ||
-        error.message?.toLowerCase().includes('invalid credentials')
-      ) {
+    } catch (apiErr) {
+      // If error is invalid credentials or deactivated account, throw directly
+      if (apiErr.status === 401 || apiErr.status === 403 || apiErr.message?.includes('Invalid')) {
+        throw new Error(apiErr.message || 'Incorrect email or password.')
+      }
+    }
+
+    // 2. Fallback to Supabase
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: cleanEmail,
+        password,
+      })
+
+      if (error) throw error
+
+      setUser(data.user)
+      setSession(data.session)
+      if (data.user) {
+        await fetchProfile(data.user.id, data.user.email, data.user.user_metadata?.full_name || '')
+      }
+      return data
+    } catch (err) {
+      console.error('[Auth] Sign in error:', err)
+      if (err.code === 'invalid_credentials' || err.message?.toLowerCase().includes('invalid')) {
         throw new Error('Incorrect email or password.')
       }
-      throw new Error(error.message || 'Failed to log in. Please try again.')
+      throw new Error(err.message || 'Failed to log in. Please try again.')
     }
-
-    console.log('[SupabaseAuth] Sign in successful, user:', data.user?.email)
-    setUser(data.user)
-    setSession(data.session)
-    if (data.user) {
-      await fetchProfile(
-        data.user.id,
-        data.user.email,
-        data.user.user_metadata?.full_name || ''
-      )
-    }
-    return data
   }, [fetchProfile])
 
   const signUp = useCallback(async ({ fullName, email, password, confirmPassword, phone }) => {
@@ -173,62 +188,84 @@ export function SupabaseAuthProvider({ children }) {
     if (!cleanEmail) throw new Error('Please enter a valid email address.')
     if (!password) throw new Error('Please enter a password.')
     if (password.length < 6) throw new Error('Password must be at least 6 characters long.')
-    if (password !== confirmPassword) throw new Error('Passwords do not match.')
+    if (confirmPassword !== undefined && password !== confirmPassword) {
+      throw new Error('Passwords do not match.')
+    }
 
-    console.log('[SupabaseAuth] Attempting sign up for:', cleanEmail)
-    const { data, error } = await supabase.auth.signUp({
-      email: cleanEmail,
-      password,
-      options: {
-        data: {
-          full_name: cleanName,
-          phone: phone ? phone.trim() : '',
-        },
-      },
-    })
+    console.log('[Auth] Attempting sign up for:', cleanEmail)
 
-    if (error) {
-      console.error('[SupabaseAuth] Sign up error:', error)
-      if (
-        error.message?.toLowerCase().includes('already registered') ||
-        error.message?.toLowerCase().includes('user already exists')
-      ) {
+    // 1. Try our backend API (stores directly in database!)
+    try {
+      const res = await api.post('/auth/register', {
+        fullName: cleanName,
+        email: cleanEmail,
+        password,
+        phone,
+      })
+
+      if (res && res.token && res.user) {
+        API.setToken(res.token)
+        localStorage.setItem('ae_traveler_user', JSON.stringify(res.user))
+        setUser(res.user)
+        setProfile(res.user)
+        const sess = { access_token: res.token, user: res.user }
+        setSession(sess)
+
+        // Sync with Supabase in background if reachable
+        supabase.auth.signUp({
+          email: cleanEmail,
+          password,
+          options: { data: { full_name: cleanName, phone: phone || '' } },
+        }).catch(() => {})
+
+        return {
+          user: res.user,
+          session: sess,
+          needsEmailVerification: false,
+        }
+      }
+    } catch (apiErr) {
+      if (apiErr.status === 400 || apiErr.message?.includes('already exists')) {
+        throw new Error(apiErr.message || 'An account with this email already exists.')
+      }
+      console.warn('[Auth API Register warning]:', apiErr.message)
+    }
+
+    // 2. Fallback to Supabase if backend had an issue
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: cleanEmail,
+        password,
+        options: { data: { full_name: cleanName, phone: phone || '' } },
+      })
+
+      if (error) throw error
+
+      if (data?.user) {
+        setUser(data.user)
+        setSession(data.session)
+        await fetchProfile(data.user.id, cleanEmail, cleanName)
+      }
+
+      return {
+        user: data?.user || null,
+        session: data?.session || null,
+        needsEmailVerification: false,
+      }
+    } catch (err) {
+      console.error('[Auth] Sign up error:', err)
+      if (err.message?.toLowerCase().includes('already registered') || err.message?.toLowerCase().includes('exists')) {
         throw new Error('An account with this email already exists. Please log in instead.')
       }
-      throw new Error(error.message || 'Unable to create account. Please try again.')
-    }
-
-    console.log('[SupabaseAuth] Sign up successful, user:', data.user?.email, 'session:', Boolean(data.session))
-
-    const hasSession = Boolean(data?.session)
-
-    // If session is immediately active, set user & session and sync profile
-    if (hasSession && data?.user) {
-      setUser(data.user)
-      setSession(data.session)
-      try {
-        await supabase.from('profiles').upsert({
-          id: data.user.id,
-          full_name: cleanName,
-          email: cleanEmail,
-          phone: phone ? phone.trim() : '',
-        })
-      } catch {
-        // Ignored
-      }
-      await fetchProfile(data.user.id, cleanEmail, cleanName)
-    }
-
-    return {
-      user: data?.user || null,
-      session: data?.session || null,
-      needsEmailVerification: false,
+      throw new Error(err.message || 'Unable to create account. Please try again.')
     }
   }, [fetchProfile])
 
   const signOut = useCallback(async () => {
     try {
-      await supabase.auth.signOut()
+      API.clearToken()
+      localStorage.removeItem('ae_traveler_user')
+      await supabase.auth.signOut().catch(() => {})
     } finally {
       setUser(null)
       setSession(null)
@@ -240,16 +277,14 @@ export function SupabaseAuthProvider({ children }) {
     const cleanEmail = (email || '').trim().toLowerCase()
     if (!cleanEmail) throw new Error('Please enter your email address.')
 
-    // No redirectTo needed since email confirmation is disabled
-    console.log('[SupabaseAuth] Sending password reset email to:', cleanEmail)
-    const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail)
-
-    if (error) {
-      console.error('[SupabaseAuth] Password reset error:', error)
-      throw new Error(error.message || 'Unable to send password reset email. Please check the email address.')
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail)
+      if (error) throw error
+      return true
+    } catch (err) {
+      console.warn('[Auth] Password reset:', err.message)
+      return true // Friendly response
     }
-    console.log('[SupabaseAuth] Password reset email sent successfully')
-    return true
   }, [])
 
   return (
