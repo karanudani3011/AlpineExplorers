@@ -24,7 +24,7 @@ import ComingSoon from './components/admin/ComingSoon'
 import { CalendarDays, MapPinned } from 'lucide-react'
 import Login from './pages/admin/Login'
 import Dashboard from './pages/admin/Dashboard'
-import { InternationalPage, DomesticPage, AdventurePage, CampsPage, ServicesPage, BlogPage } from './pages/admin/ContentPages'
+import { InternationalPage, DomesticPage, AdventurePage, CampsPage, ServicesPage, BlogPage, EventsPage } from './pages/admin/ContentPages'
 import MediaLibrary from './pages/admin/Media'
 import HomepageAdmin from './pages/admin/HomepageAdmin'
 import AboutAdmin from './pages/admin/AboutAdmin'
@@ -81,7 +81,7 @@ function App() {
             <Route path="camps" element={<ProtectedRoute permission="services.view"><CampsPage /></ProtectedRoute>} />
             <Route path="services" element={<ProtectedRoute permission="services.view"><ServicesPage /></ProtectedRoute>} />
             <Route path="blog" element={<ProtectedRoute permission="blog.view"><BlogPage /></ProtectedRoute>} />
-            <Route path="events" element={<ProtectedRoute permission="events.view"><ComingSoon icon={CalendarDays} title="Upcoming Events" subtitle="Manage events, excursions & meetups" message="Upcoming events are currently defined in the public site code (src/pages/UpcomingEvents.jsx). A manager that lets you publish, edit and unpublish events directly from here is on the roadmap." note="Existing functionality is untouched — nothing is broken or removed." /></ProtectedRoute>} />
+            <Route path="events" element={<ProtectedRoute permission="events.view"><EventsPage /></ProtectedRoute>} />
             <Route path="travel-mood" element={<ProtectedRoute permission="travel_mood.view"><ComingSoon icon={MapPinned} title="Find Your Travel Mood" subtitle="Manage travel moods & recommendations" message="Travel moods, destinations, budgets and recommendations are currently defined in the public site code (src/pages/TravelMood.jsx). A manager for these is on the roadmap." note="Existing functionality is untouched — nothing is broken or removed." /></ProtectedRoute>} />
             <Route path="media" element={<ProtectedRoute permission="services.view"><MediaLibrary /></ProtectedRoute>} />
             <Route path="homepage" element={<ProtectedRoute permission="dashboard.view"><HomepageAdmin /></ProtectedRoute>} />

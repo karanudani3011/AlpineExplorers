@@ -8,6 +8,7 @@ import { testimonials } from '../data/data'
 import TourImageSlider from '../components/TourImageSlider'
 import { tourImages } from '../data/tourImages'
 import { ArrowRight, ArrowUpRight, MapPin, Calendar, Clock, Compass, Award, Heart, Sparkles, Quote } from 'lucide-react'
+import { usePublicEvents } from '../services/usePublic'
 
 const NAVY = 'var(--ae-navy)'
 const NAVY_MID = 'var(--ae-navy-mid)'
@@ -89,7 +90,7 @@ const escapeTiles = [
 
 const featuredIds = ['mtn-1', 'int-2', 'adv-4', 'fam-1']
 
-const upcomingEvents = [
+const defaultUpcomingEvents = [
   {
     title: 'Himalayan Heritage Motorcycle Rally',
     date: 'Oct 12 · 2026',
@@ -134,6 +135,9 @@ const whyBenefits = [
 ]
 
 export default function Home() {
+  const { events } = usePublicEvents(defaultUpcomingEvents)
+  const upcomingList = (events && events.length > 0 ? events : defaultUpcomingEvents).slice(0, 3)
+
   const { scrollY } = useScroll()
   const heroY = useTransform(scrollY, [0, 900], [0, 250])
   const heroTextY = useTransform(scrollY, [0, 700], [0, 130])
@@ -559,9 +563,9 @@ export default function Home() {
         </div>
 
         <div className="grid md:grid-cols-3 gap-6">
-          {upcomingEvents.map((ev, i) => (
+          {upcomingList.map((ev, i) => (
             <motion.div
-              key={ev.title}
+              key={ev.id || ev.title || i}
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-60px' }}

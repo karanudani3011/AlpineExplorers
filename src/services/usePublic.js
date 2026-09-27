@@ -59,6 +59,24 @@ export function usePublicBlogs(fallback = []) {
   return { blogs, loading }
 }
 
+export function usePublicEvents(fallback = []) {
+  const [events, setEvents] = useState(fallback)
+  const [loading, setLoading] = useState(true)
+  useEffect(() => {
+    let mounted = true
+    api.get('/public/events')
+      .then((d) => {
+        if (mounted && Array.isArray(d.items) && d.items.length > 0) {
+          setEvents(d.items)
+        }
+      })
+      .catch(() => {})
+      .finally(() => mounted && setLoading(false))
+    return () => { mounted = false }
+  }, [])
+  return { events, loading }
+}
+
 export function usePublicContent(type, fallback = null) {
   const [content, setContent] = useState(fallback)
   const [loading, setLoading] = useState(true)

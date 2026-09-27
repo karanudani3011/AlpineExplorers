@@ -129,6 +129,26 @@ CREATE TABLE IF NOT EXISTS services (
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+CREATE TABLE IF NOT EXISTS events (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
+  date TEXT,
+  month TEXT,
+  day TEXT,
+  time TEXT,
+  location TEXT,
+  description TEXT,
+  badge TEXT,
+  tag TEXT,
+  price REAL,
+  image TEXT,
+  gallery TEXT DEFAULT '[]',
+  featured INTEGER DEFAULT 0,
+  status TEXT NOT NULL DEFAULT 'active' CHECK(status IN ('active','inactive')),
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 CREATE TABLE IF NOT EXISTS blogs (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   title TEXT NOT NULL,
@@ -369,6 +389,30 @@ try { db.exec("ALTER TABLE bookings ADD COLUMN order_id TEXT;") } catch {}
 try { db.exec("ALTER TABLE bookings ADD COLUMN currency TEXT DEFAULT 'INR';") } catch {}
 try { db.exec("ALTER TABLE bookings ADD COLUMN booking_status TEXT DEFAULT 'pending';") } catch {}
 try { db.exec("ALTER TABLE bookings ADD COLUMN booking_details TEXT DEFAULT '{}';") } catch {}
+
+// Seed initial events if empty
+try {
+  const evCount = db.prepare('SELECT COUNT(*) as c FROM events').get().c
+  if (evCount === 0) {
+    const insertEv = db.prepare(`
+      INSERT INTO events (title, date, month, day, time, location, description, badge, tag, image, gallery, status, featured)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', 0)
+    `)
+    const initialEvents = [
+      ['Himalayan Heritage Motorcycle Rally', '12 October 2026', 'OCT', '12', '6:00 AM', 'Leh · Ladakh', 'A 7-day solo-friendly rally through high mountain passes, ancient monasteries, and dramatic river valleys — riding the legendary Leh–Manali circuit with expert guides.', 'Adventure', 'Go Solo · Riding', 'https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=1200&h=700&fit=crop', '[]'],
+      ['Golden Hour Trekkers Meetup · Kullu', '26 October 2026', 'OCT', '26', '5:30 AM', 'Kullu Valley · Himachal', 'A sunrise group trek to a hidden alpine meadow followed by a traveller meet-and-greet, bonfire stories, and planning sessions for upcoming expeditions.', 'Trek', 'Group · Beginner friendly', 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1200&h=700&fit=crop', '[]'],
+      ['Aegean Island Odyssey Info Evening', '08 November 2026', 'NOV', '08', '7:00 PM', 'Mumbai · Online + In-Person', 'An exclusive preview of our Greece–Turkey island sailing journey. Meet the trip leaders, taste regional cuisine, and secure early-bird pricing for the December departure.', 'International', 'Preview · Free entry', 'https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=1200&h=700&fit=crop', '[]'],
+      ['Spiti Winter Expedition Launch', '21 November 2026', 'NOV', '21', '8:00 AM', 'Spiti Valley · Himachal', 'The season opener for our famous winter Spiti expedition — frozen rivers, snowbound villages, and star-filled skies above the highest inhabited valley in India.', 'Mountain', 'Winter · Expedition', 'https://images.unsplash.com/photo-1483728642387-6c3bdd6c93e5?w=1200&h=700&fit=crop', '[]'],
+      ['Family Rockies Discovery Orientations', '05 December 2026', 'DEC', '05', '11:00 AM', 'Delhi · In-Person + Live', 'Orientation for families joining our Rockies Discovery tour — itinerary walkthrough, packing guidance, and Q&A with our family-travel specialists.', 'Family', 'Orientation · Q&A', 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=1200&h=700&fit=crop', '[]'],
+      ['New Year Eve · Rishikesh Riverside Camp', '28 December 2026', 'DEC', '28', '2:00 PM', 'Rishikesh · Uttarakhand', 'Three nights of riverside camping, rafting, yoga at sunrise, and a golden bonfire gala to welcome the new year under the Garhwal sky.', 'Camp', 'Family · Celebration', 'https://images.unsplash.com/photo-1518998053901-5348d3961a04?w=1200&h=700&fit=crop', '[]'],
+    ]
+    for (const ev of initialEvents) {
+      insertEv.run(...ev)
+    }
+  }
+} catch (e) {
+  console.warn('Events seed warning:', e.message)
+}
 
 export function logActivity({ user_name, action, module, details = '' }) {
   db.prepare('INSERT INTO activity_logs (user_name, action, module, details) VALUES (?,?,?,?)')

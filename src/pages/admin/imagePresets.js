@@ -42,6 +42,14 @@ export const IMAGE_PRESETS = {
     { label: 'Camping', url: U('photo-1478131143081-80f7f84ca84d', 800, 400) },
     { label: 'Mountains', url: U('photo-1506905925346-21bda4d32df4', 800, 400) },
   ],
+  events: [
+    { label: 'Motorcycle Rally', url: 'https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=1200&h=700&fit=crop' },
+    { label: 'Trekkers Meetup', url: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1200&h=700&fit=crop' },
+    { label: 'Island Odyssey', url: 'https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=1200&h=700&fit=crop' },
+    { label: 'Winter Expedition', url: 'https://images.unsplash.com/photo-1483728642387-6c3bdd6c93e5?w=1200&h=700&fit=crop' },
+    { label: 'Family Discovery', url: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=1200&h=700&fit=crop' },
+    { label: 'Riverside Camp', url: 'https://images.unsplash.com/photo-1518998053901-5348d3961a04?w=1200&h=700&fit=crop' },
+  ],
   general: [
     { label: 'Compass', url: U('photo-1527853787696-f7be74f2e39a') },
     { label: 'Map', url: U('photo-1503220317375-aaad61436b1b') },

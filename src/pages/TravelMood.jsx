@@ -55,17 +55,20 @@ export default function TravelMood() {
   ]
 
   const getRecommendedTours = () => {
-    let matches = tours.filter((tour) => {
-      const moodMatch = selectedMood ? tour.mood === selectedMood.id : true
-      const destMatch = selectedDestination ? tour.destinationType === selectedDestination.id : true
-      const budgetMatch = selectedBudget ? tour.budgetTier === selectedBudget.id : true
-      return moodMatch || destMatch || budgetMatch
+    if (!tours || tours.length === 0) return []
+
+    const scored = tours.map((tour) => {
+      let score = 0
+      if (selectedMood && tour.mood === selectedMood.id) score += 4
+      if (selectedDestination && tour.destinationType === selectedDestination.id) score += 4
+      if (selectedBudget && tour.budgetTier === selectedBudget.id) score += 2
+      return { ...tour, matchScore: score }
     })
 
-    if (matches.length === 0) {
-      matches = tours.slice(0, 3)
-    }
-    return matches
+    const sorted = scored.sort((a, b) => b.matchScore - a.matchScore)
+    const matches = sorted.filter((t) => t.matchScore >= 4)
+
+    return matches.length > 0 ? matches.slice(0, 9) : sorted.slice(0, 6)
   }
 
   const handleReset = () => {

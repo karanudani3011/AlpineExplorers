@@ -1,4 +1,4 @@
-import { Globe2, Map as MapIcon, Mountain, Tent, Plane, PenLine } from 'lucide-react'
+import { Globe2, Map as MapIcon, Mountain, Tent, Plane, PenLine, CalendarDays } from 'lucide-react'
 import CrudPage from '../../components/admin/CrudPage'
 import { IMAGE_PRESETS } from './imagePresets'
 
@@ -192,6 +192,46 @@ export function BlogPage() {
         { name: 'publish_date', label: 'Publish Date', type: 'text', placeholder: 'YYYY-MM-DD' },
         { name: 'featured', label: 'Featured', type: 'switch', toggleLabel: 'Featured post', default: false },
         { name: 'status', label: 'Status', type: 'select', options: ['draft', 'published', 'unpublished'] },
+      ],
+    }} />
+  )
+}
+
+export function EventsPage() {
+  return (
+    <CrudPage config={{
+      title: 'Upcoming Events',
+      subtitle: 'Manage seasonal expeditions, meetups & upcoming tours',
+      icon: CalendarDays,
+      itemName: 'Event',
+      endpoint: '/events',
+      resourceKey: 'events',
+      emptyHint: 'No upcoming events yet. Click "+ Add Event" to upload your first event.',
+      canFeature: true,
+      columns: [
+        { key: 'image', label: 'Image', render: (r) => <Thumb src={r.image} alt={r.title} /> },
+        { key: 'title', label: 'Event Title', render: (r) => <div style={NAVYc}><div className="font-bold">{r.title}</div><div className="text-[10px] opacity-60">{r.badge || 'Event'} · {r.tag || 'Upcoming'}</div></div> },
+        { key: 'date', label: 'Date & Time', render: (r) => <div><div className="font-semibold text-xs">{r.date || (r.day && r.month ? `${r.day} ${r.month}` : '—')}</div><div className="text-[10px] opacity-60">{r.time || '—'}</div></div> },
+        { key: 'location', label: 'Location', render: (r) => T(r.location || '—') },
+        { key: 'price', label: 'Price', render: PRICE },
+        { key: 'status', label: 'Status', render: (r) => <StatusBadge s={r.status} /> },
+        { key: 'featured', label: 'Featured', render: (r) => (r.featured ? <span style={{ color: 'var(--ae-gold)' }}>★</span> : <span className="opacity-30">☆</span>) },
+      ],
+      fields: [
+        { name: 'title', label: 'Event Title', type: 'text', required: true, span: 2, placeholder: 'e.g. Himalayan Heritage Motorcycle Rally' },
+        { name: 'badge', label: 'Category / Badge', type: 'select', options: ['Adventure', 'Trek', 'International', 'Mountain', 'Family', 'Camp', 'Meetup', 'Workshop', 'Expedition', 'Other'] },
+        { name: 'tag', label: 'Tag / Highlight', type: 'text', placeholder: 'e.g. Go Solo · Riding, Group · Beginner friendly' },
+        { name: 'date', label: 'Full Date String', type: 'text', placeholder: 'e.g. 12 October 2026' },
+        { name: 'day', label: 'Day (Number)', type: 'text', placeholder: 'e.g. 12' },
+        { name: 'month', label: 'Month (3-letter)', type: 'text', placeholder: 'e.g. OCT' },
+        { name: 'time', label: 'Time', type: 'text', placeholder: 'e.g. 6:00 AM' },
+        { name: 'location', label: 'Location / Venue', type: 'text', placeholder: 'e.g. Leh · Ladakh' },
+        { name: 'price', label: 'Price (₹) (Optional)', type: 'number', placeholder: 'e.g. 4999' },
+        { name: 'description', label: 'Event Description', type: 'textarea', rows: 4, span: 2, placeholder: 'Describe the event, highlights, schedule...' },
+        { name: 'image', label: 'Cover Image', type: 'image', preset: IMAGE_PRESETS.events, span: 2 },
+        { name: 'gallery', label: 'Event Gallery Photos & Videos (Sliding Images)', type: 'gallery', span: 2 },
+        { name: 'featured', label: 'Featured Event', type: 'switch', toggleLabel: 'Show in featured highlights', default: false },
+        { name: 'status', label: 'Status', type: 'select', options: ['active', 'inactive'] },
       ],
     }} />
   )

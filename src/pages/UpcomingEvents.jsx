@@ -8,9 +8,10 @@ import BookNowButton from '../components/BookNowButton'
 import BookingModal from '../components/BookingModal'
 import TourImageSlider from '../components/TourImageSlider'
 import { eventImages } from '../data/eventImages'
-import { events } from '../data/eventsData'
+import { events as defaultEvents } from '../data/eventsData'
 import { Calendar, Clock, MapPin, ArrowRight, Compass } from 'lucide-react'
 import { useSupabaseAuth } from '../hooks/useSupabaseAuth'
+import { usePublicEvents } from '../services/usePublic'
 
 const NAVY = 'var(--ae-navy)'
 const NAVY_MID = 'var(--ae-navy-mid)'
@@ -28,6 +29,7 @@ const font = {
 
 export default function UpcomingEvents() {
   const { user, openAuthModal } = useSupabaseAuth()
+  const { events } = usePublicEvents(defaultEvents)
 
   useEffect(() => {
     window.scrollTo(0, 0)
@@ -148,7 +150,7 @@ export default function UpcomingEvents() {
                 style={{ backgroundColor: CREAM, boxShadow: '0 10px 26px rgba(60,40,20,0.12), 0 2px 6px rgba(60,40,20,0.05)', border: '1px solid rgba(180,160,130,0.28)' }}
               >
                 <div className="relative h-52 overflow-hidden">
-                  <TourImageSlider images={ev.images?.length ? ev.images : (eventImages[ev.id] || (ev.image ? [ev.image] : []))} alt={ev.title} />
+                  <TourImageSlider images={(Array.isArray(ev.gallery) && ev.gallery.length > 0) ? ev.gallery : (Array.isArray(ev.images) && ev.images.length > 0 ? ev.images : (eventImages[ev.id] || (ev.image ? [ev.image] : [])))} alt={ev.title} />
                   <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgb(var(--ae-navy-rgb) /0.55) 0%, rgb(var(--ae-navy-rgb) /0.05) 60%, transparent 100%)' }} />
                   <div className="absolute top-3 left-3">
                     <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest" style={{ backgroundColor: 'rgb(var(--ae-gold2-rgb) /0.92)', color: NAVY, ...font.vintage }}>
