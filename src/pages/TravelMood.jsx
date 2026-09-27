@@ -57,18 +57,30 @@ export default function TravelMood() {
   const getRecommendedTours = () => {
     if (!tours || tours.length === 0) return []
 
-    const scored = tours.map((tour) => {
-      let score = 0
-      if (selectedMood && tour.mood === selectedMood.id) score += 4
-      if (selectedDestination && tour.destinationType === selectedDestination.id) score += 4
-      if (selectedBudget && tour.budgetTier === selectedBudget.id) score += 2
-      return { ...tour, matchScore: score }
-    })
+    // 1. Strict Destination Type filter
+    let pool = tours
+    if (selectedDestination) {
+      pool = pool.filter((t) => t.destinationType === selectedDestination.id)
+    }
 
-    const sorted = scored.sort((a, b) => b.matchScore - a.matchScore)
-    const matches = sorted.filter((t) => t.matchScore >= 4)
+    // 2. Strict Budget Tier filter
+    if (selectedBudget) {
+      const budgetMatched = pool.filter((t) => t.budgetTier === selectedBudget.id)
+      if (budgetMatched.length > 0) {
+        pool = budgetMatched
+      }
+    }
 
-    return matches.length > 0 ? matches.slice(0, 9) : sorted.slice(0, 6)
+    // 3. Mood ranking (most aligned mood first)
+    if (selectedMood) {
+      pool = [...pool].sort((a, b) => {
+        const aMood = a.mood === selectedMood.id ? 1 : 0
+        const bMood = b.mood === selectedMood.id ? 1 : 0
+        return bMood - aMood
+      })
+    }
+
+    return pool
   }
 
   const handleReset = () => {
@@ -383,11 +395,36 @@ export default function TravelMood() {
             </div>
 
             {/* Recommended Tour Cards Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {getRecommendedTours().map((tour) => (
-                <TourCard key={tour.id} tour={tour} />
-              ))}
-            </div>
+            {(() => {
+              const matches = getRecommendedTours()
+              if (matches.length === 0) {
+                return (
+                  <div className="rounded-3xl p-12 text-center border" style={{ backgroundColor: CREAM, borderColor: 'rgba(180,160,130,0.35)' }}>
+                    <Compass size={40} className="mx-auto mb-4" style={{ color: GOLD }} />
+                    <h4 className="text-xl font-bold mb-2" style={{ ...font.vintage, color: NAVY }}>
+                      No Exact Matches Found
+                    </h4>
+                    <p className="text-sm max-w-md mx-auto mb-6 text-gray-600" style={font.body}>
+                      We currently do not have packages matching this exact combination of {selectedDestination?.name}, {selectedMood?.name}, and {selectedBudget?.name}. Try choosing another budget tier or retaking the quiz.
+                    </p>
+                    <button
+                      onClick={handleReset}
+                      className="px-6 py-3 rounded-full text-xs font-bold uppercase tracking-widest text-white transition"
+                      style={{ backgroundColor: NAVY, ...font.vintage }}
+                    >
+                      Choose Different Mood
+                    </button>
+                  </div>
+                )
+              }
+              return (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {matches.map((tour) => (
+                    <TourCard key={tour.id} tour={tour} />
+                  ))}
+                </div>
+              )
+            })()}
           </motion.div>
         )}
       </section>

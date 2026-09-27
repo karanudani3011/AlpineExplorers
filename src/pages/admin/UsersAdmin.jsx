@@ -73,16 +73,6 @@ export const PERMISSION_MODULES = [
     ],
   },
   {
-    id: 'travel_mood',
-    label: 'Find Your Travel Mood',
-    description: 'Travel mood suggestions and destinations',
-    permissions: [
-      { key: 'travel_mood.view', label: 'View Travel Mood' },
-      { key: 'travel_mood.edit', label: 'Create / Edit Mood' },
-      { key: 'travel_mood.delete', label: 'Delete Mood' },
-    ],
-  },
-  {
     id: 'about',
     label: 'About Us',
     description: 'Company story, founders and achievements',
@@ -408,7 +398,6 @@ export default function UsersAdmin() {
       else if (mod === 'blog') moduleSet.add('Blog')
       else if (mod === 'events') moduleSet.add('Events')
       else if (mod === 'contact') moduleSet.add('Contact')
-      else if (mod === 'travel_mood') moduleSet.add('Mood')
       else if (mod === 'about') moduleSet.add('About')
       else if (mod === 'staff') moduleSet.add('Staff')
       else if (mod === 'settings') moduleSet.add('Settings')

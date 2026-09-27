@@ -307,17 +307,20 @@ export async function fetchAuditLogs(limit = 100) {
  * Content sync helper to store/upsert data in Supabase
  */
 export async function syncContentToSupabase(table, data) {
-  if (!data) return null
+  if (!data || !SUPABASE_KEY) return null
   try {
     const payload = { ...data }
-    // Convert arrays/objects to JSON strings or raw arrays if supported
     const res = await supabaseAdmin.from(table).upsert(payload)
     if (res.error) {
-      console.warn(`[Supabase Sync Warning] Table '${table}':`, res.error.message)
+      if (!res.error.message?.includes('fetch failed') && !res.error.message?.includes('ENOTFOUND')) {
+        console.warn(`[Supabase Sync] Table '${table}':`, res.error.message)
+      }
     }
     return res
   } catch (e) {
-    console.warn(`[Supabase Sync Error] Table '${table}':`, e.message)
+    if (!e.message?.includes('fetch failed') && !e.message?.includes('ENOTFOUND')) {
+      console.warn(`[Supabase Sync Error] Table '${table}':`, e.message)
+    }
     return null
   }
 }
@@ -326,15 +329,19 @@ export async function syncContentToSupabase(table, data) {
  * Content delete helper to remove data from Supabase
  */
 export async function deleteContentFromSupabase(table, id) {
-  if (!id) return null
+  if (!id || !SUPABASE_KEY) return null
   try {
     const res = await supabaseAdmin.from(table).delete().eq('id', id)
     if (res.error) {
-      console.warn(`[Supabase Delete Warning] Table '${table}':`, res.error.message)
+      if (!res.error.message?.includes('fetch failed') && !res.error.message?.includes('ENOTFOUND')) {
+        console.warn(`[Supabase Delete] Table '${table}':`, res.error.message)
+      }
     }
     return res
   } catch (e) {
-    console.warn(`[Supabase Delete Error] Table '${table}':`, e.message)
+    if (!e.message?.includes('fetch failed') && !e.message?.includes('ENOTFOUND')) {
+      console.warn(`[Supabase Delete Error] Table '${table}':`, e.message)
+    }
     return null
   }
 }

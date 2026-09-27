@@ -82,7 +82,6 @@ function App() {
             <Route path="services" element={<ProtectedRoute permission="services.view"><ServicesPage /></ProtectedRoute>} />
             <Route path="blog" element={<ProtectedRoute permission="blog.view"><BlogPage /></ProtectedRoute>} />
             <Route path="events" element={<ProtectedRoute permission="events.view"><EventsPage /></ProtectedRoute>} />
-            <Route path="travel-mood" element={<ProtectedRoute permission="travel_mood.view"><ComingSoon icon={MapPinned} title="Find Your Travel Mood" subtitle="Manage travel moods & recommendations" message="Travel moods, destinations, budgets and recommendations are currently defined in the public site code (src/pages/TravelMood.jsx). A manager for these is on the roadmap." note="Existing functionality is untouched — nothing is broken or removed." /></ProtectedRoute>} />
             <Route path="media" element={<ProtectedRoute permission="services.view"><MediaLibrary /></ProtectedRoute>} />
             <Route path="homepage" element={<ProtectedRoute permission="dashboard.view"><HomepageAdmin /></ProtectedRoute>} />
             <Route path="about" element={<ProtectedRoute permission="about.view"><AboutAdmin /></ProtectedRoute>} />

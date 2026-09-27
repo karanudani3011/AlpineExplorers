@@ -22,7 +22,6 @@ const NAV = [
   { to: '/admin/bookings', label: 'Bookings / Applications', icon: FileText, permission: 'bookings.view' },
   { to: '/admin/events', label: 'Upcoming Events', icon: CalendarDays, permission: 'events.view' },
   { to: '/admin/blog', label: 'Blog', icon: PenLine, permission: 'blog.view' },
-  { to: '/admin/travel-mood', label: 'Find Your Travel Mood', icon: MapPinned, permission: 'travel_mood.view' },
   { to: '/admin/about', label: 'About Us', icon: Info, permission: 'about.view' },
   { to: '/admin/inquiries', label: 'Contact Us', icon: Mail, permission: 'contact.view' },
 ]
