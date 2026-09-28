@@ -62,11 +62,33 @@ export default function TourDetailsPage() {
   const [copiedToast, setCopiedToast] = useState(false)
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
 
+  // Duration packages from DB
+  const [dbPackages, setDbPackages] = useState([])
+  const [selectedPkg, setSelectedPkg] = useState(null)
+  const [pkgLoading, setPkgLoading] = useState(false)
+
   const { tour, category } = findTourById(id)
 
   // Auth-aware Book Now
   const navigate = useNavigate()
   const { user, openAuthModal } = useSupabaseAuth()
+
+  // Fetch duration packages from DB
+  useEffect(() => {
+    if (!id) return
+    setPkgLoading(true)
+    fetch(`/api/public/tours/${id}/packages`)
+      .then(r => r.json())
+      .catch(() => ({ packages: [] }))
+      .then(data => {
+        const pkgs = data.packages || []
+        setDbPackages(pkgs)
+        // Auto-select: prefer is_default, else first
+        const def = pkgs.find(p => p.is_default) || pkgs[0] || null
+        setSelectedPkg(def)
+      })
+      .finally(() => setPkgLoading(false))
+  }, [id])
 
   const handleBookNow = (e) => {
     e.preventDefault()
@@ -107,14 +129,23 @@ export default function TourDetailsPage() {
     )
   }
 
-  const discount = tour.originalPrice > tour.price
-    ? Math.round(((tour.originalPrice - tour.price) / tour.originalPrice) * 100)
+  // Resolve price + itinerary from selected DB package or fall back to static tour data
+  const activePkg = selectedPkg
+  const activePrice = activePkg?.price ?? tour.price
+  const activeOriginalPrice = activePkg?.original_price ?? tour.originalPrice
+  const activeDuration = activePkg?.duration ?? tour.duration
+  const activeItinerary = (activePkg?.itinerary && activePkg.itinerary.length > 0)
+    ? [...activePkg.itinerary].sort((a, b) => a.day - b.day)
+    : (tour.itinerary || [])
+
+  const discount = activeOriginalPrice > activePrice
+    ? Math.round(((activeOriginalPrice - activePrice) / activeOriginalPrice) * 100)
     : 0
-  const hasPrice = tour.price > 0
-  const totalPrice = hasPrice ? tour.price * travelersCount : null
+  const hasPrice = activePrice > 0
+  const totalPrice = hasPrice ? activePrice * travelersCount : null
   const formattedPrice = formatINR(totalPrice)
-  const formattedPerPerson = formatINR(tour.price)
-  const formattedOriginal = formatINR(tour.originalPrice * travelersCount)
+  const formattedPerPerson = formatINR(activePrice)
+  const formattedOriginal = formatINR(activeOriginalPrice * travelersCount)
 
   const handleShare = () => {
     if (navigator.share) {
@@ -216,7 +247,7 @@ export default function TourDetailsPage() {
                 )}
                 <div className="flex items-center gap-1.5">
                   <Clock size={16} className="text-teal-300" />
-                  <span>{tour.duration}</span>
+                  <span>{activeDuration}</span>
                 </div>
               </div>
             </motion.div>
@@ -254,7 +285,7 @@ export default function TourDetailsPage() {
               <div className="p-2">
                 <Clock size={18} style={{ color: GOLD }} className="mb-1" />
                 <span className="text-[10px] text-gray-500 uppercase block font-semibold">Duration</span>
-                <span className="font-bold text-xs text-slate-800">{tour.duration}</span>
+                <span className="font-bold text-xs text-slate-800">{activeDuration}</span>
               </div>
               <div className="p-2">
                 <Calendar size={18} style={{ color: GOLD }} className="mb-1" />
@@ -308,7 +339,7 @@ export default function TourDetailsPage() {
                     Day Wise Itinerary
                   </h2>
                   <p className="text-[11px] text-gray-500 mt-1">
-                    Click each day to explore scheduled highlights and activities.
+                    {activeDuration} &middot; {activeItinerary.length} day{activeItinerary.length !== 1 ? 's' : ''} planned
                   </p>
                 </div>
                 <button
@@ -321,11 +352,11 @@ export default function TourDetailsPage() {
               </div>
 
               <div className="space-y-2.5">
-                {tour.itinerary.map((day, i) => {
+                {activeItinerary.map((day, i) => {
                   const isExpanded = expandedDay === i
                   return (
                     <div
-                      key={day.day}
+                      key={day.day || i}
                       className="border border-gray-200 rounded-xl overflow-hidden transition-all duration-200"
                     >
                       <button
@@ -423,6 +454,44 @@ export default function TourDetailsPage() {
           {/* Right Sidebar */}
           <div className="lg:col-span-4">
             <div className="sticky top-28 bg-white rounded-2xl shadow-xl border border-gray-200 p-5 sm:p-6 space-y-5">
+
+              {/* Duration Selector */}
+              {pkgLoading && (
+                <div>
+                  <div className="block text-[10px] font-bold uppercase tracking-wider text-gray-700 mb-2">Select Duration</div>
+                  <div className="flex gap-2">
+                    <div className="h-7 w-16 rounded-full bg-gray-100 animate-pulse" />
+                    <div className="h-7 w-16 rounded-full bg-gray-100 animate-pulse" />
+                  </div>
+                </div>
+              )}
+              {!pkgLoading && dbPackages.length > 0 && (
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-700 mb-2">
+                    Select Duration
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {dbPackages.map(pkg => (
+                      <button
+                        key={pkg.id}
+                        onClick={() => { setSelectedPkg(pkg); setExpandedDay(0) }}
+                        className="px-3 py-1.5 rounded-full text-xs font-bold transition-all border"
+                        style={{
+                          background: selectedPkg?.id === pkg.id
+                            ? `linear-gradient(135deg, ${GOLD}, ${GOLD2})`
+                            : 'transparent',
+                          color: selectedPkg?.id === pkg.id ? NAVY : '#6b7280',
+                          borderColor: selectedPkg?.id === pkg.id ? 'transparent' : '#e5e7eb',
+                          boxShadow: selectedPkg?.id === pkg.id ? '0 2px 8px rgb(var(--ae-gold-rgb) /0.35)' : 'none',
+                        }}
+                      >
+                        {pkg.duration}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Pricing */}
               <div>
                 <span className="text-[10px] text-gray-500 uppercase tracking-wider block font-semibold">Total Price</span>
@@ -430,7 +499,7 @@ export default function TourDetailsPage() {
                   <span className="text-3xl font-extrabold" style={{ color: NAVY }}>
                     {formattedPrice || 'On Request'}
                   </span>
-                  {hasPrice && formattedOriginal && tour.originalPrice > tour.price && (
+                  {hasPrice && formattedOriginal && activeOriginalPrice > activePrice && (
                     <span className="text-sm text-gray-400 line-through">{formattedOriginal}</span>
                   )}
                 </div>

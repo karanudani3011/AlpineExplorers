@@ -58,6 +58,41 @@ CREATE TABLE IF NOT EXISTS international_packages (
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+CREATE TABLE IF NOT EXISTS tour_duration_packages (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  tour_type TEXT NOT NULL,
+  tour_id INTEGER NOT NULL,
+  tour_slug TEXT NOT NULL,
+  duration TEXT NOT NULL,
+  days INTEGER NOT NULL,
+  nights INTEGER NOT NULL,
+  price REAL,
+  original_price REAL,
+  is_default INTEGER DEFAULT 0,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE(tour_type, tour_id, duration)
+);
+
+CREATE TABLE IF NOT EXISTS tour_itineraries (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  package_id INTEGER NOT NULL REFERENCES tour_duration_packages(id) ON DELETE CASCADE,
+  day INTEGER NOT NULL,
+  title TEXT NOT NULL,
+  description TEXT NOT NULL,
+  activities TEXT DEFAULT '[]',
+  meals TEXT DEFAULT '[]',
+  overnight TEXT DEFAULT '',
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE(package_id, day)
+);
+
+CREATE INDEX IF NOT EXISTS idx_tour_duration_packages_tour ON tour_duration_packages(tour_type, tour_id);
+CREATE INDEX IF NOT EXISTS idx_tour_duration_packages_slug ON tour_duration_packages(tour_slug);
+CREATE INDEX IF NOT EXISTS idx_tour_itineraries_package ON tour_itineraries(package_id, day);
+
+
 CREATE TABLE IF NOT EXISTS domestic_packages (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   destination TEXT NOT NULL,
@@ -647,3 +682,221 @@ export function getAllTravelersForExport() {
     ORDER BY b.id DESC, t.traveler_number
   `).all()
 }
+
+/* ─────────────────────────────────────────────────────────────
+ * DURATION PACKAGES & DAY-WISE ITINERARIES
+ * ───────────────────────────────────────────────────────────── */
+
+function parseJsonArray(val) {
+  if (Array.isArray(val)) return val
+  if (!val) return []
+  try {
+    const parsed = JSON.parse(val)
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return []
+  }
+}
+
+export function getItineraryByPackageId(packageId) {
+  const rows = db.prepare('SELECT * FROM tour_itineraries WHERE package_id = ? ORDER BY day ASC').all(packageId)
+  return rows.map((r) => ({
+    ...r,
+    activities: parseJsonArray(r.activities),
+    meals: parseJsonArray(r.meals),
+  }))
+}
+
+export function getPackageById(id) {
+  const pkg = db.prepare('SELECT * FROM tour_duration_packages WHERE id = ?').get(id)
+  if (!pkg) return null
+  return {
+    ...pkg,
+    itinerary: getItineraryByPackageId(pkg.id),
+  }
+}
+
+export function getTourPackages(tourType, tourId) {
+  const pkgs = db.prepare('SELECT * FROM tour_duration_packages WHERE tour_type = ? AND tour_id = ? ORDER BY days ASC, id ASC').all(tourType, tourId)
+  return pkgs.map((p) => ({
+    ...p,
+    itinerary: getItineraryByPackageId(p.id),
+  }))
+}
+
+export function getTourPackagesBySlug(slug) {
+  const pkgs = db.prepare('SELECT * FROM tour_duration_packages WHERE tour_slug = ? ORDER BY days ASC, id ASC').all(slug)
+  return pkgs.map((p) => ({
+    ...p,
+    itinerary: getItineraryByPackageId(p.id),
+  }))
+}
+
+export function getTourPackagesByIdentifier(identifier) {
+  if (!identifier) return []
+  const clean = String(identifier).trim().toLowerCase()
+  
+  // 1. Direct slug match
+  let pkgs = db.prepare('SELECT * FROM tour_duration_packages WHERE LOWER(tour_slug) = ? ORDER BY days ASC, id ASC').all(clean)
+  if (pkgs.length > 0) {
+    return pkgs.map((p) => ({ ...p, itinerary: getItineraryByPackageId(p.id) }))
+  }
+
+  // 2. Format like "int-1" or "dom-2"
+  const prefixMatch = clean.match(/^(int|dom|adv|camp)-(\d+)$/)
+  if (prefixMatch) {
+    const typeMap = { int: 'international', dom: 'domestic', adv: 'adventure', camp: 'camping' }
+    const type = typeMap[prefixMatch[1]]
+    const tourId = Number(prefixMatch[2])
+    pkgs = db.prepare('SELECT * FROM tour_duration_packages WHERE tour_type = ? AND tour_id = ? ORDER BY days ASC, id ASC').all(type, tourId)
+    if (pkgs.length > 0) {
+      return pkgs.map((p) => ({ ...p, itinerary: getItineraryByPackageId(p.id) }))
+    }
+  }
+
+  // 3. Format like numeric id
+  if (/^\d+$/.test(clean)) {
+    pkgs = db.prepare('SELECT * FROM tour_duration_packages WHERE tour_id = ? ORDER BY days ASC, id ASC').all(Number(clean))
+    if (pkgs.length > 0) {
+      return pkgs.map((p) => ({ ...p, itinerary: getItineraryByPackageId(p.id) }))
+    }
+  }
+
+  // 4. Try destination / title matching against packages tables
+  const intlMatch = db.prepare("SELECT id FROM international_packages WHERE LOWER(destination) = ? OR LOWER(destination) LIKE ?").get(clean, `%${clean}%`)
+  if (intlMatch) {
+    pkgs = db.prepare('SELECT * FROM tour_duration_packages WHERE tour_type = ? AND tour_id = ? ORDER BY days ASC, id ASC').all('international', intlMatch.id)
+    if (pkgs.length > 0) {
+      return pkgs.map((p) => ({ ...p, itinerary: getItineraryByPackageId(p.id) }))
+    }
+  }
+
+  const domMatch = db.prepare("SELECT id FROM domestic_packages WHERE LOWER(destination) = ? OR LOWER(destination) LIKE ?").get(clean, `%${clean}%`)
+  if (domMatch) {
+    pkgs = db.prepare('SELECT * FROM tour_duration_packages WHERE tour_type = ? AND tour_id = ? ORDER BY days ASC, id ASC').all('domestic', domMatch.id)
+    if (pkgs.length > 0) {
+      return pkgs.map((p) => ({ ...p, itinerary: getItineraryByPackageId(p.id) }))
+    }
+  }
+
+  return []
+}
+
+export function saveTourPackage(data) {
+  const existing = data.id
+    ? db.prepare('SELECT * FROM tour_duration_packages WHERE id = ?').get(data.id)
+    : db.prepare('SELECT * FROM tour_duration_packages WHERE tour_type = ? AND tour_id = ? AND duration = ?').get(data.tour_type, data.tour_id, data.duration)
+
+  let packageId
+  if (existing) {
+    packageId = existing.id
+    db.prepare(`
+      UPDATE tour_duration_packages
+      SET tour_slug = COALESCE(?, tour_slug),
+          days = ?,
+          nights = ?,
+          price = ?,
+          original_price = ?,
+          is_default = ?,
+          updated_at = datetime('now')
+      WHERE id = ?
+    `).run(
+      data.tour_slug || existing.tour_slug,
+      Number(data.days),
+      Number(data.nights),
+      data.price != null ? Number(data.price) : existing.price,
+      data.original_price != null ? Number(data.original_price) : existing.original_price,
+      data.is_default ? 1 : 0,
+      packageId
+    )
+  } else {
+    const res = db.prepare(`
+      INSERT INTO tour_duration_packages
+        (tour_type, tour_id, tour_slug, duration, days, nights, price, original_price, is_default, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+    `).run(
+      data.tour_type,
+      Number(data.tour_id),
+      data.tour_slug,
+      data.duration,
+      Number(data.days),
+      Number(data.nights),
+      data.price != null ? Number(data.price) : null,
+      data.original_price != null ? Number(data.original_price) : null,
+      data.is_default ? 1 : 0
+    )
+    packageId = res.lastInsertRowid
+  }
+
+  if (Array.isArray(data.itinerary)) {
+    const insertOrUpdateDay = db.prepare(`
+      INSERT INTO tour_itineraries (package_id, day, title, description, activities, meals, overnight, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+      ON CONFLICT(package_id, day) DO UPDATE SET
+        title = excluded.title,
+        description = excluded.description,
+        activities = excluded.activities,
+        meals = excluded.meals,
+        overnight = excluded.overnight,
+        updated_at = datetime('now')
+    `)
+
+    const dayNumbers = data.itinerary.map((d, idx) => Number(d.day || idx + 1))
+    if (dayNumbers.length > 0) {
+      const placeholders = dayNumbers.map(() => '?').join(',')
+      db.prepare(`DELETE FROM tour_itineraries WHERE package_id = ? AND day NOT IN (${placeholders})`).run(packageId, ...dayNumbers)
+    }
+
+    for (let i = 0; i < data.itinerary.length; i++) {
+      const item = data.itinerary[i]
+      const dayNum = Number(item.day || i + 1)
+      const acts = typeof item.activities === 'string' ? item.activities : JSON.stringify(item.activities || [])
+      const meals = typeof item.meals === 'string' ? item.meals : JSON.stringify(item.meals || [])
+      insertOrUpdateDay.run(
+        packageId,
+        dayNum,
+        item.title || `Day ${dayNum}`,
+        item.description || '',
+        acts,
+        meals,
+        item.overnight || ''
+      )
+    }
+  }
+
+  return getPackageById(packageId)
+}
+
+export function deleteTourPackage(id) {
+  db.prepare('DELETE FROM tour_itineraries WHERE package_id = ?').run(id)
+  return db.prepare('DELETE FROM tour_duration_packages WHERE id = ?').run(id)
+}
+
+export function saveItineraryDay(packageId, dayData) {
+  const acts = typeof dayData.activities === 'string' ? dayData.activities : JSON.stringify(dayData.activities || [])
+  const meals = typeof dayData.meals === 'string' ? dayData.meals : JSON.stringify(dayData.meals || [])
+  db.prepare(`
+    INSERT INTO tour_itineraries (package_id, day, title, description, activities, meals, overnight, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+    ON CONFLICT(package_id, day) DO UPDATE SET
+      title = excluded.title,
+      description = excluded.description,
+      activities = excluded.activities,
+      meals = excluded.meals,
+      overnight = excluded.overnight,
+      updated_at = datetime('now')
+  `).run(
+    packageId,
+    Number(dayData.day),
+    dayData.title,
+    dayData.description || '',
+    acts,
+    meals,
+    dayData.overnight || ''
+  )
+  return db.prepare('SELECT * FROM tour_itineraries WHERE package_id = ? AND day = ?').get(packageId, dayData.day)
+}
+
+export function deleteItineraryDay(packageId, day) {
+  return db.prepare('DELETE FROM tour_itineraries WHERE package_id = ? AND day = ?').run(packageId, day)
+}

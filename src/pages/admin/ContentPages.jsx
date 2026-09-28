@@ -1,5 +1,6 @@
 import { Globe2, Map as MapIcon, Mountain, Tent, Plane, PenLine, CalendarDays } from 'lucide-react'
 import CrudPage from '../../components/admin/CrudPage'
+import TourDurationsManager from '../../components/admin/TourDurationsManager'
 import { IMAGE_PRESETS } from './imagePresets'
 
 const Thumb = ({ src, alt }) => src
@@ -43,6 +44,13 @@ export function InternationalPage() {
         { name: 'featured', label: 'Featured', type: 'switch', toggleLabel: 'Featured package', default: false },
         { name: 'status', label: 'Status', type: 'select', options: ['active', 'inactive'] },
       ],
+      renderExtra: (row) => (
+        <TourDurationsManager
+          tourId={row.id}
+          tourType="international"
+          tourSlug={`int-${row.destination ? row.destination.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') : row.id}`}
+        />
+      ),
     }} />
   )
 }
@@ -77,6 +85,13 @@ export function DomesticPage() {
         { name: 'activities', label: 'Activities', type: 'list', placeholder: 'Add an activity + Enter', span: 2 },
         { name: 'status', label: 'Status', type: 'select', options: ['active', 'inactive'] },
       ],
+      renderExtra: (row) => (
+        <TourDurationsManager
+          tourId={row.id}
+          tourType="domestic"
+          tourSlug={`dom-${row.destination ? row.destination.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') : row.id}`}
+        />
+      ),
     }} />
   )
 }

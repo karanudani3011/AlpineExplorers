@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { db, logActivity } from '../db.js'
+import { db, logActivity, getTourPackages, saveTourPackage } from '../db.js'
 import { authRequired, requirePermission } from '../middleware.js'
 import { syncContentToSupabase, deleteContentFromSupabase } from '../utils/supabase.js'
 
@@ -51,7 +51,12 @@ export function crudAdminRouter({ table, fields, module, permKey }) {
   router.get('/:id', requirePermission(`${pk}.view`), (req, res) => {
     const row = db.prepare(`SELECT ${selectable} FROM ${table} WHERE id = ?`).get(req.params.id)
     if (!row) return res.status(404).json({ error: 'Not found' })
-    res.json(decorateRow(row))
+    const decorated = decorateRow(row)
+    if (table === 'international_packages' || table === 'domestic_packages') {
+      const tourType = table === 'international_packages' ? 'international' : 'domestic'
+      decorated.duration_packages = getTourPackages(tourType, Number(row.id))
+    }
+    res.json(decorated)
   })
 
   router.post('/', requirePermission(`${pk}.create`), async (req, res) => {
@@ -65,13 +70,31 @@ export function crudAdminRouter({ table, fields, module, permKey }) {
     const ph = cols.map(() => '?').join(', ')
     const vals = cols.map((c) => data[c])
     const info = db.prepare(`INSERT INTO ${table} (${cols.join(', ')}) VALUES (${ph})`).run(...vals)
-    logActivity({ user_name: req.user.full_name || req.user.username || req.user.email, action: 'Created', module, details: `#${info.lastInsertRowid}` })
-    const row = db.prepare(`SELECT ${selectable} FROM ${table} WHERE id = ?`).get(info.lastInsertRowid)
+    const newId = info.lastInsertRowid
+    logActivity({ user_name: req.user.full_name || req.user.username || req.user.email, action: 'Created', module, details: `#${newId}` })
+
+    if (Array.isArray(req.body.duration_packages) && (table === 'international_packages' || table === 'domestic_packages')) {
+      const tourType = table === 'international_packages' ? 'international' : 'domestic'
+      for (const p of req.body.duration_packages) {
+        saveTourPackage({
+          ...p,
+          tour_type: tourType,
+          tour_id: Number(newId),
+        })
+      }
+    }
+
+    const row = db.prepare(`SELECT ${selectable} FROM ${table} WHERE id = ?`).get(newId)
+    const decorated = decorateRow(row)
+    if (table === 'international_packages' || table === 'domestic_packages') {
+      const tourType = table === 'international_packages' ? 'international' : 'domestic'
+      decorated.duration_packages = getTourPackages(tourType, Number(newId))
+    }
     
     // Sync with Supabase
     syncContentToSupabase(table, row).catch(() => {})
 
-    res.status(201).json(decorateRow(row))
+    res.status(201).json(decorated)
   })
 
   router.put('/:id', requirePermission(`${pk}.edit`), async (req, res) => {
@@ -79,17 +102,35 @@ export function crudAdminRouter({ table, fields, module, permKey }) {
     if (!existing) return res.status(404).json({ error: 'Not found' })
     const data = normalizeRow(req.body || {}, fields)
     const cols = Object.keys(data).filter((c) => data[c] !== undefined)
-    if (cols.length === 0) return res.status(400).json({ error: 'No valid fields provided' })
-    const set = cols.map((c) => `${c} = ?`).join(', ')
-    const vals = [...cols.map((c) => data[c]), req.params.id]
-    db.prepare(`UPDATE ${table} SET ${set}, updated_at = datetime('now') WHERE id = ?`).run(...vals)
+    if (cols.length > 0) {
+      const set = cols.map((c) => `${c} = ?`).join(', ')
+      const vals = [...cols.map((c) => data[c]), req.params.id]
+      db.prepare(`UPDATE ${table} SET ${set}, updated_at = datetime('now') WHERE id = ?`).run(...vals)
+    }
+
+    if (Array.isArray(req.body.duration_packages) && (table === 'international_packages' || table === 'domestic_packages')) {
+      const tourType = table === 'international_packages' ? 'international' : 'domestic'
+      for (const p of req.body.duration_packages) {
+        saveTourPackage({
+          ...p,
+          tour_type: tourType,
+          tour_id: Number(req.params.id),
+        })
+      }
+    }
+
     logActivity({ user_name: req.user.full_name || req.user.username || req.user.email, action: 'Updated', module, details: `#${req.params.id}` })
     const row = db.prepare(`SELECT ${selectable} FROM ${table} WHERE id = ?`).get(req.params.id)
+    const decorated = decorateRow(row)
+    if (table === 'international_packages' || table === 'domestic_packages') {
+      const tourType = table === 'international_packages' ? 'international' : 'domestic'
+      decorated.duration_packages = getTourPackages(tourType, Number(req.params.id))
+    }
 
     // Sync with Supabase
     syncContentToSupabase(table, row).catch(() => {})
 
-    res.json(decorateRow(row))
+    res.json(decorated)
   })
 
   router.patch('/:id/status', requirePermission(`${pk}.edit`), async (req, res) => {
@@ -137,10 +178,31 @@ export function publicTableRouter({ table, fields, hasFeatured }) {
   const router = Router()
   const orderBy = hasFeatured ? 'featured DESC, ' : ''
   const selectable = `id, ${fields.join(', ')}, created_at`
+  const isTour = table === 'international_packages' || table === 'domestic_packages'
+  const tourType = table === 'international_packages' ? 'international' : 'domestic'
+
   router.get('/', (req, res) => {
     const rows = db.prepare(`SELECT ${selectable} FROM ${table} WHERE status = 'active' ORDER BY ${orderBy}id DESC`).all()
-    res.json({ items: rows.map(decorateRow) })
+    const items = rows.map((r) => {
+      const dec = decorateRow(r)
+      if (isTour) {
+        dec.duration_packages = getTourPackages(tourType, Number(r.id))
+      }
+      return dec
+    })
+    res.json({ items })
   })
+
+  router.get('/:id', (req, res) => {
+    const row = db.prepare(`SELECT ${selectable} FROM ${table} WHERE id = ? AND status = 'active'`).get(req.params.id)
+    if (!row) return res.status(404).json({ error: 'Not found' })
+    const decorated = decorateRow(row)
+    if (isTour) {
+      decorated.duration_packages = getTourPackages(tourType, Number(row.id))
+    }
+    res.json(decorated)
+  })
+
   return router
 }
 

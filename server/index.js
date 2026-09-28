@@ -17,6 +17,7 @@ import bookingsRouter from './routes/bookings.js'
 import paymentsRouter from './routes/payments.js'
 import siteRouter from './routes/site.js'
 import { crudAdminRouter, CONTENT_CONFIGS } from './routes/content.js'
+import toursRouter from './routes/tours.js'
 import { uploadError } from './middleware.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -59,6 +60,7 @@ app.use('/api/inquiries', inquiriesRouter)
 app.use('/api/applications', applicationsRouter)
 app.use('/api/bookings', bookingsRouter)
 app.use('/api/payments', paymentsRouter)
+app.use('/api', toursRouter)
 app.use('/api', siteRouter)
 
 app.use('/api', uploadError)

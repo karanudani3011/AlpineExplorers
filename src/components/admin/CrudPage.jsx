@@ -170,6 +170,7 @@ export default function CrudPage({ config }) {
           <Btn variant="ghost" onClick={() => setOpen(false)} disabled={saving}>Cancel</Btn>
           <Btn onClick={save} disabled={saving}>{saving ? 'Saving…' : 'Save'}</Btn>
         </div>
+        {editing && config.renderExtra && config.renderExtra(editing)}
       </Modal>
 
       <Modal open={!!confirmDel} onClose={() => setConfirmDel(null)} title="Confirm Delete" width={420}>

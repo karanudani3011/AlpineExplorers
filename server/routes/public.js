@@ -1,8 +1,27 @@
 import { Router } from 'express'
-import { db } from '../db.js'
+import { db, getTourPackagesByIdentifier, getPackageById } from '../db.js'
 import { publicTableRouter, CONTENT_CONFIGS, decorateRow } from './content.js'
 
 const publicRouter = Router()
+
+publicRouter.get('/tours/:identifier/packages', (req, res) => {
+  try {
+    const packages = getTourPackagesByIdentifier(req.params.identifier)
+    res.json({ packages })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+publicRouter.get('/packages/:id', (req, res) => {
+  try {
+    const pkg = getPackageById(req.params.id)
+    if (!pkg) return res.status(404).json({ error: 'Package not found' })
+    res.json({ package: pkg })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
 
 Object.entries(CONTENT_CONFIGS).forEach(([key, cfg]) => {
   publicRouter.use(`/${key}`, publicTableRouter(cfg))
