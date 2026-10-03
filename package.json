@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "concurrently -k \"npm:dev:server\" \"npm:dev:client\"",
     "dev:client": "vite",
+    "dev:client:open": "vite --open",
     "dev:server": "node server/index.js",
     "start": "node server/index.js",
     "seed": "node server/seed.js",

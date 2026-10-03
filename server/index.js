@@ -27,7 +27,14 @@ const PORT = process.env.PORT || 5000
 const uploadsDir = path.join(__dirname, '..', 'uploads')
 const distDir = path.join(__dirname, '..', 'dist')
 
-app.use(cors())
+const allowedOrigins = process.env.FRONTEND_URL
+  ? process.env.FRONTEND_URL.split(',').map((url) => url.trim())
+  : '*'
+
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true,
+}))
 app.use(express.json({ limit: '5mb' }))
 
 /* Uploads */

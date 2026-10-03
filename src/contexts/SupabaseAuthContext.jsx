@@ -53,7 +53,7 @@ export function SupabaseAuthProvider({ children }) {
   useEffect(() => {
     let mounted = true
 
-    // 1. Check local session first
+    // 1. Check local session first (synchronous)
     const savedUserStr = localStorage.getItem('ae_traveler_user')
     const savedToken = API.getToken()
 
@@ -68,7 +68,11 @@ export function SupabaseAuthProvider({ children }) {
       } catch {}
     }
 
-    // 2. Initial Supabase check (safely caught if unreachable)
+    // Resolve loading immediately — don't block the Landing page on Supabase network I/O.
+    // Session check runs in the background and updates state when it arrives.
+    if (mounted) setLoading(false)
+
+    // 2. Background Supabase session check (safely caught if unreachable)
     supabase.auth.getSession().then(({ data }) => {
       if (!mounted) return
       if (data?.session?.user) {
@@ -81,9 +85,8 @@ export function SupabaseAuthProvider({ children }) {
           currentUser.user_metadata?.full_name || ''
         )
       }
-      setLoading(false)
     }).catch(() => {
-      if (mounted) setLoading(false)
+      // Supabase unreachable — already set loading=false above, no action needed
     })
 
     // 3. Listen to Supabase auth state changes safely

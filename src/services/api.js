@@ -1,4 +1,16 @@
-const BASE = import.meta.env.PROD ? '/api' : '/api'
+const BASE_URL = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '')
+
+function buildUrl(path) {
+  if (path.startsWith('http://') || path.startsWith('https://')) return path
+  const cleanPath = path.startsWith('/') ? path : `/${path}`
+  if (BASE_URL) {
+    if (cleanPath.startsWith('/api')) {
+      return `${BASE_URL}${cleanPath}`
+    }
+    return `${BASE_URL}/api${cleanPath}`
+  }
+  return cleanPath.startsWith('/api') ? cleanPath : `/api${cleanPath}`
+}
 
 export const API = {
   getToken: () => {
@@ -30,7 +42,7 @@ async function request(path, { method = 'GET', body, form } = {}) {
     headers['Content-Type'] = 'application/json'
     payload = JSON.stringify(body)
   }
-  const url = path.startsWith('/api') ? path : `${BASE}${path}`
+  const url = buildUrl(path)
   const res = await fetch(url, { method, headers, body: payload })
   const data = await res.json().catch(() => ({}))
   if (!res.ok) {
@@ -45,7 +57,7 @@ async function requestBlob(path) {
   const headers = {}
   const token = API.getToken()
   if (token) headers.Authorization = `Bearer ${token}`
-  const url = path.startsWith('/api') ? path : `${BASE}${path}`
+  const url = buildUrl(path)
   const res = await fetch(url, { method: 'GET', headers })
   if (!res.ok) {
     const data = await res.json().catch(() => ({}))
@@ -66,5 +78,5 @@ export const api = {
   patch: (path, body) => request(path, { method: 'PATCH', body }),
   del: (path) => request(path, { method: 'DELETE' }),
   getToken: () => API.getToken(),
-  BASE,
+  BASE: BASE_URL || '/api',
 }

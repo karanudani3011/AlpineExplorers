@@ -55,6 +55,9 @@ export function AuthProvider({ children }) {
       setLoading(false)
       return
     }
+    // Resolve loading immediately so public pages render without waiting.
+    // Fetch the current user in the background and update state when ready.
+    setLoading(false)
     api.get('/auth/me')
       .then((d) => {
         if (d.user?.status === 'INACTIVE') {
@@ -70,7 +73,6 @@ export function AuthProvider({ children }) {
         setToken('')
         setUser(null)
       })
-      .finally(() => setLoading(false))
   }, [token])
 
   // Login handler

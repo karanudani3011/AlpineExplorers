@@ -1,0 +1,219 @@
+================================================================================
+          ALPINE EXPLORERS — LIVE DEPLOYMENT GUIDE (RENDER + HOSTINGER)
+================================================================================
+
+This document provides complete, step-by-step instructions for deploying:
+1. Backend API (Node.js 22 + SQLite + Express) to Render.com
+2. Frontend (React + Vite SPA) to Hostinger Web Hosting
+
+--------------------------------------------------------------------------------
+PART 1: REQUIRED CODE & CONFIGURATION CHANGES (ALREADY COMPLETED IN CODEBASE)
+--------------------------------------------------------------------------------
+
+Before deploying, the following 4 files have been updated/created in the codebase:
+
+1. server/db.js
+   - Updated database storage directory to support Render Persistent Disk.
+   - Uses process.env.DATA_DIR || path.join(__dirname, 'data')
+   - Database file path: /data/alpine.db on Render (or server/data/alpine.db locally).
+
+2. server/index.js
+   - Configured CORS middleware to read process.env.FRONTEND_URL.
+   - Restricts API requests to your production domain (and local dev origins).
+
+3. src/services/api.js
+   - Updated buildUrl() to dynamically pick up import.meta.env.VITE_API_URL.
+   - Ensures production requests target your Render API domain (e.g., https://alpine-backend.onrender.com).
+
+4. public/.htaccess
+   - Created Apache rewriting rules so Hostinger correctly routes all subpages
+     (e.g., /tours, /admin) back to index.html without giving 404 errors.
+
+
+--------------------------------------------------------------------------------
+PART 2: DEPLOYING BACKEND ON RENDER (RENDER.COM)
+--------------------------------------------------------------------------------
+
+STEP 1: Push Project to GitHub / GitLab
+  1. Initialize git (if not already done):
+     git init
+  2. Commit your code:
+     git add .
+     git commit -m "Prepare production backend and deployment config"
+  3. Push to your GitHub/GitLab repository.
+
+STEP 2: Create Web Service on Render
+  1. Log in to https://dashboard.render.com
+  2. Click "New +" -> Select "Web Service"
+  3. Connect your GitHub/GitLab repository.
+  4. Fill in the service configuration:
+     - Name: alpine-explorers-api (or any unique name)
+     - Region: Select region closest to your target users (e.g., Singapore / Frankfurt)
+     - Branch: main
+     - Root Directory: (leave blank — project root)
+     - Runtime: Node
+     - Build Command: npm install
+     - Start Command: node server/index.js
+     - Plan: Free (or Starter for persistent disk)
+
+STEP 3: Configure Environment Variables on Render
+  In your Render Web Service dashboard, go to "Environment" -> "Add Environment Variable" and add:
+
+  Key                    Value
+  ---------------------  --------------------------------------------------
+  NODE_VERSION           22.x   (CRITICAL: node:sqlite requires Node 22+)
+  NODE_ENV               production
+  PORT                   5000
+  JWT_SECRET             [Generate a long random string, e.g. a8f9c2d7e1...]
+  FRONTEND_URL           https://yourdomain.com (your Hostinger frontend domain)
+  DATA_DIR               /data  (Required ONLY if attaching a Render Disk)
+  
+  CLOUDINARY_CLOUD_NAME  izgswkwq
+  CLOUDINARY_API_KEY     277647969313713
+  CLOUDINARY_API_SECRET  rprGXN65QRHqrYYvlCLypArfWN4
+  CLOUDINARY_URL         cloudinary://277647969313713:rprGXN65QRHqrYYvlCLypArfWN4@izgswkwq
+  
+  SUPABASE_URL           https://qhbsilnramjkagdjitlp.supabase.co
+  SUPABASE_ANON_KEY      [Your Supabase anon key from .env]
+
+STEP 4: Persistent Database Setup (IMPORTANT FOR SQLITE)
+  - Free Tier Note: On Render's Free Plan, filesystem changes are reset when the app restarts.
+  - Recommended Options for Production Data:
+    Option A (Recommended): Render Starter Plan ($7/mo) + Add Persistent Disk ($1/mo for 1GB):
+      - Go to "Disks" -> "Add Disk"
+      - Name: alpine-db-data
+      - Mount Path: /data
+      - Size: 1 GB
+      - Set DATA_DIR=/data in Environment Variables.
+    Option B: Use Supabase / External PostgreSQL for zero data loss on free servers.
+
+STEP 5: Seed Database on Render (One-Time Execution)
+  - Once deployed, open Render Shell tab for your service:
+    node server/seed.js
+  - This populates initial packages, blogs, events, and admin credentials.
+
+STEP 6: Copy Backend URL
+  - Copy your live Render service URL from the dashboard header:
+    Example: https://alpine-explorers-api.onrender.com
+
+
+--------------------------------------------------------------------------------
+PART 3: BUILDING & DEPLOYING FRONTEND ON HOSTINGER
+--------------------------------------------------------------------------------
+
+STEP 1: Create Production Environment File locally
+  1. In the root directory of your project (AlpineExplorers), create a file named `.env.production`:
+  2. Add the following line replacing with your actual Render API URL:
+
+     VITE_API_URL=https://alpine-explorers-api.onrender.com
+     VITE_SUPABASE_URL=https://qhbsilnramjkagdjitlp.supabase.co
+     VITE_SUPABASE_ANON_KEY=[Your Supabase anon key]
+
+STEP 2: Build Frontend for Production
+  1. Open your terminal in project root and run:
+     npm run build
+  2. Vite will compile your application into the `dist/` directory.
+  3. Verify that `dist/` folder contains:
+     - `index.html`
+     - `.htaccess` (copied automatically from `public/.htaccess`)
+     - `assets/` folder (compiled JS and CSS chunks)
+
+STEP 3: Upload to Hostinger File Manager
+  1. Log in to Hostinger hPanel (https://hpanel.hostinger.com)
+  2. Go to Websites -> Manage -> File Manager (or use FTP like FileZilla).
+  3. Navigate to `public_html/` folder of your domain.
+  4. If there are default files (like default.php or index.html), remove or backup them.
+  5. Select ALL contents inside your local `dist/` directory:
+     - Upload `index.html`
+     - Upload `.htaccess` (Make sure "Show Hidden Files" is enabled in Hostinger File Manager!)
+     - Upload `assets/` folder and all subfolders/files.
+  6. Ensure the directory structure in `public_html/` looks like:
+     public_html/
+     ├── index.html
+     ├── .htaccess
+     └── assets/
+         ├── index-XXXX.js
+         └── index-XXXX.css
+
+STEP 4: Test Domain
+  1. Open https://yourdomain.com in browser.
+  2. Test page navigation (e.g. click International Tours, Domestic, Admin Login).
+  3. Reload the browser on a subpage (e.g., https://yourdomain.com/tours/international) to verify `.htaccess` URL rewriting is working cleanly.
+
+
+--------------------------------------------------------------------------------
+PART 4: EXACT .HTACCESS FILE DATA FOR HOSTINGER
+--------------------------------------------------------------------------------
+
+The `.htaccess` file is already saved at `public/.htaccess` in your project.
+Below is the exact code for reference:
+
+```apache
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Rule 1: Serve existing files or directories directly
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Rule 2: Redirect all single-page app routes to index.html
+  RewriteRule ^ index.html [L]
+</IfModule>
+
+# Browser Caching Optimizations
+<IfModule mod_expires.c>
+  ExpiresActive On
+  
+  # Images, Fonts & Media (1 Year)
+  ExpiresByType image/jpg "access plus 1 year"
+  ExpiresByType image/jpeg "access plus 1 year"
+  ExpiresByType image/png "access plus 1 year"
+  ExpiresByType image/gif "access plus 1 year"
+  ExpiresByType image/svg+xml "access plus 1 year"
+  ExpiresByType image/webp "access plus 1 year"
+  ExpiresByType image/x-icon "access plus 1 year"
+  ExpiresByType font/ttf "access plus 1 year"
+  ExpiresByType font/woff "access plus 1 year"
+  ExpiresByType font/woff2 "access plus 1 year"
+  
+  # JS and CSS (1 Month / Hashed)
+  ExpiresByType text/css "access plus 1 month"
+  ExpiresByType application/javascript "access plus 1 month"
+  ExpiresByType text/javascript "access plus 1 month"
+  
+  # HTML (No cache)
+  ExpiresByType text/html "access plus 0 seconds"
+</IfModule>
+
+# Gzip Compression
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css application/javascript application/json image/svg+xml
+</IfModule>
+```
+
+
+--------------------------------------------------------------------------------
+PART 5: POST-DEPLOYMENT TROUBLESHOOTING & GOTCHAS
+--------------------------------------------------------------------------------
+
+1. Render Free Tier Cold Start (50 seconds delay):
+   - On Render free web services, the instance spins down after 15 minutes of inactivity.
+   - The first request after sleep can take ~50 seconds to wake up.
+   - Solution: Use a free uptime monitoring service (like UptimeRobot.com) to ping `https://alpine-explorers-api.onrender.com/api/health` every 10 minutes to keep it awake 24/7.
+
+2. CORS Errors in Browser Console:
+   - Error: "Access to fetch at ... has been blocked by CORS policy"
+   - Solution: Ensure `FRONTEND_URL` environment variable on Render matches your exact Hostinger domain (e.g. `https://yourdomain.com` without trailing slash).
+
+3. 404 Not Found on Refreshing Subpages on Hostinger:
+   - Solution: Confirm `.htaccess` was uploaded to `public_html/`. In Hostinger File Manager, click Settings -> enable "Show Hidden Files".
+
+4. Native node:sqlite compatibility:
+   - Error: "Cannot find module 'node:sqlite'"
+   - Solution: Ensure `NODE_VERSION` environment variable on Render is set to `22.x` or higher.
+
+================================================================================
+                            END OF DEPLOYMENT GUIDE
+================================================================================
