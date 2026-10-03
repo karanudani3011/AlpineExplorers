@@ -8,6 +8,7 @@ import { serviceTours, serviceCategories } from '../data/servicesData'
 import { tours as fallbackTours } from '../data/data'
 import { tourImages } from '../data/tourImages'
 import { useSupabaseAuth } from '../hooks/useSupabaseAuth'
+import { getCatalog } from '../services/catalog'
 import {
   Star, MapPin, Calendar, Clock, Users, CheckCircle, X,
   ChevronDown, ChevronUp, ChevronRight, Share2, Heart, MessageSquare,
@@ -67,11 +68,30 @@ export default function TourDetailsPage() {
   const [selectedPkg, setSelectedPkg] = useState(null)
   const [pkgLoading, setPkgLoading] = useState(false)
 
-  const { tour, category } = findTourById(id)
+  const initial = findTourById(id)
+  const [tourState, setTourState] = useState(initial)
+
+  const tour = tourState.tour
+  const category = tourState.category
 
   // Auth-aware Book Now
   const navigate = useNavigate()
   const { user, openAuthModal } = useSupabaseAuth()
+
+  // Fetch dynamic tour from catalog if not initially found in static list
+  useEffect(() => {
+    let mounted = true
+    getCatalog(true).then((catalog) => {
+      if (!mounted) return
+      const found = catalog.find((t) => t.id === id || String(t.id) === String(id) || `int-${t.id}` === id || `dom-${t.id}` === id || `adv-${t.id}` === id || `camp-${t.id}` === id)
+      if (found) {
+        const catSlug = (found.serviceCategory || found.category || 'international').toLowerCase()
+        const cat = serviceCategories.find((c) => catSlug.includes(c.slug) || c.slug.includes(catSlug)) || serviceCategories[0]
+        setTourState({ tour: found, category: cat })
+      }
+    }).catch(() => {})
+    return () => { mounted = false }
+  }, [id])
 
   // Fetch duration packages from DB
   useEffect(() => {

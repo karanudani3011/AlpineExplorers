@@ -103,22 +103,9 @@ export default function CrudPage({ config }) {
     ? rows.filter((r) => Object.keys(r).some((k) => typeof r[k] === 'string' && r[k].toLowerCase().includes(search.toLowerCase())))
     : rows
 
-  const set = (name) => (v) => setForm((f) => ({ ...f, [name]: v }))
-
-  const GridField = ({ f }) => (
-    <div className={cls(f.span === 2 && 'sm:col-span-2')}>
-      <Field label={f.label} required={f.required} hint={f.hint}>
-        {f.type === 'switch' && <Toggle checked={!!form[f.name]} onChange={set(f.name)} label={f.toggleLabel} />}
-        {f.type === 'select' && <Select value={form[f.name] ?? ''} onChange={set(f.name)} options={f.options} placeholder={f.placeholder || 'Select…'} />}
-        {f.type === 'tags' && <TagPicker value={form[f.name] || []} onChange={set(f.name)} suggestions={f.suggestions} />}
-        {f.type === 'list' && <ListEditor value={form[f.name] || []} onChange={set(f.name)} placeholder={f.placeholder} />}
-        {f.type === 'gallery' && <GalleryUpload value={form[f.name] || []} onChange={set(f.name)} />}
-        {f.type === 'image' && <ImageUpload value={form[f.name] || ''} onChange={set(f.name)} label={f.label} preset={f.preset} />}
-        {f.type === 'textarea' && <TextInput type="textarea" value={form[f.name] ?? ''} onChange={set(f.name)} placeholder={f.placeholder} rows={f.rows || 4} />}
-        {(f.type === 'text' || f.type === 'number') && <TextInput type={f.type === 'number' ? 'number' : 'text'} value={form[f.name] ?? ''} onChange={set(f.name)} placeholder={f.placeholder} />}
-      </Field>
-    </div>
-  )
+  const updateField = (name, val) => {
+    setForm((f) => ({ ...f, [name]: val }))
+  }
 
   const formSections = config.formSections || [{ fields: config.fields }]
 
@@ -164,7 +151,14 @@ export default function CrudPage({ config }) {
 
       <Modal open={open} onClose={() => setOpen(false)} title={editing ? `Edit ${config.itemName || 'Item'}` : `Add ${config.itemName || 'New Item'}`} width={820}>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5">
-          {formSections.flatMap((s) => s.fields).map((f, i) => <GridField key={i} f={f} />)}
+          {formSections.flatMap((s) => s.fields).map((f) => (
+            <GridField 
+              key={f.name} 
+              f={f} 
+              value={form[f.name]} 
+              onChange={(v) => updateField(f.name, v)} 
+            />
+          ))}
         </div>
         <div className="flex justify-end gap-2 mt-6 pt-4 border-t" style={{ borderColor: 'rgba(180,160,130,0.2)' }}>
           <Btn variant="ghost" onClick={() => setOpen(false)} disabled={saving}>Cancel</Btn>
@@ -205,5 +199,22 @@ function StatusIcon({ active }) {
       <ellipse cx="12" cy="12" rx="9" ry="5" />
       <path d="M3 12c0-2.7 4-5 9-5s9 2.3 9 5-4 5-9 5-9-2.3-9-5z" />
     </svg>
+  )
+}
+
+function GridField({ f, value, onChange }) {
+  return (
+    <div className={cls(f.span === 2 && 'sm:col-span-2')}>
+      <Field label={f.label} required={f.required} hint={f.hint}>
+        {f.type === 'switch' && <Toggle checked={!!value} onChange={onChange} label={f.toggleLabel} />}
+        {f.type === 'select' && <Select value={value ?? ''} onChange={onChange} options={f.options} placeholder={f.placeholder || 'Select…'} />}
+        {f.type === 'tags' && <TagPicker value={value || []} onChange={onChange} suggestions={f.suggestions} />}
+        {f.type === 'list' && <ListEditor value={value || []} onChange={onChange} placeholder={f.placeholder} />}
+        {f.type === 'gallery' && <GalleryUpload value={value || []} onChange={onChange} />}
+        {f.type === 'image' && <ImageUpload value={value || ''} onChange={onChange} label={f.label} preset={f.preset} />}
+        {f.type === 'textarea' && <TextInput type="textarea" value={value ?? ''} onChange={onChange} placeholder={f.placeholder} rows={f.rows || 4} />}
+        {(f.type === 'text' || f.type === 'number') && <TextInput type={f.type === 'number' ? 'number' : 'text'} value={value ?? ''} onChange={onChange} placeholder={f.placeholder} />}
+      </Field>
+    </div>
   )
 }

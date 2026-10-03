@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ChevronRight, ArrowRight } from 'lucide-react'
@@ -6,6 +6,7 @@ import Navbar from './Navbar'
 import Footer from './Footer'
 import TourGrid from './TourGrid'
 import { serviceCategories, serviceTours } from '../data/servicesData'
+import { getCatalog } from '../services/catalog'
 
 const NAVY = 'var(--ae-navy)'
 const GOLD = 'var(--ae-gold)'
@@ -21,9 +22,33 @@ const font = {
 export default function ServicePage() {
   const { slug } = useParams()
   const category = serviceCategories.find((c) => c.slug === slug)
-  const tours = serviceTours[slug] || []
+  const [tours, setTours] = useState(serviceTours[slug] || [])
 
-  useEffect(() => { window.scrollTo(0, 0) }, [slug])
+  useEffect(() => {
+    window.scrollTo(0, 0)
+    let mounted = true
+
+    // Load dynamic tours from DB / public API and merge with curated
+    getCatalog(true).then((catalog) => {
+      if (!mounted) return
+      const s = (slug || '').toLowerCase()
+      const filtered = catalog.filter((t) => {
+        const cat = (t.category || t.serviceCategory || '').toLowerCase()
+        if (s === 'international') return cat.includes('international')
+        if (s === 'domestic') return cat.includes('domestic')
+        if (s === 'mountain') return cat.includes('mountain') || cat.includes('trek')
+        if (s === 'adventure') return cat.includes('adventure')
+        if (s === 'family') return cat.includes('family') || cat.includes('camp')
+        if (s === 'solo') return cat.includes('solo') || cat.includes('biking')
+        return cat.includes(s)
+      })
+      if (filtered.length > 0) {
+        setTours(filtered)
+      }
+    }).catch(() => {})
+
+    return () => { mounted = false }
+  }, [slug])
 
   if (!category) {
     return (

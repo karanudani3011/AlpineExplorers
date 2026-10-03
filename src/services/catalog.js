@@ -215,8 +215,8 @@ function getCuratedServiceTours() {
 
 let cache = null
 
-async function getCatalog() {
-  if (cache) return cache
+async function getCatalog(forceRefresh = false) {
+  if (cache && !forceRefresh) return cache
   let international = [], domestic = [], adventure = [], camping = []
   try {
     const results = await Promise.all([
@@ -241,12 +241,17 @@ async function getCatalog() {
   ]
 
   const curated = getCuratedServiceTours()
-  
-  // Merge: start with curated rich tours, then add any DB items that aren't duplicate titles
-  const seenTitles = new Set(curated.map((c) => c.title.toLowerCase().trim()))
-  const additionalDb = dbItems.filter((d) => !seenTitles.has(d.title.toLowerCase().trim()))
 
-  cache = [...curated, ...additionalDb]
+  if (dbItems.length > 0) {
+    // DB items take priority: use them first, then fill in curated items not already covered
+    const dbTitles = new Set(dbItems.map((d) => d.title.toLowerCase().trim()))
+    const additionalCurated = curated.filter((c) => !dbTitles.has(c.title.toLowerCase().trim()))
+    cache = [...dbItems, ...additionalCurated]
+  } else {
+    // Server offline — fall back to curated static data
+    cache = curated
+  }
+
   return cache
 }
 
@@ -256,7 +261,6 @@ export function findTourById(id) {
 }
 
 export async function getTour(id) {
-  if (cache) return findTourById(id)
   await getCatalog()
   return findTourById(id)
 }
