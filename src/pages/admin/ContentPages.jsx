@@ -3,9 +3,23 @@ import CrudPage from '../../components/admin/CrudPage'
 import TourDurationsManager from '../../components/admin/TourDurationsManager'
 import { IMAGE_PRESETS } from './imagePresets'
 
-const Thumb = ({ src, alt }) => src
-  ? <img src={src} alt={alt} className="w-14 h-10 rounded object-cover" />
-  : <div className="w-14 h-10 rounded" style={{ background: 'rgba(180,160,130,0.15)' }} />
+import { useState } from 'react'
+
+const Thumb = ({ src, alt }) => {
+  const [error, setError] = useState(false)
+  return src && !error ? (
+    <img 
+      src={src} 
+      alt={alt || 'Thumbnail'} 
+      onError={() => setError(true)}
+      className="w-14 h-10 rounded object-cover shadow-sm bg-neutral-100" 
+    />
+  ) : (
+    <div className="w-14 h-10 rounded flex items-center justify-center text-[10px] font-semibold text-slate-400 bg-slate-100">
+      {alt ? alt.slice(0, 3).toUpperCase() : 'IMG'}
+    </div>
+  )
+}
 
 const PRICE = (r) => r.price ? <span className="font-bold">₹{(+r.price).toLocaleString('en-IN')}</span> : <span className="opacity-40">—</span>
 

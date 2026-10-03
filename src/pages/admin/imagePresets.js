@@ -5,11 +5,13 @@ export const IMAGE_PRESETS = {
     { label: 'Bali', url: U('photo-1537996194471-e657df975ab4') },
     { label: 'Maldives', url: U('photo-1514282401047-d79a71a590e8') },
     { label: 'Dubai', url: U('photo-1518684079-3c830dcef090') },
+    { label: 'Baku', url: U('photo-1584646098378-0874589d76b1') },
     { label: 'Thailand', url: U('photo-1528181304800-259b08848526') },
     { label: 'Europe', url: U('photo-1499856871958-5b9627545d1a') },
     { label: 'Vietnam', url: U('photo-1528127269322-539801943592') },
     { label: 'Cruise', url: U('photo-1548574505-5e239809ee19') },
     { label: 'Sri Lanka', url: U('photo-1552465011-b4e21bf6e79a') },
+    { label: 'Bhutan', url: U('photo-1601288496920-b6154fe3626a') },
   ],
   domestic: [
     { label: 'Kashmir', url: U('photo-1610041321327-b794c052db27') },
