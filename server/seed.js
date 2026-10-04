@@ -7,10 +7,10 @@ function hasAny(table) {
   return db.prepare(`SELECT COUNT(*) c FROM ${table}`).get().c > 0
 }
 
-async function main() {
+export function runSeed() {
   if (seeded()) {
     console.log('Database already seeded. Skipping.')
-    process.exit(0)
+    return false
   }
 
   const hash = bcrypt.hashSync(process.env.ADMIN_PASSWORD || 'admin123', 10)
@@ -199,10 +199,15 @@ async function main() {
   console.log('✓ Database seeded successfully.')
   console.log('  Super Admin → Username: admin | Password: admin123')
   console.log('  Editor      → Username: editor | Password: editor123')
-  process.exit(0)
+  return true
 }
 
-main().catch((e) => {
-  console.error('Seeding failed:', e)
-  process.exit(1)
-})
+if (process.argv[1] && process.argv[1].endsWith('seed.js')) {
+  try {
+    runSeed()
+    process.exit(0)
+  } catch (e) {
+    console.error('Seeding failed:', e)
+    process.exit(1)
+  }
+}

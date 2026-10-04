@@ -19,6 +19,7 @@ import siteRouter from './routes/site.js'
 import { crudAdminRouter, CONTENT_CONFIGS } from './routes/content.js'
 import toursRouter from './routes/tours.js'
 import { uploadError } from './middleware.js'
+import { runSeed } from './seed.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -45,6 +46,14 @@ const HOST = process.env.HOST || 'http://localhost'
 const API = `${HOST}:${PORT}`
 
 app.get('/api/health', (req, res) => res.json({ ok: true, message: 'Alpine Explorers API is running' }))
+app.get('/api/seed', (req, res) => {
+  try {
+    const seededNow = runSeed()
+    res.json({ ok: true, seeded: seededNow, message: seededNow ? 'Database seeded successfully' : 'Database already seeded' })
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message })
+  }
+})
 
 /* Public routes */
 app.use('/api/public', publicRouter)
@@ -81,6 +90,11 @@ if (fs.existsSync(distDir)) {
 }
 
 app.listen(PORT, () => {
+  try {
+    runSeed()
+  } catch (e) {
+    console.error('Auto seed error:', e.message)
+  }
   console.log(`\n  Alpine Explorers API running at ${API}`)
   console.log(`  Admin login -> ${API}/admin/login`)
   console.log(`  Uploads     -> ${API}/uploads\n`)
