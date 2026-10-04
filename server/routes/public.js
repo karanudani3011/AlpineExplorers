@@ -1,8 +1,18 @@
 import { Router } from 'express'
 import { db, getTourPackagesByIdentifier, getPackageById } from '../db.js'
 import { publicTableRouter, CONTENT_CONFIGS, decorateRow } from './content.js'
+import { runSeed } from '../seed.js'
 
 const publicRouter = Router()
+
+publicRouter.get('/seed', (req, res) => {
+  try {
+    const seededNow = runSeed()
+    res.json({ ok: true, seeded: seededNow, message: seededNow ? 'Database seeded successfully' : 'Database already seeded' })
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message })
+  }
+})
 
 publicRouter.get('/tours/:identifier/packages', (req, res) => {
   try {
