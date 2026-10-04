@@ -17,3 +17,10 @@ yarn-error.log*
 *.launch
 .settings/
 *.sublime-workspace
+
+# Local Database & Environment
+server/data/
+*.db
+*.db-shm
+*.db-wal
+
