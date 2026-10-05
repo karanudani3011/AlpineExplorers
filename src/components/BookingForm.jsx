@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { Mountain, ArrowLeft, ShieldCheck } from 'lucide-react'
 import Navbar from './Navbar'
@@ -6,6 +6,7 @@ import Footer from './Footer'
 import MultiTravelerBooking from './MultiTravelerBooking'
 import { serviceTours } from '../data/servicesData'
 import { tours as dataTours } from '../data/data'
+import { getCatalog } from '../services/catalog'
 import { useSupabaseAuth } from '../hooks/useSupabaseAuth'
 
 const NAVY = 'var(--ae-navy)'
@@ -26,19 +27,67 @@ export default function BookingForm() {
   const navigate = useNavigate()
   const { user, profile, openAuthModal } = useSupabaseAuth()
 
-  const tour = findTourById(id)
+  const [tour, setTour] = useState(() => findTourById(id))
+  const [tourLoading, setTourLoading] = useState(!findTourById(id))
+
+  // Async load from catalog for DB-sourced tours (dom-*, int-*, adv-*, camp-*)
+  useEffect(() => {
+    const staticTour = findTourById(id)
+    if (staticTour) {
+      setTour(staticTour)
+      setTourLoading(false)
+      return
+    }
+    setTourLoading(true)
+    getCatalog()
+      .then((catalog) => {
+        const found = catalog.find(
+          (t) =>
+            t.id === id ||
+            String(t.id) === String(id) ||
+            `int-${t.id}` === id ||
+            `dom-${t.id}` === id ||
+            `adv-${t.id}` === id ||
+            `camp-${t.id}` === id
+        )
+        setTour(found || null)
+      })
+      .catch(() => setTour(null))
+      .finally(() => setTourLoading(false))
+  }, [id])
 
   useEffect(() => {
-    if (!user) {
+    if (!user && !tourLoading) {
       openAuthModal({
         message: 'Login or create an account to continue with your booking.',
         targetTour: tour,
         onSuccess: () => navigate(`/booking/${id}`, { replace: true }),
       })
     }
-  }, [user, id]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [user, id, tourLoading]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { window.scrollTo(0, 0) }, [id])
+
+  if (tourLoading) {
+    return (
+      <div className="min-h-screen flex flex-col" style={{ backgroundColor: '#f8f9fa' }}>
+        <Navbar />
+        <div className="flex-1 flex flex-col items-center justify-center text-center py-32">
+          <div style={{
+            width: 44,
+            height: 44,
+            border: '3px solid rgba(197,155,39,0.2)',
+            borderTop: '3px solid var(--ae-gold)',
+            borderRadius: '50%',
+            animation: 'spin 0.8s linear infinite',
+          }} />
+          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+          <p className="mt-4 text-sm" style={{ color: NAVY, fontFamily: 'Cinzel, serif' }}>Loading booking details…</p>
+        </div>
+        <Footer />
+      </div>
+    )
+  }
 
   if (!tour) {
     return (

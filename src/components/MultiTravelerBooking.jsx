@@ -11,6 +11,8 @@ import { supabase } from '../services/supabaseClient'
 import TravelerForm from './booking/TravelerForm'
 import ReviewCard from './booking/ReviewCard'
 import PaymentScreen from './booking/PaymentScreen'
+import DownloadFormStep from './booking/DownloadFormStep'
+import UploadFormStep from './booking/UploadFormStep'
 import { PAYMENT_CONFIG } from '../config/paymentConfig'
 
 const NAVY = 'var(--ae-navy)'
@@ -120,7 +122,7 @@ function validateTraveler(t) {
 
 /* ──────────────────────────── Step Indicator ──────────────────────────── */
 
-const STEPS = ['Travelers', 'Application', 'Summary', 'Payment', 'Confirmation']
+const STEPS = ['Travelers', 'Application', 'Summary', 'Download Form', 'Upload Form', 'Payment', 'Confirmation']
 
 function StepBar({ step }) {
   return (
@@ -301,7 +303,7 @@ Thank you.`
 /* ──────────────────────────── MAIN COMPONENT ──────────────────────────── */
 
 export default function MultiTravelerBooking({ tour, user, profile }) {
-  const [step, setStep] = useState(0) // 0: Count, 1: Form, 2: Summary, 3: Payment, 4: Done
+  const [step, setStep] = useState(0) // 0: Count, 1: Form, 2: Summary, 3: Download, 4: Upload, 5: Payment, 6: Done
   const [travelerCount, setTravelerCount] = useState(1)
   const [travelers, setTravelers] = useState([makeTraveler(user, profile, tour?.title || '')])
   const [allErrors, setAllErrors] = useState([{}])
@@ -418,7 +420,7 @@ export default function MultiTravelerBooking({ tour, user, profile }) {
   const totalPrice = tour.price > 0 ? tour.price * travelerCount : null
 
   /* ── STEP 2 → STEP 3 (Submit application & open PaymentScreen) ── */
-  const handleProceedToPayment = async () => {
+  const handleProceedToPayment = async (uploadedFormList = []) => {
     if (!confirmedCorrect || submitting) return
     setSubmitting(true)
     setSubmitError('')
@@ -439,6 +441,7 @@ export default function MultiTravelerBooking({ tour, user, profile }) {
       booking_contact_phone: travelers[0]?.contact || '',
       status: 'pending',
       payment_status: 'pending',
+      scanned_forms: uploadedFormList || [],
       travelers: travelers.map((t) => ({
         courseName: t.courseName || tour.title,
         fullName: t.fullName,
@@ -497,6 +500,7 @@ export default function MultiTravelerBooking({ tour, user, profile }) {
             customer_phone: travelers[0]?.contact || '',
             status: 'pending',
             payment_status: 'pending',
+            scanned_forms: uploadedFormList || [],
           }, { onConflict: 'booking_reference' })
       } catch (supErr) {
         console.warn('Supabase booking sync note:', supErr.message)
@@ -522,7 +526,7 @@ export default function MultiTravelerBooking({ tour, user, profile }) {
       }
 
       setConfirmedBooking(bookingRecord)
-      setStep(3) // Step 3: Payment
+      setStep(5) // Step 5: Payment
       scrollTop()
     } catch (err) {
       setSubmitError(err?.message || 'Unable to submit application. Please try again.')
@@ -922,42 +926,57 @@ export default function MultiTravelerBooking({ tour, user, profile }) {
                 <ArrowLeft size={15} className="inline mr-1" /> Edit Application Form
               </button>
 
-              <div className="w-full sm:w-auto flex flex-col items-end gap-2">
-                {submitError && (
-                  <div className="p-2.5 rounded-xl text-xs font-semibold text-red-600 bg-red-50 border border-red-200">
-                    {submitError}
-                  </div>
-                )}
-                <button
-                  type="button"
-                  onClick={handleProceedToPayment}
-                  disabled={!confirmedCorrect || submitting}
-                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl text-white font-bold text-sm transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-lg"
-                  style={{
-                    background: confirmedCorrect && !submitting
-                      ? `linear-gradient(135deg, ${NAVY}, ${NAVY_MID})`
-                      : '#94a3b8',
-                  }}
-                >
-                  {submitting ? (
-                    <>
-                      <Loader2 size={16} className="animate-spin" /> Preparing Payment...
-                    </>
-                  ) : (
-                    <>
-                      <CreditCard size={16} /> Continue to Payment <ArrowRight size={16} />
-                    </>
-                  )}
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  if (confirmedCorrect) {
+                    setStep(3)
+                    scrollTop()
+                  }
+                }}
+                disabled={!confirmedCorrect}
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl text-white font-bold text-sm transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-lg"
+                style={{
+                  background: confirmedCorrect
+                    ? `linear-gradient(135deg, ${NAVY}, ${NAVY_MID})`
+                    : '#94a3b8',
+                }}
+              >
+                Continue to Download Form <ArrowRight size={16} />
+              </button>
             </div>
           </motion.div>
         )}
 
-        {/* ─────────── STEP 3: Payment ─────────── */}
-        {step === 3 && confirmedBooking && (
-          <motion.div
+        {/* ─────────── STEP 3: Download Form ─────────── */}
+        {step === 3 && (
+          <DownloadFormStep
             key="step3"
+            travelers={travelers}
+            tour={tour}
+            onBack={() => { setStep(2); scrollTop() }}
+            onNext={() => { setStep(4); scrollTop() }}
+          />
+        )}
+
+        {/* ─────────── STEP 4: Upload Scanned Form ─────────── */}
+        {step === 4 && (
+          <UploadFormStep
+            key="step4"
+            travelers={travelers}
+            tour={tour}
+            bookingId={bookingId}
+            submitting={submitting}
+            submitError={submitError}
+            onBack={() => { setStep(3); scrollTop() }}
+            onNext={(files) => { handleProceedToPayment(files) }}
+          />
+        )}
+
+        {/* ─────────── STEP 5: Payment ─────────── */}
+        {step === 5 && confirmedBooking && (
+          <motion.div
+            key="step5"
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -15 }}
@@ -966,25 +985,25 @@ export default function MultiTravelerBooking({ tour, user, profile }) {
             <PaymentScreen
               booking={confirmedBooking}
               tour={tour}
-              onBack={() => setStep(2)}
+              onBack={() => setStep(4)}
               onPaymentSuccess={(updated) => {
                 setConfirmedBooking(updated)
-                setStep(4)
+                setStep(6)
                 scrollTop()
               }}
               onUpiSubmitted={(updated) => {
                 setConfirmedBooking(updated)
-                setStep(4)
+                setStep(6)
                 scrollTop()
               }}
             />
           </motion.div>
         )}
 
-        {/* ─────────── STEP 4: Payment Completed / Confirmation ─────────── */}
-        {step === 4 && confirmedBooking && (
+        {/* ─────────── STEP 6: Confirmation ─────────── */}
+        {step === 6 && confirmedBooking && (
           <motion.div
-            key="step4"
+            key="step6"
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.4 }}

@@ -37,7 +37,26 @@ export default function TourCard({ tour }) {
       >
         {/* Image Container */}
         <div className="relative overflow-hidden h-64 sm:h-72 w-full flex-shrink-0">
-          <TourImageSlider images={tour.images?.length ? tour.images : (tourImages[tour.id] || (tour.image ? [tour.image] : []))} alt={tour.title} />
+          <TourImageSlider
+            images={(() => {
+              const customImgs = Array.isArray(tour?.images) && tour.images.length > 0 ? tour.images : []
+              const presetImgs = tourImages[tour?.id] || []
+              const combined = Array.from(new Set([...customImgs, ...presetImgs, ...(tour?.image ? [tour.image] : [])]))
+              if (combined.length >= 4) return combined.slice(0, 4)
+              const fallbacks = [
+                'https://images.unsplash.com/photo-1518684079-3c830dcef090?w=1000&h=700&fit=crop',
+                'https://images.unsplash.com/photo-1512100356356-de1b84283e18?w=1000&h=700&fit=crop',
+                'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1000&h=700&fit=crop',
+                'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=1000&h=700&fit=crop',
+              ]
+              for (const img of fallbacks) {
+                if (combined.length >= 4) break
+                if (!combined.includes(img)) combined.push(img)
+              }
+              return combined.slice(0, 4)
+            })()}
+            alt={tour.title}
+          />
 
           {/* Gradient Shadow Overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent pointer-events-none" />

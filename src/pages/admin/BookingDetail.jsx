@@ -14,6 +14,17 @@ import { useAuth } from '../../contexts/AuthContext'
 
 const STATUSES = ['pending', 'confirmed', 'cancelled', 'completed']
 
+const safeScannedForms = (raw) => {
+  if (!raw) return []
+  if (Array.isArray(raw)) return raw
+  try {
+    const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return []
+  }
+}
+
 export default function BookingDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -447,6 +458,67 @@ export default function BookingDetail() {
           </Card>
         </div>
       </div>
+
+      {/* Scanned Forms Section */}
+      {safeScannedForms(booking.scanned_forms).length > 0 && (
+        <Card className="mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-bold flex items-center gap-2" style={{ fontFamily: 'Cinzel', color: NAVY }}>
+              <FileText size={18} className="text-red-600" /> USER'S UPLOADED SCANNED FORMS ({safeScannedForms(booking.scanned_forms).length})
+            </h3>
+            <span className="text-xs font-bold text-red-700 bg-red-50 border border-red-200 px-2.5 py-1 rounded-full">
+              Customer Uploaded Scan
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {safeScannedForms(booking.scanned_forms).map((form, idx) => (
+              <div
+                key={idx}
+                className="bg-white rounded-xl p-4 border border-red-200/80 shadow-sm flex flex-col justify-between gap-3 hover:shadow-md transition"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-red-50 text-red-600 flex items-center justify-center font-bold shrink-0">
+                    <FileText size={20} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-bold text-xs truncate" style={{ color: NAVY }} title={form.name}>
+                      {form.name || `Scanned_Form_${idx + 1}.pdf`}
+                    </p>
+                    <p className="text-[11px] text-gray-400 mt-0.5">
+                      {form.size ? `${(form.size / 1024).toFixed(1)} KB` : 'Document'} · {form.type?.includes('pdf') || form.name?.endsWith('.pdf') ? 'PDF' : 'Image'}
+                    </p>
+                    {form.uploaded_at && (
+                      <p className="text-[10px] text-gray-400 mt-0.5">
+                        Uploaded: {new Date(form.uploaded_at).toLocaleDateString('en-IN')}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
+                  <a
+                    href={form.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-bold text-navy bg-gray-100 hover:bg-gray-200 transition"
+                  >
+                    <Eye size={12} /> View
+                  </a>
+                  <a
+                    href={form.url}
+                    download={form.name || `Scanned_Form_${booking.booking_id}_${idx + 1}.pdf`}
+                    className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-bold text-white transition shadow-sm"
+                    style={{ background: NAVY }}
+                  >
+                    <Download size={12} /> Download
+                  </a>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
 
       {/* Travelers */}
       <Card>

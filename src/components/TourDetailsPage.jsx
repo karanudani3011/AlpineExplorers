@@ -68,8 +68,10 @@ export default function TourDetailsPage() {
   const [selectedPkg, setSelectedPkg] = useState(null)
   const [pkgLoading, setPkgLoading] = useState(false)
 
+  // catalogLoading = true until the async catalog fetch resolves
   const initial = findTourById(id)
   const [tourState, setTourState] = useState(initial)
+  const [catalogLoading, setCatalogLoading] = useState(!initial.tour)
 
   const tour = tourState.tour
   const category = tourState.category
@@ -81,6 +83,14 @@ export default function TourDetailsPage() {
   // Fetch dynamic tour from catalog if not initially found in static list
   useEffect(() => {
     let mounted = true
+    // Reset loading state when id changes
+    const staticResult = findTourById(id)
+    if (staticResult.tour) {
+      setTourState(staticResult)
+      setCatalogLoading(false)
+    } else {
+      setCatalogLoading(true)
+    }
     getCatalog(true).then((catalog) => {
       if (!mounted) return
       const found = catalog.find((t) => t.id === id || String(t.id) === String(id) || `int-${t.id}` === id || `dom-${t.id}` === id || `adv-${t.id}` === id || `camp-${t.id}` === id)
@@ -89,7 +99,9 @@ export default function TourDetailsPage() {
         const cat = serviceCategories.find((c) => catSlug.includes(c.slug) || c.slug.includes(catSlug)) || serviceCategories[0]
         setTourState({ tour: found, category: cat })
       }
-    }).catch(() => {})
+    }).catch(() => {}).finally(() => {
+      if (mounted) setCatalogLoading(false)
+    })
     return () => { mounted = false }
   }, [id])
 
@@ -125,6 +137,26 @@ export default function TourDetailsPage() {
   }
 
   useEffect(() => { window.scrollTo(0, 0) }, [id])
+
+  if (catalogLoading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center" style={{ backgroundColor: CREAM }}>
+        <Navbar />
+        <div className="flex flex-col items-center gap-4 py-32">
+          <div style={{
+            width: 44,
+            height: 44,
+            border: '3px solid rgba(197,155,39,0.2)',
+            borderTop: '3px solid var(--ae-gold)',
+            borderRadius: '50%',
+            animation: 'spin 0.8s linear infinite',
+          }} />
+          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+          <p style={{ color: BROWN, fontFamily: 'Cinzel, serif', fontSize: '0.9rem' }}>Loading tour details…</p>
+        </div>
+      </div>
+    )
+  }
 
   if (!tour) {
     return (

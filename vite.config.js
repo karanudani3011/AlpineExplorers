@@ -8,6 +8,11 @@ export default defineConfig({
     // Removed `open: true` — the browser was opening before the Express
     // backend (port 5000) finished booting, causing network errors on startup.
     // Run `npm run dev` then manually open http://localhost:5173
+
+    // historyApiFallback: serve index.html for all routes that don't match a
+    // real file. This fixes blank-page-on-refresh for React Router deep links
+    // like /services/family, /tour/:id, /booking/:id, etc.
+    historyApiFallback: true,
     proxy: {
       '/api': { target: 'http://127.0.0.1:5000', changeOrigin: true },
       '/uploads': { target: 'http://127.0.0.1:5000', changeOrigin: true },

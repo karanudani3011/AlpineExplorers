@@ -32,7 +32,9 @@ export default function Bookings() {
   const [filterBookingDate, setFilterBookingDate] = useState('')
   const [filterMinTravelers, setFilterMinTravelers] = useState('')
   const [filterMaxTravelers, setFilterMaxTravelers] = useState('')
+  const [filterHasScannedForm, setFilterHasScannedForm] = useState('')
   const [showFilters, setShowFilters] = useState(false)
+  const [datewiseDownloading, setDatewiseDownloading] = useState(false)
   
   const [pdfGenerating, setPdfGenerating] = useState(null)
   const [excelGenerating, setExcelGenerating] = useState(null)
@@ -52,6 +54,7 @@ export default function Bookings() {
       if (filterBookingDate) qs.set('bookingDate', filterBookingDate)
       if (filterMinTravelers) qs.set('minTravelers', filterMinTravelers)
       if (filterMaxTravelers) qs.set('maxTravelers', filterMaxTravelers)
+      if (filterHasScannedForm) qs.set('hasScannedForm', filterHasScannedForm)
       
       const data = await api.get(`/bookings?${qs.toString()}`)
       setBookings(data.bookings || [])
@@ -61,7 +64,7 @@ export default function Bookings() {
     } finally {
       setLoading(false)
     }
-  }, [page, limit, filterStatus, filterPaymentStatus, search, filterTour, filterTravelDate, filterBookingDate, filterMinTravelers, filterMaxTravelers])
+  }, [page, limit, filterStatus, filterPaymentStatus, search, filterTour, filterTravelDate, filterBookingDate, filterMinTravelers, filterMaxTravelers, filterHasScannedForm])
 
   const loadStats = useCallback(async () => {
     setStatsLoading(true)
@@ -97,10 +100,11 @@ export default function Bookings() {
     setFilterBookingDate('')
     setFilterMinTravelers('')
     setFilterMaxTravelers('')
+    setFilterHasScannedForm('')
     setPage(1)
   }
 
-  const hasActiveFilters = filterStatus || filterPaymentStatus || filterTour || filterTravelDate || filterBookingDate || filterMinTravelers || filterMaxTravelers
+  const hasActiveFilters = filterStatus || filterPaymentStatus || filterTour || filterTravelDate || filterBookingDate || filterMinTravelers || filterMaxTravelers || filterHasScannedForm
 
   const handleVerifyPayment = async (bookingId) => {
     setVerifyingId(bookingId)
@@ -113,6 +117,63 @@ export default function Bookings() {
       addToast(e.message || 'Failed to verify payment', 'error')
     } finally {
       setVerifyingId(null)
+    }
+  }
+
+  const downloadDatewisePdfs = async (dateType = 'booking') => {
+    const targetDate = dateType === 'travel' ? filterTravelDate : filterBookingDate
+    if (!targetDate) {
+      addToast(`Please select a ${dateType === 'travel' ? 'Travel' : 'Booking'} Date in the filters first.`, 'error')
+      setShowFilters(true)
+      return
+    }
+
+    setDatewiseDownloading(true)
+    try {
+      const qs = new URLSearchParams()
+      if (dateType === 'travel') qs.set('travelDate', targetDate)
+      else qs.set('bookingDate', targetDate)
+      if (filterHasScannedForm) qs.set('hasScannedForm', filterHasScannedForm)
+      qs.set('limit', 100)
+
+      const data = await api.get(`/bookings?${qs.toString()}`)
+      const matchingBookings = data.bookings || []
+
+      if (matchingBookings.length === 0) {
+        addToast(`No bookings found for ${targetDate}.`, 'error')
+        return
+      }
+
+      // Collect all scanned forms + trigger downloads
+      let downloadedCount = 0
+      for (const b of matchingBookings) {
+        const forms = safeScannedForms(b.scanned_forms)
+        if (forms.length > 0) {
+          for (const form of forms) {
+            if (form.url) {
+              const link = document.createElement('a')
+              link.href = form.url
+              link.target = '_blank'
+              link.download = form.name || `Scanned_Form_${b.booking_id}.pdf`
+              document.body.appendChild(link)
+              link.click()
+              link.remove()
+              downloadedCount++
+            }
+          }
+        }
+      }
+
+      if (downloadedCount > 0) {
+        addToast(`Downloaded ${downloadedCount} scanned PDF(s) for date ${targetDate}.`)
+      } else {
+        addToast(`No uploaded scanned PDF documents found for bookings on ${targetDate}.`, 'info')
+      }
+    } catch (err) {
+      console.error('Datewise download error:', err)
+      addToast('Failed to download datewise PDFs', 'error')
+    } finally {
+      setDatewiseDownloading(false)
     }
   }
 
@@ -168,6 +229,13 @@ export default function Bookings() {
   const formatDate = (dateStr) => {
     if (!dateStr) return '—'
     return new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+  }
+
+  // Safely parse scanned_forms whether it arrives as string or array
+  const safeScannedForms = (raw) => {
+    if (!raw) return []
+    if (Array.isArray(raw)) return raw
+    try { return JSON.parse(raw) } catch { return [] }
   }
 
   const getStatusBadge = (status) => {
@@ -279,7 +347,7 @@ export default function Bookings() {
         </div>
 
         {showFilters && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-4 pb-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-8 gap-4 pb-2">
             <div>
               <label className="block text-[11px] font-bold uppercase tracking-wide mb-1" style={{ color: NAVY, fontFamily: font.body }}>Status</label>
               <select
@@ -305,6 +373,19 @@ export default function Bookings() {
                 <option value="paid">Paid</option>
                 <option value="pending">Pending</option>
                 <option value="payment_failed">Failed</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold uppercase tracking-wide mb-1" style={{ color: NAVY, fontFamily: font.body }}>Scanned Form</label>
+              <select
+                value={filterHasScannedForm}
+                onChange={(e) => { setFilterHasScannedForm(e.target.value); handleFilterChange() }}
+                className="w-full px-3 py-2 rounded-xl border outline-none text-sm"
+                style={{ borderColor: 'rgb(var(--ae-navy-rgb) /0.15)', background: '#fff', color: NAVY, fontFamily: font.body }}
+              >
+                <option value="">All Bookings</option>
+                <option value="yes">With Scanned Form (PDF)</option>
+                <option value="no">Without Scanned Form</option>
               </select>
             </div>
             <div>
@@ -362,17 +443,43 @@ export default function Bookings() {
                 style={{ borderColor: 'rgb(var(--ae-navy-rgb) /0.15)', background: '#fff', color: NAVY, fontFamily: font.body }}
               />
             </div>
-            {hasActiveFilters && (
-              <div className="flex items-end sm:col-span-2 lg:col-span-6">
+
+            {/* Date-wise PDF Download Action Bar */}
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-gray-100 sm:col-span-2 lg:col-span-8">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs font-bold text-gray-600 mr-1 flex items-center gap-1">
+                  <FileText size={13} className="text-red-600" /> Datewise PDF Download:
+                </span>
                 <button
-                  onClick={resetFilters}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition"
-                  style={{ color: '#8b2518', backgroundColor: 'rgba(139,37,24,0.08)', border: '1px solid rgba(139,37,24,0.3)' }}
+                  type="button"
+                  onClick={() => downloadDatewisePdfs('booking')}
+                  disabled={datewiseDownloading}
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold text-white transition shadow-sm cursor-pointer disabled:opacity-50"
+                  style={{ background: NAVY }}
                 >
-                  <X size={14} /> Reset Filters
+                  <Download size={12} /> Download by Booking Date
+                </button>
+                <button
+                  type="button"
+                  onClick={() => downloadDatewisePdfs('travel')}
+                  disabled={datewiseDownloading}
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition border cursor-pointer hover:bg-amber-100/50 disabled:opacity-50"
+                  style={{ color: NAVY, borderColor: `${NAVY}30`, backgroundColor: 'rgba(217, 119, 6, 0.08)' }}
+                >
+                  <Download size={12} /> Download by Travel Date
                 </button>
               </div>
-            )}
+
+              {hasActiveFilters && (
+                <button
+                  onClick={resetFilters}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer"
+                  style={{ color: '#8b2518', backgroundColor: 'rgba(139,37,24,0.08)', border: '1px solid rgba(139,37,24,0.3)' }}
+                >
+                  <X size={12} /> Reset Filters
+                </button>
+              )}
+            </div>
           </div>
         )}
       </Card>
@@ -403,12 +510,36 @@ export default function Bookings() {
                       {getPaymentBadge(booking.payment_status, booking.payment_method)}
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 text-xs mb-3" style={{ color: 'rgb(var(--ae-ink-rgb) /0.7)', fontFamily: font.body }}>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 text-xs mb-2" style={{ color: 'rgb(var(--ae-ink-rgb) /0.7)', fontFamily: font.body }}>
                     <span><b>Booked:</b> {formatDate(booking.booking_date)}</span>
                     <span><b>Travel:</b> {formatDate(booking.travel_date)}</span>
                     <span><b>Travelers:</b> {booking.number_of_travelers}</span>
                     <span style={{ color: GOLD }}><b>Amount:</b> {formatCurrency(booking.total_amount)}</span>
                   </div>
+                  
+                  {/* Mobile Scanned Form link */}
+                  <div className="flex items-center gap-2 mb-3 text-xs">
+                    <span className="font-bold text-gray-500">Scanned Form:</span>
+                    {safeScannedForms(booking.scanned_forms).length > 0 ? (
+                      <div className="flex gap-1 flex-wrap">
+                        {safeScannedForms(booking.scanned_forms).map((form, fIdx) => (
+                          <a
+                            key={fIdx}
+                            href={form.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            download={form.name || `Scanned_Form_${booking.booking_id}.pdf`}
+                            className="inline-flex items-center gap-1 text-red-700 font-bold bg-red-50 border border-red-200 px-2 py-0.5 rounded-md"
+                          >
+                            <FileText size={11} className="text-red-600" /> Scan {safeScannedForms(booking.scanned_forms).length > 1 ? `#${fIdx + 1}` : '(PDF)'}
+                          </a>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-gray-400 italic">Not Uploaded</span>
+                    )}
+                  </div>
+
                   <div className="flex items-center gap-2">
                     {booking.payment_status === 'pending_verification' && (
                       <button
@@ -467,6 +598,7 @@ export default function Bookings() {
                     <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: 'rgb(var(--ae-navy-rgb) /0.5)', fontFamily: font.body }}>TRAVELERS</th>
                     <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: 'rgb(var(--ae-navy-rgb) /0.5)', fontFamily: font.body }}>TOTAL AMOUNT</th>
                     <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: 'rgb(var(--ae-navy-rgb) /0.5)', fontFamily: font.body }}>PAYMENT</th>
+                    <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: 'rgb(var(--ae-navy-rgb) /0.5)', fontFamily: font.body }}>SCANNED FORM</th>
                     <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: 'rgb(var(--ae-navy-rgb) /0.5)', fontFamily: font.body }}>STATUS</th>
                     <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: 'rgb(var(--ae-navy-rgb) /0.5)', fontFamily: font.body }}>ACTIONS</th>
                   </tr>
@@ -495,6 +627,29 @@ export default function Bookings() {
                             </button>
                           )}
                         </div>
+                      </td>
+                      <td className="px-5 py-4">
+                        {safeScannedForms(booking.scanned_forms).length > 0 ? (
+                          <div className="flex flex-col gap-1">
+                            {safeScannedForms(booking.scanned_forms).map((form, fIdx) => (
+                              <a
+                                key={fIdx}
+                                href={form.url}
+                                target="_blank"
+                                rel="noreferrer"
+                                download={form.name || `Scanned_Form_${booking.booking_id}.pdf`}
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold text-red-700 bg-red-50 border border-red-200 hover:bg-red-100 transition truncate max-w-[130px]"
+                                title={form.name || 'Download Scanned Form PDF'}
+                              >
+                                <FileText size={12} className="shrink-0 text-red-600" />
+                                <span className="truncate">{safeScannedForms(booking.scanned_forms).length === 1 ? 'User Scan (PDF)' : `Scan #${fIdx + 1}`}</span>
+                                <Download size={10} className="shrink-0 opacity-60 ml-auto" />
+                              </a>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-xs text-gray-400 italic">Not Uploaded</span>
+                        )}
                       </td>
                       <td className="px-5 py-4">{getStatusBadge(booking.status)}</td>
                       <td className="px-5 py-4">

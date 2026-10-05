@@ -147,10 +147,27 @@ export default function UpcomingEvents() {
                 viewport={{ once: true, margin: '-60px' }}
                 transition={{ duration: 0.55, delay: i * 0.07 }}
                 className="group rounded-2xl overflow-hidden flex flex-col relative"
-                style={{ backgroundColor: CREAM, boxShadow: '0 10px 26px rgba(60,40,20,0.12), 0 2px 6px rgba(60,40,20,0.05)', border: '1px solid rgba(180,160,130,0.28)' }}
               >
                 <div className="relative h-52 overflow-hidden">
-                  <TourImageSlider images={(Array.isArray(ev.gallery) && ev.gallery.length > 0) ? ev.gallery : (Array.isArray(ev.images) && ev.images.length > 0 ? ev.images : (eventImages[ev.id] || (ev.image ? [ev.image] : [])))} alt={ev.title} />
+                  <TourImageSlider
+                    images={(() => {
+                      const list = (Array.isArray(ev.gallery) && ev.gallery.length > 0) ? ev.gallery : (Array.isArray(ev.images) && ev.images.length > 0 ? ev.images : (eventImages[ev.id] || (ev.image ? [ev.image] : [])))
+                      const combined = Array.from(new Set(list))
+                      if (combined.length >= 4) return combined.slice(0, 4)
+                      const fallbacks = [
+                        'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?w=900&h=600&fit=crop',
+                        'https://images.unsplash.com/photo-1544731612-de7f96afe55f?w=900&h=600&fit=crop',
+                        'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=900&h=600&fit=crop',
+                        'https://images.unsplash.com/photo-1483728642387-6c3bdd6c93e5?w=900&h=600&fit=crop',
+                      ]
+                      for (const img of fallbacks) {
+                        if (combined.length >= 4) break
+                        if (!combined.includes(img)) combined.push(img)
+                      }
+                      return combined.slice(0, 4)
+                    })()}
+                    alt={ev.title}
+                  />
                   <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgb(var(--ae-navy-rgb) /0.55) 0%, rgb(var(--ae-navy-rgb) /0.05) 60%, transparent 100%)' }} />
                   <div className="absolute top-3 left-3">
                     <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest" style={{ backgroundColor: 'rgb(var(--ae-gold2-rgb) /0.92)', color: NAVY, ...font.vintage }}>

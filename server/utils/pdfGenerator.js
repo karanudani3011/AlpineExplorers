@@ -1,5 +1,5 @@
 import PDFDocument from 'pdfkit'
-import { db, getBookingById, getTravelersByBookingId, getDeclarationByTravelerId, getRiskCertificateByTravelerId, getGuardianByTravelerId, getAllBookingsForExport, getAllTravelersForExport, getTravelerById } from '../db.js'
+import { getBookingById, getTravelersByBookingId, getDeclarationByTravelerId, getRiskCertificateByTravelerId, getGuardianByTravelerId, getAllBookingsForExport, getAllTravelersForExport, getTravelerById } from '../db.js'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -7,239 +7,342 @@ import { fileURLToPath } from 'node:url'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const uploadsDir = path.join(__dirname, '..', '..', 'uploads')
 
-const NAVY = '#001a4d'
-const GOLD = '#c59b27'
-const GOLD2 = '#d4af37'
+const RED   = '#b91c1c'
+const NAVY  = '#001a4d'
+const GOLD  = '#c59b27'
+const GRAY  = '#6b7280'
+const BLACK = '#111827'
+const LIGHT = '#f8fafc'
 
-function formatCurrency(amount) {
+function fmt(amount) {
   if (!amount) return '—'
   return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount)
 }
 
-function formatDate(dateStr) {
-  if (!dateStr) return '—'
-  return new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })
+function fmtDate(d) {
+  if (!d) return '—'
+  try { return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) } catch { return d }
 }
 
-function addImage(doc, imageData, x, y, maxWidth, maxHeight) {
-  if (!imageData || typeof imageData !== 'string') return false
+function addImg(doc, src, x, y, w, h) {
+  if (!src || typeof src !== 'string') return false
   try {
-    let buffer = null
-    if (imageData.startsWith('data:image/')) {
-      const parts = imageData.split(',')
-      if (parts.length > 1) {
-        buffer = Buffer.from(parts[1], 'base64')
-      }
-    } else if (imageData.startsWith('/uploads/') || imageData.startsWith('uploads/')) {
-      const cleanRel = imageData.replace(/^\/?uploads\//, '')
-      const diskPath = path.join(uploadsDir, cleanRel)
-      if (fs.existsSync(diskPath)) {
-        buffer = fs.readFileSync(diskPath)
-      }
+    let buf = null
+    if (src.startsWith('data:image/')) {
+      const p = src.split(',')
+      if (p.length > 1) buf = Buffer.from(p[1], 'base64')
     } else {
-      const diskPath = path.join(uploadsDir, imageData)
-      if (fs.existsSync(diskPath)) {
-        buffer = fs.readFileSync(diskPath)
-      }
+      const rel = src.replace(/^\/?uploads\//, '')
+      const fp  = path.join(uploadsDir, rel)
+      if (fs.existsSync(fp)) buf = fs.readFileSync(fp)
     }
-
-    if (!buffer || buffer.length === 0) return false
-
-    doc.image(buffer, x, y, { fit: [maxWidth, maxHeight], align: 'center' })
+    if (!buf || buf.length === 0) return false
+    doc.image(buf, x, y, { fit: [w, h], align: 'center', valign: 'center' })
     return true
-  } catch (e) {
-    console.error('Error adding image to PDF:', e.message)
-    return false
-  }
+  } catch { return false }
 }
 
-function addPageNumbersAndFooters(doc) {
-  try {
-    const range = doc.bufferedPageRange()
-    for (let i = range.start; i < range.start + range.count; i++) {
-      doc.switchToPage(i)
-      doc.fontSize(8).font('Helvetica').fillColor('#718096').text(
-        `Page ${i + 1} of ${range.count}   |   Alpine Explorers — Application & Booking Management`,
-        50,
-        doc.page.height - 35,
-        { align: 'center', width: doc.page.width - 100 }
-      )
+// Draw outer + inner red double border
+function border(doc) {
+  doc.rect(20, 20, 555, 801).lineWidth(2).strokeColor(RED).stroke()
+  doc.rect(23, 23, 549, 795).lineWidth(0.5).strokeColor(RED).stroke()
+}
+
+// Compact header — occupies only ~50pt
+function header(doc, booking, pageNum) {
+  border(doc)
+
+  // Logo block
+  doc.rect(30, 28, 36, 36).fillAndStroke(RED, RED)
+  doc.fontSize(7).font('Helvetica-Bold').fillColor('#fff')
+  doc.text('ALPINE', 30, 36, { width: 36, align: 'center' })
+  doc.fontSize(5).font('Helvetica').fillColor('#fff')
+  doc.text('EXPLORERS', 30, 44, { width: 36, align: 'center' })
+
+  // Company name + tagline
+  doc.fontSize(13).font('Times-Bold').fillColor(RED).text('ALPINE EXPLORERS', 72, 29)
+  doc.fontSize(6.5).font('Helvetica-Bold').fillColor(GRAY).text('PIONEER IN ADVENTURE TOURISM  |  Amit Lakhani (Director)  |  Cel. 94272 20979', 72, 43)
+  doc.fontSize(6).font('Helvetica').fillColor(BLACK).text('1, Shubh prabha Appt., 28 Karanpara, Rajkot  |  0281-222 75 83  |  alpine_explorers@yahoo.com', 72, 52)
+
+  // Booking ref + page
+  doc.fontSize(6.5).font('Helvetica-Bold').fillColor(NAVY)
+  doc.text(`Ref: ${booking.booking_id}   |   Page ${pageNum} of 2`, 350, 29, { width: 215, align: 'right' })
+
+  // Red divider
+  doc.moveTo(28, 68).lineTo(572, 68).lineWidth(1.2).strokeColor(RED).stroke()
+}
+
+// Single text row: label + value + optional underline
+function row(doc, label, value, x, y, lw, vw, ul = true) {
+  doc.fontSize(7).font('Helvetica-Bold').fillColor(BLACK).text(label, x, y, { width: lw })
+  doc.fontSize(7).font('Helvetica').fillColor(NAVY).text(value || '—', x + lw, y, { width: vw })
+  if (ul) doc.moveTo(x + lw, y + 9).lineTo(x + lw + vw, y + 9).lineWidth(0.3).strokeColor('#d1d5db').stroke()
+}
+
+/* =============================================================
+   PAGE 1 — Application Form
+   ============================================================= */
+function page1(doc, booking, t, idx) {
+  header(doc, booking, 1)
+
+  // Title bar
+  doc.rect(28, 72, 544, 14).fillAndStroke(RED, RED)
+  doc.fontSize(8).font('Helvetica-Bold').fillColor('#fff')
+  doc.text(`APPLICATION FORM   —   TRAVELER ${idx + 1} OF ${booking.number_of_travelers}`, 28, 75, { width: 544, align: 'center' })
+
+  let y = 90
+
+  // ── Course name row ──
+  row(doc, 'COURSE / TOUR :', t.course_name || booking.tour_name || '—', 28, y, 95, 300)
+
+  // ── Photo box (right side, row 0-5 height) ──
+  const px = 440, py = 88, pw = 115, ph = 105
+  doc.rect(px, py, pw, ph).lineWidth(0.8).strokeColor(RED).stroke()
+  const didPhoto = t.photo_url ? addImg(doc, t.photo_url, px + 2, py + 2, pw - 4, ph - 4) : false
+  if (!didPhoto) {
+    doc.fontSize(6.5).font('Helvetica-Bold').fillColor('#9ca3af')
+    doc.text('AFFIX\nPASSPORT\nSIZE PHOTO', px, py + 32, { width: pw, align: 'center', lineGap: 1 })
+  }
+  doc.fontSize(5.5).font('Helvetica').fillColor(GRAY).text('Photograph', px, py + ph + 1, { width: pw, align: 'center' })
+
+  y += 14
+  row(doc, 'FULL NAME :', t.full_name, 28, y, 80, 320)
+
+  y += 13
+  // Address (2 sub-lines)
+  doc.fontSize(7).font('Helvetica-Bold').fillColor(BLACK).text('ADDRESS :', 28, y, { width: 80 })
+  doc.fontSize(7).font('Helvetica').fillColor(NAVY).text(t.address || '—', 110, y, { width: 290 })
+  doc.moveTo(110, y + 9).lineTo(400, y + 9).lineWidth(0.3).strokeColor('#d1d5db').stroke()
+
+  y += 13
+  // DOB / Age / Sex / Blood group on one line
+  doc.fontSize(6.5).font('Helvetica-Bold').fillColor(BLACK).text('DOB :', 28, y)
+  doc.fontSize(6.5).font('Helvetica').fillColor(NAVY).text(fmtDate(t.date_of_birth), 55, y, { width: 70 })
+  doc.moveTo(55, y + 8).lineTo(125, y + 8).lineWidth(0.3).strokeColor('#d1d5db').stroke()
+
+  doc.fontSize(6.5).font('Helvetica-Bold').fillColor(BLACK).text('AGE :', 130, y)
+  doc.fontSize(6.5).font('Helvetica').fillColor(NAVY).text(t.age ? `${t.age} yrs` : '—', 158, y, { width: 40 })
+  doc.moveTo(158, y + 8).lineTo(198, y + 8).lineWidth(0.3).strokeColor('#d1d5db').stroke()
+
+  doc.fontSize(6.5).font('Helvetica-Bold').fillColor(BLACK).text('SEX :', 203, y)
+  doc.fontSize(6.5).font('Helvetica').fillColor(NAVY).text(t.sex || '—', 228, y, { width: 35 })
+  doc.moveTo(228, y + 8).lineTo(263, y + 8).lineWidth(0.3).strokeColor('#d1d5db').stroke()
+
+  doc.fontSize(6.5).font('Helvetica-Bold').fillColor(BLACK).text('BLOOD GRP :', 268, y)
+  doc.fontSize(6.5).font('Helvetica').fillColor(NAVY).text(t.blood_group || '—', 320, y, { width: 50 })
+  doc.moveTo(320, y + 8).lineTo(370, y + 8).lineWidth(0.3).strokeColor('#d1d5db').stroke()
+
+  y += 13
+  row(doc, 'MOBILE / TEL :', t.contact_number || booking.booking_contact_phone || '—', 28, y, 85, 315)
+
+  y += 13
+  // Education + Institute same line
+  doc.fontSize(6.5).font('Helvetica-Bold').fillColor(BLACK).text('EDUCATION :', 28, y, { width: 70 })
+  doc.fontSize(6.5).font('Helvetica').fillColor(NAVY).text(t.education || '—', 100, y, { width: 120 })
+  doc.moveTo(100, y + 8).lineTo(220, y + 8).lineWidth(0.3).strokeColor('#d1d5db').stroke()
+  doc.fontSize(6.5).font('Helvetica-Bold').fillColor(BLACK).text('INST/OFFICE :', 228, y, { width: 75 })
+  doc.fontSize(6.5).font('Helvetica').fillColor(NAVY).text(t.school_college || '—', 305, y, { width: 125 })
+  doc.moveTo(305, y + 8).lineTo(430, y + 8).lineWidth(0.3).strokeColor('#d1d5db').stroke()
+
+  y += 13
+  row(doc, 'INST. ADDRESS :', t.school_college_address || '—', 28, y, 90, 250)
+  doc.fontSize(6.5).font('Helvetica-Bold').fillColor(BLACK).text('INST. PHONE :', 373, y, { width: 75 })
+  doc.fontSize(6.5).font('Helvetica').fillColor(NAVY).text(t.school_college_phone || '—', 448, y, { width: 90 })
+  doc.moveTo(448, y + 8).lineTo(538, y + 8).lineWidth(0.3).strokeColor('#d1d5db').stroke()
+
+  y += 13
+  row(doc, 'HOBBIES :', t.hobbies || '—', 28, y, 65, 375)
+
+  y += 13
+  const expYN = t.adventure_experience || 'No'
+  row(doc, 'PREV. ADVENTURE / CULTURAL EXPERIENCE :', expYN, 28, y, 210, 50)
+  if (t.adventure_details) {
+    y += 12
+    row(doc, 'DETAILS :', t.adventure_details, 28, y, 65, 375)
+  }
+
+  // ── Declaration box ──
+  y += 18
+  doc.rect(28, y, 544, 26).fillAndStroke('#fef2f2', RED)
+  doc.fontSize(7).font('Helvetica-Bold').fillColor(RED)
+  doc.text('DECLARATION & UNDERTAKING', 28, y + 3, { width: 544, align: 'center' })
+  doc.fontSize(6).font('Helvetica').fillColor(BLACK)
+  doc.text(
+    'IF I AM SELECTED, I AGREE TO ABIDE BY ALL THE RULES & REGULATIONS AND TERMS AND CONDITIONS OF ADMISSION FOR THE COURSE / TOUR WHICH I HEREBY FULLY ACCEPT.',
+    36, y + 12, { width: 528, align: 'center' }
+  )
+
+  // ── Signatures row ──
+  y += 34
+  const decl = t.declaration || {}
+  doc.fontSize(6.5).font('Helvetica-Bold').fillColor(BLACK)
+  doc.text(`Place : ${decl.place || '—'}`, 30, y)
+  doc.text(`Date  : ${fmtDate(decl.date)}`, 30, y + 11)
+
+  // Guardian sig (if minor)
+  if (t.participant_type === 'Minor' || t.guardian) {
+    const gSigX = 200, guard = t.guardian || {}
+    if (guard.guardian_signature_url) addImg(doc, guard.guardian_signature_url, gSigX, y - 4, 110, 22)
+    doc.moveTo(gSigX - 5, y + 22).lineTo(gSigX + 120, y + 22).lineWidth(0.4).strokeColor(GRAY).stroke()
+    doc.fontSize(6).font('Helvetica-Bold').fillColor(BLACK)
+    doc.text('Signature of Parent / Guardian', gSigX - 5, y + 24, { width: 125, align: 'center' })
+  }
+
+  // Applicant sig
+  const sigX = 400
+  if (decl.signature_url) addImg(doc, decl.signature_url, sigX, y - 4, 110, 22)
+  doc.moveTo(sigX - 5, y + 22).lineTo(sigX + 120, y + 22).lineWidth(0.4).strokeColor(GRAY).stroke()
+  doc.fontSize(6).font('Helvetica-Bold').fillColor(BLACK)
+  doc.text('Signature of Applicant', sigX - 5, y + 24, { width: 125, align: 'center' })
+}
+
+/* =============================================================
+   PAGE 2 — Risk Certificate + Booking Summary + Office Use
+   ============================================================= */
+function page2(doc, booking, t, idx) {
+  doc.addPage()
+  header(doc, booking, 2)
+
+  let y = 72
+
+  // ── RISK CERTIFICATE ──
+  const risk = t.risk_certificate || {}
+  doc.rect(28, y, 544, 115).lineWidth(1).strokeColor(RED).stroke()
+  doc.rect(28, y, 544, 13).fillAndStroke(RED, RED)
+  doc.fontSize(8).font('Helvetica-Bold').fillColor('#fff').text('RISK CERTIFICATE', 28, y + 3, { width: 544, align: 'center' })
+
+  const partName  = risk.participant_name || t.full_name || '—'
+  const courseName = risk.course_name || t.course_name || booking.tour_name || '—'
+
+  doc.fontSize(7.5).font('Helvetica').fillColor(BLACK)
+  doc.text(
+    `It is certified that I agree to detail my son / daughter / ward / Mr. / Ms. / Myself  "${partName}"  for  "${courseName}"  course at my own risk and no compensation will be paid to me in case of accident or death and I will not hold the CLUB - TRUST or its staff wholly or partially responsible for any mishappening during the expedition / course.`,
+    36, y + 18, { width: 528, align: 'justify', lineGap: 2 }
+  )
+
+  const rSigY = y + 72
+  doc.fontSize(6.5).font('Helvetica-Bold').fillColor(BLACK)
+  doc.text(`Place : ${risk.place || '—'}`, 36, rSigY)
+  doc.text(`Date  : ${fmtDate(risk.date)}`, 36, rSigY + 11)
+
+  const rSigX = 380
+  if (risk.signature_url) addImg(doc, risk.signature_url, rSigX, rSigY - 4, 120, 22)
+  doc.moveTo(rSigX - 5, rSigY + 22).lineTo(rSigX + 135, rSigY + 22).lineWidth(0.4).strokeColor(GRAY).stroke()
+  doc.fontSize(6).font('Helvetica-Bold').fillColor(BLACK)
+  doc.text('Signature of Parent / Guardian / Applicant', rSigX - 5, rSigY + 24, { width: 140, align: 'center' })
+  doc.fontSize(5.5).font('Helvetica').fillColor(GRAY).text('(In case of minor, parent signature required)', rSigX - 5, rSigY + 32, { width: 140, align: 'center' })
+
+  y += 120
+
+  // ── BOOKING & PAYMENT SUMMARY ──
+  doc.rect(28, y, 544, 12).fillAndStroke(NAVY, NAVY)
+  doc.fontSize(7.5).font('Helvetica-Bold').fillColor('#fff').text('OFFICIAL BOOKING & PAYMENT DETAILS', 28, y + 2.5, { width: 544, align: 'center' })
+
+  y += 16
+  doc.rect(28, y, 544, 95).lineWidth(0.5).strokeColor('#cbd5e1').stroke()
+
+  const c1 = 38, c2 = 300
+  let ry = y + 7
+
+  const brow = (l1, v1, l2, v2) => {
+    doc.fontSize(6.5).font('Helvetica-Bold').fillColor(GRAY).text(l1, c1, ry, { width: 75 })
+    doc.fontSize(6.5).font('Helvetica').fillColor(NAVY).text(v1 || '—', c1 + 75, ry, { width: 170 })
+    if (l2) {
+      doc.fontSize(6.5).font('Helvetica-Bold').fillColor(GRAY).text(l2, c2, ry, { width: 80 })
+      doc.fontSize(6.5).font('Helvetica').fillColor(NAVY).text(v2 || '—', c2 + 80, ry, { width: 170 })
     }
-  } catch (e) {
-    console.error('Error adding page numbers to PDF:', e)
+    ry += 13
   }
-}
 
-function drawSectionHeader(doc, title, y) {
-  doc.fontSize(13).font('Helvetica-Bold').fillColor(NAVY).text(title, 50, y)
-  doc.moveTo(50, y + 18).lineTo(550, y + 18).strokeColor(GOLD).lineWidth(1.5).stroke()
-  return y + 26
-}
+  brow('BOOKING ID :', booking.booking_id, 'BOOKING DATE :', fmtDate(booking.booking_date))
+  brow('TOUR / PACKAGE :', booking.tour_name, 'TRAVEL DATE :', fmtDate(booking.travel_date))
+  brow('DESTINATION :', booking.location, 'DURATION :', booking.duration)
+  brow('TRAVELERS :', `${booking.number_of_travelers} Person(s)`, 'TOTAL AMOUNT :', fmt(booking.total_amount))
+  doc.fontSize(6.5).font('Helvetica-Bold').fillColor(GRAY).text('PAYMENT MODE :', c1, ry, { width: 75 })
+  doc.fontSize(6.5).font('Helvetica').fillColor(NAVY).text((booking.payment_method || 'UPI').toUpperCase(), c1 + 75, ry, { width: 100 })
+  doc.fontSize(6.5).font('Helvetica-Bold').fillColor(GRAY).text('PAYMENT STATUS :', c2, ry, { width: 80 })
+  const isPaid = (booking.payment_status || '').toLowerCase() === 'paid'
+  doc.fontSize(6.5).font('Helvetica-Bold').fillColor(isPaid ? '#059669' : '#d97706')
+  doc.text((booking.payment_status || 'Pending').toUpperCase(), c2 + 80, ry, { width: 100 })
+  ry += 13
+  brow('CONTACT :', `${booking.booking_contact_name || '—'} (${booking.booking_contact_phone || '—'})`, 'EMAIL :', booking.booking_contact_email)
 
-function drawField(doc, label, value, y, indent = 50) {
-  doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#3a2a18').text(`${label}:`, indent, y, { width: 160 })
-  doc.fontSize(9.5).font('Helvetica').fillColor(NAVY).text(value || '—', indent + 165, y, { width: 335 })
-  return y + 17
-}
+  y += 100
 
-function drawTextBlock(doc, text, y, indent = 50, width = 450) {
-  doc.fontSize(9).font('Helvetica').fillColor('#3a2a18').text(text, indent, y, { width, align: 'justify', lineGap: 2 })
-  return y + doc.heightOfString(text, { width, align: 'justify', lineGap: 2 }) + 8
-}
+  // ── SCANNED FORMS SECTION ──
+  let scannedForms = []
+  try {
+    scannedForms = typeof booking.scanned_forms === 'string'
+      ? JSON.parse(booking.scanned_forms || '[]')
+      : (booking.scanned_forms || [])
+  } catch (e) {}
 
-function checkPageBreak(doc, y, needed = 100) {
-  if (y + needed > doc.page.height - 50) {
-    doc.addPage()
-    return 50
+  const sfH = scannedForms.length > 0 ? Math.min(14 + scannedForms.length * 13, 65) : 24
+  doc.rect(28, y, 544, 13).fillAndStroke('#f1f5f9', '#94a3b8')
+  doc.fontSize(7).font('Helvetica-Bold').fillColor(NAVY).text('ATTACHED SCANNED APPLICATION DOCUMENTS', 28, y + 3, { width: 544, align: 'center' })
+
+  y += 16
+  doc.rect(28, y, 544, sfH).lineWidth(0.4).strokeColor('#cbd5e1').stroke()
+
+  if (scannedForms.length > 0) {
+    let sy = y + 5
+    scannedForms.forEach((form, fi) => {
+      doc.fontSize(6.5).font('Helvetica-Bold').fillColor(RED).text(`[PDF ${fi + 1}]`, 36, sy)
+      doc.fontSize(6.5).font('Helvetica').fillColor(NAVY).text(form.name || `Scanned_Form_${fi + 1}.pdf`, 75, sy, { width: 280 })
+      doc.fontSize(6).font('Helvetica').fillColor(GRAY)
+      doc.text(`${form.size ? (form.size / 1024).toFixed(0) + ' KB' : 'PDF'}  |  ${form.uploaded_at ? fmtDate(form.uploaded_at) : 'Uploaded'}`, 360, sy, { width: 200, align: 'right' })
+      sy += 13
+    })
+  } else {
+    doc.fontSize(6.5).font('Helvetica-Oblique').fillColor(GRAY)
+    doc.text('No scanned document uploaded. Signed physical copy will be verified at reporting.', 36, y + 7, { width: 528, align: 'center' })
   }
-  return y
+
+  y += sfH + 8
+
+  // ── OFFICE USE BOX ──
+  const offH = 52
+  doc.rect(28, y, 544, offH).lineWidth(0.6).strokeColor('#94a3b8').stroke()
+  doc.fontSize(7).font('Helvetica-Bold').fillColor(NAVY).text('FOR ALPINE EXPLORERS OFFICE USE ONLY', 36, y + 5)
+  doc.fontSize(6.5).font('Helvetica').fillColor('#475569')
+  doc.text(
+    'Application Form & Documents Verified   [    ]\nMedical & Declaration Checks Cleared     [    ]\nCamp Admission & Slot Confirmed          [    ]',
+    36, y + 15, { lineGap: 2 }
+  )
+
+  const stX = 400
+  doc.rect(stX, y + 6, 132, 42).lineWidth(0.4).strokeColor('#94a3b8').stroke()
+  doc.moveTo(stX, y + 42).lineTo(stX + 132, y + 42).lineWidth(0.3).strokeColor(GRAY).stroke()
+  doc.fontSize(6).font('Helvetica-Bold').fillColor(NAVY)
+  doc.text('Authorized Signature & Seal', stX, y + 44, { width: 132, align: 'center' })
 }
 
+/* =============================================================
+   Public exports
+   ============================================================= */
 export async function generateBookingPdf(bookingId) {
   const booking = getBookingById(bookingId)
   if (!booking) throw new Error('Booking not found')
-  
+
   const travelers = getTravelersByBookingId(booking.id)
-  const travelersWithDetails = travelers.map(t => ({
+  const withDetails = travelers.map(t => ({
     ...t,
-    declaration: getDeclarationByTravelerId(t.id),
+    declaration:      getDeclarationByTravelerId(t.id),
     risk_certificate: getRiskCertificateByTravelerId(t.id),
-    guardian: getGuardianByTravelerId(t.id)
+    guardian:         getGuardianByTravelerId(t.id)
   }))
 
-  const doc = new PDFDocument({ margin: 50, size: 'A4', bufferPages: true })
+  const doc = new PDFDocument({ margin: 20, size: 'A4', autoFirstPage: true })
   const chunks = []
-  doc.on('data', chunk => chunks.push(chunk))
-  
-  let y = 50
+  doc.on('data', c => chunks.push(c))
 
-  // Cover Page
-  doc.fontSize(28).font('Helvetica-Bold').fillColor(NAVY).text('ALPINE EXPLORERS', 50, y, { align: 'center' })
-  y += 40
-  doc.fontSize(18).font('Helvetica').fillColor(GOLD).text('Booking & Application Report', 50, y, { align: 'center' })
-  y += 30
-  doc.fontSize(12).font('Helvetica').fillColor('#666').text(`Generated on ${new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}`, 50, y, { align: 'center' })
-  y += 60
-
-  // Booking Summary
-  y = drawSectionHeader(doc, 'BOOKING SUMMARY', y)
-  y = drawField(doc, 'Booking ID', booking.booking_id, y)
-  y = drawField(doc, 'Tour', booking.tour_name, y)
-  y = drawField(doc, 'Tour Category', booking.tour_category, y)
-  y = drawField(doc, 'Location', booking.location, y)
-  y = drawField(doc, 'Duration', booking.duration, y)
-  y = drawField(doc, 'Travel Date', formatDate(booking.travel_date), y)
-  y = drawField(doc, 'Booking Date', formatDate(booking.booking_date), y)
-  y = drawField(doc, 'Price Per Person', formatCurrency(booking.price_per_person), y)
-  y = drawField(doc, 'Number of Travelers', String(booking.number_of_travelers), y)
-  y = drawField(doc, 'Total Amount', formatCurrency(booking.total_amount), y)
-  y = drawField(doc, 'Status', booking.status.charAt(0).toUpperCase() + booking.status.slice(1), y)
-  y = drawField(doc, 'Contact Name', booking.booking_contact_name || '—', y)
-  y = drawField(doc, 'Contact Email', booking.booking_contact_email || '—', y)
-  y = drawField(doc, 'Contact Phone', booking.booking_contact_phone || '—', y)
-
-  // Travelers
-  for (let i = 0; i < travelersWithDetails.length; i++) {
-    const t = travelersWithDetails[i]
-    doc.addPage()
-    y = 50
-    
-    doc.fontSize(16).font('Helvetica-Bold').fillColor(NAVY).text(`TRAVELER ${i + 1}: ${t.full_name || 'Unknown'}`, 50, y, { align: 'center' })
-    y += 30
-    doc.moveTo(50, y).lineTo(550, y).strokeColor(GOLD).lineWidth(1).stroke()
-    y += 20
-
-    // Photograph
-    y = drawSectionHeader(doc, 'PHOTOGRAPH', y)
-    if (t.photo_url) {
-      const imgAdded = addImage(doc, t.photo_url, 50, y, 150, 180)
-      if (imgAdded) y += 190
-      else {
-        doc.fontSize(10).font('Helvetica').fillColor('#999').text('[Photograph not available]', 50, y)
-        y += 30
-      }
-    } else {
-      doc.fontSize(10).font('Helvetica').fillColor('#999').text('[No photograph uploaded]', 50, y)
-      y += 30
-    }
-
-    // Personal Details
-    y = checkPageBreak(doc, y, 150)
-    y = drawSectionHeader(doc, 'PERSONAL DETAILS', y)
-    y = drawField(doc, 'Full Name', t.full_name, y)
-    y = drawField(doc, 'Date of Birth', t.date_of_birth ? formatDate(t.date_of_birth) : '—', y)
-    y = drawField(doc, 'Age', t.age ? `${t.age} years` : '—', y)
-    y = drawField(doc, 'Gender', t.sex || '—', y)
-    y = drawField(doc, 'Blood Group', t.blood_group || '—', y)
-    y = drawField(doc, 'Contact Number', t.contact_number || '—', y)
-    y = drawField(doc, 'Address', t.address || '—', y)
-
-    // Education & Activities
-    y = checkPageBreak(doc, y, 150)
-    y = drawSectionHeader(doc, 'EDUCATION & ACTIVITIES', y)
-    y = drawField(doc, 'Education', t.education || '—', y)
-    y = drawField(doc, 'School / College', t.school_college || '—', y)
-    y = drawField(doc, 'School / College Address', t.school_college_address || '—', y)
-    y = drawField(doc, 'School / College Phone', t.school_college_phone || '—', y)
-    y = drawField(doc, 'Hobbies', t.hobbies || '—', y)
-    
-    y = checkPageBreak(doc, y, 80)
-    y = drawField(doc, 'Adventure Experience', t.adventure_experience || '—', y)
-    if (t.adventure_experience === 'Yes' && t.adventure_details) {
-      y = drawTextBlock(doc, `Details: ${t.adventure_details}`, y)
-    }
-
-    // Declaration
-    y = checkPageBreak(doc, y, 150)
-    y = drawSectionHeader(doc, 'DECLARATION', y)
-    y = drawTextBlock(doc, '"If I am selected, I agree to abide by the rules & regulations, the terms and conditions of admission for the course which I hereby agree to abide fully."', y)
-    y = drawField(doc, 'Terms & Conditions Accepted', t.declaration?.accepted ? 'YES' : 'NO', y)
-    y = drawField(doc, 'Place', t.declaration?.place || '—', y)
-    y = drawField(doc, 'Date', t.declaration?.date ? formatDate(t.declaration.date) : '—', y)
-    
-    if (t.declaration?.signature_url) {
-      y = checkPageBreak(doc, y, 80)
-      y = drawSectionHeader(doc, 'APPLICANT SIGNATURE', y)
-      const sigAdded = addImage(doc, t.declaration.signature_url, 50, y, 200, 80)
-      if (sigAdded) y += 90
-    }
-
-    // Risk Certificate
-    y = checkPageBreak(doc, y, 150)
-    y = drawSectionHeader(doc, 'RISK CERTIFICATE', y)
-    y = drawTextBlock(doc, '"It is certified that I agree to detail my son / daughter / ward / Mr. / Myself _______________ for _______________ course at my own risk and no compensation will be paid to me in case of accident or death and I will not hold the CLUB-TRUST or its staff wholly or partially responsible for any mishappening."', y)
-    y = drawField(doc, 'Participant Name', t.risk_certificate?.participant_name || '—', y)
-    y = drawField(doc, 'Course Name', t.risk_certificate?.course_name || '—', y)
-    y = drawField(doc, 'Risk Accepted', t.risk_certificate?.accepted ? 'YES' : 'NO', y)
-    y = drawField(doc, 'Place', t.risk_certificate?.place || '—', y)
-    y = drawField(doc, 'Date', t.risk_certificate?.date ? formatDate(t.risk_certificate.date) : '—', y)
-    
-    if (t.risk_certificate?.signature_url) {
-      y = checkPageBreak(doc, y, 80)
-      y = drawSectionHeader(doc, 'RISK CERTIFICATE SIGNATURE', y)
-      const sigAdded = addImage(doc, t.risk_certificate.signature_url, 50, y, 200, 80)
-      if (sigAdded) y += 90
-    }
-
-    // Guardian (if minor)
-    if (t.participant_type === 'Minor' && t.guardian) {
-      y = checkPageBreak(doc, y, 120)
-      y = drawSectionHeader(doc, 'PARENT / GUARDIAN INFORMATION', y)
-      y = drawField(doc, 'Guardian Name', t.guardian.guardian_name || '—', y)
-      y = drawField(doc, 'Guardian Contact', t.guardian.guardian_contact || '—', y)
-      
-      if (t.guardian.guardian_signature_url) {
-        y = checkPageBreak(doc, y, 80)
-        y = drawSectionHeader(doc, 'GUARDIAN SIGNATURE', y)
-        const sigAdded = addImage(doc, t.guardian.guardian_signature_url, 50, y, 200, 80)
-        if (sigAdded) y += 90
-      }
-    }
+  for (let i = 0; i < withDetails.length; i++) {
+    if (i > 0) doc.addPage()
+    page1(doc, booking, withDetails[i], i)
+    page2(doc, booking, withDetails[i], i)
   }
 
-  addPageNumbersAndFooters(doc)
   doc.end()
-  
   return new Promise((resolve, reject) => {
     doc.on('end', () => resolve(Buffer.concat(chunks)))
     doc.on('error', reject)
@@ -247,128 +350,25 @@ export async function generateBookingPdf(bookingId) {
 }
 
 export async function generateIndividualTravelerPdf(travelerId) {
-  const traveler = getTravelerById(travelerId)
-  if (!traveler) throw new Error('Traveler not found')
-  
-  const declaration = getDeclarationByTravelerId(traveler.id)
-  const risk_certificate = getRiskCertificateByTravelerId(traveler.id)
-  const guardian = getGuardianByTravelerId(traveler.id)
-  const booking = getBookingById(traveler.booking_id)
+  const t = getTravelerById(travelerId)
+  if (!t) throw new Error('Traveler not found')
 
-  const doc = new PDFDocument({ margin: 50, size: 'A4', bufferPages: true })
+  const booking = getBookingById(t.booking_id)
+  const tWithDetails = {
+    ...t,
+    declaration:      getDeclarationByTravelerId(t.id),
+    risk_certificate: getRiskCertificateByTravelerId(t.id),
+    guardian:         getGuardianByTravelerId(t.id)
+  }
+
+  const doc = new PDFDocument({ margin: 20, size: 'A4', autoFirstPage: true })
   const chunks = []
-  doc.on('data', chunk => chunks.push(chunk))
-  
-  let y = 50
+  doc.on('data', c => chunks.push(c))
 
-  // Header
-  doc.fontSize(22).font('Helvetica-Bold').fillColor(NAVY).text('ALPINE EXPLORERS', 50, y, { align: 'center' })
-  y += 30
-  doc.fontSize(14).font('Helvetica').fillColor(GOLD).text('Individual Traveler Application Form', 50, y, { align: 'center' })
-  y += 20
-  doc.moveTo(50, y).lineTo(550, y).strokeColor(GOLD).lineWidth(2).stroke()
-  y += 20
+  page1(doc, booking || { booking_id: `T-${travelerId}`, number_of_travelers: 1 }, tWithDetails, (t.traveler_number || 1) - 1)
+  page2(doc, booking || { booking_id: `T-${travelerId}` }, tWithDetails, (t.traveler_number || 1) - 1)
 
-  // Booking Info
-  y = drawSectionHeader(doc, 'BOOKING INFORMATION', y)
-  y = drawField(doc, 'Booking ID', booking?.booking_id || '—', y)
-  y = drawField(doc, 'Tour', booking?.tour_name || '—', y)
-  y = drawField(doc, 'Travel Date', booking?.travel_date ? formatDate(booking.travel_date) : '—', y)
-  y = drawField(doc, 'Total Amount', booking?.total_amount ? formatCurrency(booking.total_amount) : '—', y)
-
-  // Personal Details
-  y = checkPageBreak(doc, y, 150)
-  y = drawSectionHeader(doc, 'PERSONAL DETAILS', y)
-  y = drawField(doc, 'Full Name', traveler.full_name, y)
-  y = drawField(doc, 'Date of Birth', traveler.date_of_birth ? formatDate(traveler.date_of_birth) : '—', y)
-  y = drawField(doc, 'Age', traveler.age ? `${traveler.age} years` : '—', y)
-  y = drawField(doc, 'Gender', traveler.sex || '—', y)
-  y = drawField(doc, 'Blood Group', traveler.blood_group || '—', y)
-  y = drawField(doc, 'Contact Number', traveler.contact_number || '—', y)
-  y = drawField(doc, 'Address', traveler.address || '—', y)
-
-  // Photograph
-  y = checkPageBreak(doc, y, 180)
-  y = drawSectionHeader(doc, 'PHOTOGRAPH', y)
-  if (traveler.photo_url) {
-    const imgAdded = addImage(doc, traveler.photo_url, 50, y, 150, 180)
-    if (imgAdded) y += 190
-    else {
-      doc.fontSize(10).font('Helvetica').fillColor('#999').text('[Photograph not available]', 50, y)
-      y += 30
-    }
-  } else {
-    doc.fontSize(10).font('Helvetica').fillColor('#999').text('[No photograph uploaded]', 50, y)
-    y += 30
-  }
-
-  // Education & Activities
-  y = checkPageBreak(doc, y, 150)
-  y = drawSectionHeader(doc, 'EDUCATION & ACTIVITIES', y)
-  y = drawField(doc, 'Education', traveler.education || '—', y)
-  y = drawField(doc, 'School / College', traveler.school_college || '—', y)
-  y = drawField(doc, 'School / College Address', traveler.school_college_address || '—', y)
-  y = drawField(doc, 'School / College Phone', traveler.school_college_phone || '—', y)
-  y = drawField(doc, 'Hobbies', traveler.hobbies || '—', y)
-  y = drawField(doc, 'Adventure Experience', traveler.adventure_experience || '—', y)
-  if (traveler.adventure_experience === 'Yes' && traveler.adventure_details) {
-    y = drawTextBlock(doc, `Details: ${traveler.adventure_details}`, y)
-  }
-
-  // Declaration
-  y = checkPageBreak(doc, y, 150)
-  y = drawSectionHeader(doc, 'DECLARATION', y)
-  y = drawTextBlock(doc, '"If I am selected, I agree to abide by the rules & regulations, the terms and conditions of admission for the course which I hereby agree to abide fully."', y)
-  y = drawField(doc, 'Terms & Conditions Accepted', declaration?.accepted ? 'YES' : 'NO', y)
-  y = drawField(doc, 'Place', declaration?.place || '—', y)
-  y = drawField(doc, 'Date', declaration?.date ? formatDate(declaration.date) : '—', y)
-  
-  if (declaration?.signature_url) {
-    y = checkPageBreak(doc, y, 80)
-    y = drawSectionHeader(doc, 'APPLICANT SIGNATURE', y)
-    const sigAdded = addImage(doc, declaration.signature_url, 50, y, 200, 80)
-    if (sigAdded) y += 90
-  }
-
-  // Risk Certificate
-  y = checkPageBreak(doc, y, 150)
-  y = drawSectionHeader(doc, 'RISK CERTIFICATE', y)
-  y = drawTextBlock(doc, '"It is certified that I agree to detail my son / daughter / ward / Mr. / Myself _______________ for _______________ course at my own risk and no compensation will be paid to me in case of accident or death and I will not hold the CLUB-TRUST or its staff wholly or partially responsible for any mishappening."', y)
-  y = drawField(doc, 'Participant Name', risk_certificate?.participant_name || '—', y)
-  y = drawField(doc, 'Course Name', risk_certificate?.course_name || '—', y)
-  y = drawField(doc, 'Risk Accepted', risk_certificate?.accepted ? 'YES' : 'NO', y)
-  y = drawField(doc, 'Place', risk_certificate?.place || '—', y)
-  y = drawField(doc, 'Date', risk_certificate?.date ? formatDate(risk_certificate.date) : '—', y)
-  
-  if (risk_certificate?.signature_url) {
-    y = checkPageBreak(doc, y, 80)
-    y = drawSectionHeader(doc, 'RISK CERTIFICATE SIGNATURE', y)
-    const sigAdded = addImage(doc, risk_certificate.signature_url, 50, y, 200, 80)
-    if (sigAdded) y += 90
-  }
-
-  // Guardian (if minor)
-  if (traveler.participant_type === 'Minor' && guardian) {
-    y = checkPageBreak(doc, y, 120)
-    y = drawSectionHeader(doc, 'PARENT / GUARDIAN INFORMATION', y)
-    y = drawField(doc, 'Guardian Name', guardian.guardian_name || '—', y)
-    y = drawField(doc, 'Guardian Contact', guardian.guardian_contact || '—', y)
-    
-    if (guardian.guardian_signature_url) {
-      y = checkPageBreak(doc, y, 80)
-      y = drawSectionHeader(doc, 'GUARDIAN SIGNATURE', y)
-      const sigAdded = addImage(doc, guardian.guardian_signature_url, 50, y, 200, 80)
-      if (sigAdded) y += 90
-    }
-  }
-
-  // Footer
-  y = checkPageBreak(doc, y, 50)
-  doc.fontSize(8).font('Helvetica').fillColor('#999').text(`Generated on ${new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })} | Alpine Explorers`, 50, y, { align: 'center', width: 500 })
-
-  addPageNumbersAndFooters(doc)
   doc.end()
-  
   return new Promise((resolve, reject) => {
     doc.on('end', () => resolve(Buffer.concat(chunks)))
     doc.on('error', reject)
@@ -377,103 +377,30 @@ export async function generateIndividualTravelerPdf(travelerId) {
 
 export async function generateAllBookingsPdf() {
   const bookings = getAllBookingsForExport()
-  const travelers = getAllTravelersForExport()
+  const allT     = getAllTravelersForExport()
 
-  const doc = new PDFDocument({ margin: 50, size: 'A4', bufferPages: true })
+  const doc = new PDFDocument({ margin: 20, size: 'A4', autoFirstPage: true })
   const chunks = []
-  doc.on('data', chunk => chunks.push(chunk))
-  
-  let y = 50
+  doc.on('data', c => chunks.push(c))
 
-  // Cover Page
-  doc.fontSize(28).font('Helvetica-Bold').fillColor(NAVY).text('ALPINE EXPLORERS', 50, y, { align: 'center' })
-  y += 40
-  doc.fontSize(18).font('Helvetica').fillColor(GOLD).text('Complete Booking & Application Report', 50, y, { align: 'center' })
-  y += 30
-  doc.fontSize(12).font('Helvetica').fillColor('#666').text(`Generated on ${new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}`, 50, y, { align: 'center' })
-  y += 30
-  doc.fontSize(12).font('Helvetica').fillColor('#666').text(`Total Bookings: ${bookings.length} | Total Travelers: ${travelers.length}`, 50, y, { align: 'center' })
-  y += 60
-
-  for (let i = 0; i < bookings.length; i++) {
-    const booking = bookings[i]
-    const bookingTravelers = travelers.filter(t => t.booking_id === booking.id)
-    
-    if (i > 0) {
-      doc.addPage()
-      y = 50
-    }
-    
-    // Booking Header
-    doc.fontSize(16).font('Helvetica-Bold').fillColor(NAVY).text(`BOOKING ${i + 1}: ${booking.booking_id}`, 50, y)
-    y += 25
-    doc.moveTo(50, y).lineTo(550, y).strokeColor(GOLD).lineWidth(1).stroke()
-    y += 15
-
-    y = drawField(doc, 'Tour', booking.tour_name, y)
-    y = drawField(doc, 'Location', booking.location, y)
-    y = drawField(doc, 'Travel Date', formatDate(booking.travel_date), y)
-    y = drawField(doc, 'Booking Date', formatDate(booking.booking_date), y)
-    y = drawField(doc, 'Number of Travelers', String(booking.number_of_travelers), y)
-    y = drawField(doc, 'Total Amount', formatCurrency(booking.total_amount), y)
-    y = drawField(doc, 'Status', booking.status.charAt(0).toUpperCase() + booking.status.slice(1), y)
-
-    // Travelers
-    for (let j = 0; j < bookingTravelers.length; j++) {
-      const t = bookingTravelers[j]
-      const declaration = getDeclarationByTravelerId(t.id)
-      const risk_certificate = getRiskCertificateByTravelerId(t.id)
-      const guardian = getGuardianByTravelerId(t.id)
-      
-      y = checkPageBreak(doc, y, 120)
-      if (y === 50) { // new page
-        doc.fontSize(14).font('Helvetica-Bold').fillColor(NAVY).text(`TRAVELER ${j + 1}: ${t.full_name || 'Unknown'}`, 50, y)
-        y += 25
-      } else {
-        doc.fontSize(12).font('Helvetica-Bold').fillColor(NAVY).text(`TRAVELER ${j + 1}: ${t.full_name || 'Unknown'}`, 50, y)
-        y += 20
+  let first = true
+  for (const b of bookings) {
+    const bTravelers = allT.filter(t => t.booking_id === b.id)
+    for (let i = 0; i < bTravelers.length; i++) {
+      const twd = {
+        ...bTravelers[i],
+        declaration:      getDeclarationByTravelerId(bTravelers[i].id),
+        risk_certificate: getRiskCertificateByTravelerId(bTravelers[i].id),
+        guardian:         getGuardianByTravelerId(bTravelers[i].id)
       }
-      doc.moveTo(70, y).lineTo(530, y).strokeColor(GOLD).lineWidth(0.5).stroke()
-      y += 10
-
-      y = drawField(doc, 'Full Name', t.full_name, y, 70)
-      y = drawField(doc, 'DOB', t.date_of_birth ? formatDate(t.date_of_birth) : '—', y, 70)
-      y = drawField(doc, 'Age', t.age ? `${t.age} years` : '—', y, 70)
-      y = drawField(doc, 'Gender', t.sex || '—', y, 70)
-      y = drawField(doc, 'Blood Group', t.blood_group || '—', y, 70)
-      y = drawField(doc, 'Contact', t.contact_number || '—', y, 70)
-      y = drawField(doc, 'Education', t.education || '—', y, 70)
-      y = drawField(doc, 'School/College', t.school_college || '—', y, 70)
-      y = drawField(doc, 'Adventure Exp.', t.adventure_experience || '—', y, 70)
-      if (t.adventure_experience === 'Yes' && t.adventure_details) {
-        y = drawTextBlock(doc, t.adventure_details, y, 70, 400)
-      }
-      y = drawField(doc, 'Participant Type', t.participant_type || 'Adult', y, 70)
-      
-      if (declaration) {
-        y = drawField(doc, 'Declaration Accepted', declaration.accepted ? 'YES' : 'NO', y, 70)
-        y = drawField(doc, 'Declaration Place', declaration.place || '—', y, 70)
-        y = drawField(doc, 'Declaration Date', declaration.date ? formatDate(declaration.date) : '—', y, 70)
-      }
-      
-      if (risk_certificate) {
-        y = drawField(doc, 'Risk Accepted', risk_certificate.accepted ? 'YES' : 'NO', y, 70)
-        y = drawField(doc, 'Risk Place', risk_certificate.place || '—', y, 70)
-        y = drawField(doc, 'Risk Date', risk_certificate.date ? formatDate(risk_certificate.date) : '—', y, 70)
-      }
-
-      if (t.participant_type === 'Minor' && guardian) {
-        y = drawField(doc, 'Guardian Name', guardian.guardian_name || '—', y, 70)
-        y = drawField(doc, 'Guardian Contact', guardian.guardian_contact || '—', y, 70)
-      }
-      
-      y += 10
+      if (!first) doc.addPage()
+      first = false
+      page1(doc, b, twd, i)
+      page2(doc, b, twd, i)
     }
   }
 
-  addPageNumbersAndFooters(doc)
   doc.end()
-  
   return new Promise((resolve, reject) => {
     doc.on('end', () => resolve(Buffer.concat(chunks)))
     doc.on('error', reject)

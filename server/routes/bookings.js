@@ -2,7 +2,8 @@ import { Router } from 'express'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { db, logActivity, getBookings, getBookingsCount, getBookingById, getBookingByBookingId, getTravelersByBookingId, getTravelerById, getDeclarationByTravelerId, getRiskCertificateByTravelerId, getGuardianByTravelerId, updateBookingStatus, updateBookingPayment, getBookingStats, getAllBookingsForExport, getAllTravelersForExport, createBooking, createTraveler, createDeclaration, createRiskCertificate, createGuardian } from '../db.js'
+import multer from 'multer'
+import { db, logActivity, getBookings, getBookingsCount, getBookingById, getBookingByBookingId, getTravelersByBookingId, getTravelerById, getDeclarationByTravelerId, getRiskCertificateByTravelerId, getGuardianByTravelerId, updateBookingStatus, updateBookingPayment, updateBookingScannedForms, getBookingStats, getAllBookingsForExport, getAllTravelersForExport, createBooking, createTraveler, createDeclaration, createRiskCertificate, createGuardian } from '../db.js'
 import { authRequired, requirePermission } from '../middleware.js'
 import { generateBookingPdf, generateIndividualTravelerPdf, generateAllBookingsPdf } from '../utils/pdfGenerator.js'
 import { generateBookingExcel, generateIndividualTravelerExcel, generateAllBookingsExcel } from '../utils/excelGenerator.js'
@@ -11,6 +12,31 @@ import { syncBookingToSupabase, supabaseRequest, supabaseAdmin } from '../utils/
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const uploadsDir = path.join(__dirname, '..', '..', 'uploads')
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true })
+
+const scannedFormStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadsDir)
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase() || '.pdf'
+    const cleanExt = ['.pdf', '.jpg', '.jpeg', '.png', '.webp'].includes(ext) ? ext : '.pdf'
+    const safeName = `scanned-form-${Date.now()}-${Math.random().toString(36).slice(2, 8)}${cleanExt}`
+    cb(null, safeName)
+  }
+})
+
+const scannedFormUpload = multer({
+  storage: scannedFormStorage,
+  limits: { fileSize: 30 * 1024 * 1024 }, // 30MB max
+  fileFilter: (req, file, cb) => {
+    const allowed = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp', 'image/jpg']
+    if (allowed.includes(file.mimetype) || file.originalname.toLowerCase().endsWith('.pdf')) {
+      cb(null, true)
+    } else {
+      cb(new Error('Only PDF and image files are allowed'))
+    }
+  }
+})
 
 function saveBase64Image(dataUrl, prefix = 'img') {
   if (!dataUrl || typeof dataUrl !== 'string') return null
@@ -35,11 +61,59 @@ function saveBase64Image(dataUrl, prefix = 'img') {
 
 const router = Router()
 
+/* ── Public endpoint for uploading scanned application forms ── */
+router.post('/upload-forms', scannedFormUpload.any(), async (req, res) => {
+  try {
+    const bookingId = req.body.booking_id || req.body.bookingId
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ error: 'No files uploaded' })
+    }
+
+    const uploadedFiles = req.files.map((file, idx) => ({
+      name: file.originalname || `Scanned_Form_${idx + 1}.pdf`,
+      url: `/uploads/${file.filename}`,
+      size: file.size,
+      type: file.mimetype,
+      uploaded_at: new Date().toISOString()
+    }))
+
+    if (bookingId) {
+      const existing = getBookingByBookingId(bookingId) || getBookingById(bookingId)
+      if (existing) {
+        let existingForms = []
+        try {
+          existingForms = typeof existing.scanned_forms === 'string' ? JSON.parse(existing.scanned_forms || '[]') : (existing.scanned_forms || [])
+        } catch (e) {}
+        const merged = [...existingForms, ...uploadedFiles]
+        updateBookingScannedForms(existing.id, merged)
+
+        // Sync to Supabase bookings table
+        try {
+          await supabaseAdmin
+            .from('bookings')
+            .update({ scanned_forms: merged })
+            .eq('booking_reference', bookingId)
+        } catch (supErr) {
+          console.warn('Supabase scanned forms sync note:', supErr.message)
+        }
+      }
+    }
+
+    return res.status(200).json({
+      message: 'Scanned forms uploaded successfully',
+      files: uploadedFiles
+    })
+  } catch (err) {
+    console.error('Error uploading scanned forms:', err)
+    return res.status(500).json({ error: err.message || 'Failed to process upload' })
+  }
+})
+
 router.post('/', async (req, res) => {
   const {
     booking_id, tour_id, tour_name, tour_category, location, duration, travel_date,
     price_per_person, number_of_travelers, total_amount, booking_contact_name,
-    booking_contact_email, booking_contact_phone, travelers,
+    booking_contact_email, booking_contact_phone, travelers, scanned_forms,
     payment_status, payment_method, payment_id, order_id, currency, booking_status, booking_details
   } = req.body || {}
   
@@ -50,7 +124,7 @@ router.post('/', async (req, res) => {
   const existing = db.prepare('SELECT id FROM bookings WHERE booking_id = ?').get(booking_id)
   if (existing) {
     // If booking already exists, update payment details if provided instead of throwing duplicate error
-    if (payment_status || payment_method || payment_id || order_id) {
+    if (payment_status || payment_method || payment_id || order_id || scanned_forms) {
       updateBookingPayment(existing.id, {
         payment_status: payment_status || undefined,
         payment_method: payment_method || undefined,
@@ -58,6 +132,9 @@ router.post('/', async (req, res) => {
         order_id: order_id || undefined,
         booking_status: booking_status || undefined,
       })
+      if (scanned_forms && scanned_forms.length > 0) {
+        updateBookingScannedForms(existing.id, scanned_forms)
+      }
       return res.status(200).json({ message: 'Booking payment updated', bookingId: booking_id, id: existing.id })
     }
     return res.status(409).json({ error: 'Booking ID already exists' })
@@ -89,7 +166,8 @@ router.post('/', async (req, res) => {
     order_id: order_id || null,
     currency: currency || 'INR',
     booking_status: booking_status || 'pending',
-    booking_details: booking_details || {}
+    booking_details: booking_details || {},
+    scanned_forms: scanned_forms || []
   })
 
   for (let i = 0; i < travelers.length; i++) {
@@ -253,10 +331,10 @@ router.get('/', requirePermission('bookings.view'), async (req, res) => {
     // Ignored if table not created yet
   }
 
-  const { status, payment_status, paymentStatus, search, tour, travelDate, bookingDate, minTravelers, maxTravelers, page = 1, limit = 20 } = req.query
+  const { status, payment_status, paymentStatus, search, tour, travelDate, bookingDate, minTravelers, maxTravelers, hasScannedForm, has_scanned_form, page = 1, limit = 20 } = req.query
   const offset = (Number(page) - 1) * Number(limit)
   
-  const bookings = getBookings({
+  const rawBookings = getBookings({
     status,
     paymentStatus: payment_status || paymentStatus,
     search,
@@ -265,8 +343,17 @@ router.get('/', requirePermission('bookings.view'), async (req, res) => {
     bookingDate,
     minTravelers: minTravelers ? Number(minTravelers) : undefined,
     maxTravelers: maxTravelers ? Number(maxTravelers) : undefined,
+    hasScannedForm: hasScannedForm || has_scanned_form,
     limit: Number(limit),
     offset
+  })
+
+  const bookings = rawBookings.map(b => {
+    let parsedForms = []
+    try {
+      parsedForms = typeof b.scanned_forms === 'string' ? JSON.parse(b.scanned_forms || '[]') : (b.scanned_forms || [])
+    } catch(e) {}
+    return { ...b, scanned_forms: parsedForms }
   })
 
   const total = getBookingsCount({
@@ -277,7 +364,8 @@ router.get('/', requirePermission('bookings.view'), async (req, res) => {
     travelDate,
     bookingDate,
     minTravelers: minTravelers ? Number(minTravelers) : undefined,
-    maxTravelers: maxTravelers ? Number(maxTravelers) : undefined
+    maxTravelers: maxTravelers ? Number(maxTravelers) : undefined,
+    hasScannedForm: hasScannedForm || has_scanned_form
   })
 
   res.json({ bookings, total, page: Number(page), limit: Number(limit) })
@@ -287,6 +375,11 @@ router.get('/:id', requirePermission('bookings.view'), (req, res) => {
   const booking = getBookingById(req.params.id)
   if (!booking) return res.status(404).json({ error: 'Not found' })
   
+  let parsedForms = []
+  try {
+    parsedForms = typeof booking.scanned_forms === 'string' ? JSON.parse(booking.scanned_forms || '[]') : (booking.scanned_forms || [])
+  } catch (e) {}
+
   const travelers = getTravelersByBookingId(booking.id)
   const travelersWithDetails = travelers.map(t => ({
     ...t,
@@ -295,7 +388,7 @@ router.get('/:id', requirePermission('bookings.view'), (req, res) => {
     guardian: getGuardianByTravelerId(t.id)
   }))
   
-  res.json({ booking, travelers: travelersWithDetails })
+  res.json({ booking: { ...booking, scanned_forms: parsedForms }, travelers: travelersWithDetails })
 })
 
 router.get('/booking-id/:bookingId', requirePermission('bookings.view'), (req, res) => {

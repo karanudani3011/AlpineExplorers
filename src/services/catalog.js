@@ -53,11 +53,27 @@ function inferMoodAndType(title = '', destination = '', category = '', price = 0
 
 const extractImages = (p, fallbackId) => {
   const gallery = Array.isArray(p.gallery) ? p.gallery : parseList(p.gallery)
-  const list = [p.image, ...gallery].filter(Boolean)
-  if (list.length > 0 && !list[0].includes('photo-1547203664') && !list[0].includes('photo-1587645585583') && !list[0].includes('photo-1589227365533')) {
-    return list
+  const userList = [p.image, ...gallery].filter(Boolean).filter(img => !img.includes('photo-1547203664') && !img.includes('photo-1587645585583') && !img.includes('photo-1589227365533'))
+  const presetList = tourImages[fallbackId] || tourImages[p.id] || tourImages[p.destination?.toLowerCase()] || []
+  const combined = Array.from(new Set([...userList, ...presetList]))
+
+  if (combined.length >= 4) {
+    return combined.slice(0, 4)
   }
-  return tourImages[fallbackId] || (p.image ? [p.image] : ['https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1000&h=700&fit=crop'])
+
+  const defaultPool = [
+    'https://images.unsplash.com/photo-1518684079-3c830dcef090?w=1000&h=700&fit=crop',
+    'https://images.unsplash.com/photo-1512100356356-de1b84283e18?w=1000&h=700&fit=crop',
+    'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1000&h=700&fit=crop',
+    'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=1000&h=700&fit=crop',
+  ]
+
+  for (const img of defaultPool) {
+    if (combined.length >= 4) break
+    if (!combined.includes(img)) combined.push(img)
+  }
+
+  return combined.slice(0, 4)
 }
 
 const fromInternational = (p) => {

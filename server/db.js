@@ -262,6 +262,7 @@ CREATE TABLE IF NOT EXISTS bookings (
   currency TEXT DEFAULT 'INR',
   booking_status TEXT DEFAULT 'pending',
   booking_details TEXT DEFAULT '{}',
+  scanned_forms TEXT DEFAULT '[]',
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -284,6 +285,7 @@ CREATE TABLE IF NOT EXISTS travelers (
   school_college_phone TEXT,
   hobbies TEXT,
   photo_url TEXT,
+  scanned_form_url TEXT,
   adventure_experience TEXT,
   adventure_details TEXT,
   participant_type TEXT NOT NULL DEFAULT 'Adult',
@@ -424,6 +426,9 @@ try { db.exec("ALTER TABLE bookings ADD COLUMN order_id TEXT;") } catch {}
 try { db.exec("ALTER TABLE bookings ADD COLUMN currency TEXT DEFAULT 'INR';") } catch {}
 try { db.exec("ALTER TABLE bookings ADD COLUMN booking_status TEXT DEFAULT 'pending';") } catch {}
 try { db.exec("ALTER TABLE bookings ADD COLUMN booking_details TEXT DEFAULT '{}';") } catch {}
+// Auto-run safe migrations for scanned forms columns
+try { db.exec("ALTER TABLE bookings ADD COLUMN scanned_forms TEXT DEFAULT '[]'") } catch (e) {}
+try { db.exec("ALTER TABLE travelers ADD COLUMN scanned_form_url TEXT") } catch (e) {}
 
 // Seed initial events if empty
 try {
@@ -474,7 +479,7 @@ export function getBookingByBookingId(bookingId) {
   return db.prepare('SELECT * FROM bookings WHERE booking_id = ?').get(bookingId)
 }
 
-export function getBookings({ status, paymentStatus, search, tour, travelDate, bookingDate, minTravelers, maxTravelers, limit, offset }) {
+export function getBookings({ status, paymentStatus, search, tour, travelDate, bookingDate, minTravelers, maxTravelers, hasScannedForm, limit, offset }) {
   let sql = 'SELECT * FROM bookings WHERE 1=1'
   const params = []
   if (status) { sql += ' AND status = ?'; params.push(status) }
@@ -488,13 +493,18 @@ export function getBookings({ status, paymentStatus, search, tour, travelDate, b
   if (bookingDate) { sql += ' AND date(booking_date) = date(?)'; params.push(bookingDate) }
   if (minTravelers) { sql += ' AND number_of_travelers >= ?'; params.push(minTravelers) }
   if (maxTravelers) { sql += ' AND number_of_travelers <= ?'; params.push(maxTravelers) }
+  if (hasScannedForm === 'yes') {
+    sql += " AND (scanned_forms IS NOT NULL AND scanned_forms != '[]' AND scanned_forms != '')"
+  } else if (hasScannedForm === 'no') {
+    sql += " AND (scanned_forms IS NULL OR scanned_forms = '[]' OR scanned_forms = '')"
+  }
   sql += ' ORDER BY id DESC'
   if (limit) { sql += ' LIMIT ?'; params.push(limit) }
   if (offset) { sql += ' OFFSET ?'; params.push(offset) }
   return db.prepare(sql).all(...params)
 }
 
-export function getBookingsCount({ status, paymentStatus, search, tour, travelDate, bookingDate, minTravelers, maxTravelers }) {
+export function getBookingsCount({ status, paymentStatus, search, tour, travelDate, bookingDate, minTravelers, maxTravelers, hasScannedForm }) {
   let sql = 'SELECT COUNT(*) as count FROM bookings WHERE 1=1'
   const params = []
   if (status) { sql += ' AND status = ?'; params.push(status) }
@@ -508,6 +518,11 @@ export function getBookingsCount({ status, paymentStatus, search, tour, travelDa
   if (bookingDate) { sql += ' AND date(booking_date) = date(?)'; params.push(bookingDate) }
   if (minTravelers) { sql += ' AND number_of_travelers >= ?'; params.push(minTravelers) }
   if (maxTravelers) { sql += ' AND number_of_travelers <= ?'; params.push(maxTravelers) }
+  if (hasScannedForm === 'yes') {
+    sql += " AND (scanned_forms IS NOT NULL AND scanned_forms != '[]' AND scanned_forms != '')"
+  } else if (hasScannedForm === 'no') {
+    sql += " AND (scanned_forms IS NULL OR scanned_forms = '[]' OR scanned_forms = '')"
+  }
   return db.prepare(sql).get(...params).count
 }
 
@@ -531,15 +546,20 @@ export function getGuardianByTravelerId(travelerId) {
   return db.prepare('SELECT * FROM guardians WHERE traveler_id = ?').get(travelerId)
 }
 
+export function updateBookingScannedForms(bookingId, scannedForms) {
+  const str = typeof scannedForms === 'string' ? scannedForms : JSON.stringify(scannedForms || [])
+  return db.prepare('UPDATE bookings SET scanned_forms = ?, updated_at = datetime(\'now\') WHERE id = ? OR booking_id = ?').run(str, bookingId, bookingId)
+}
+
 export function createBooking(data) {
   const info = db.prepare(`
     INSERT INTO bookings (
       booking_id, tour_id, tour_name, tour_category, location, duration, travel_date,
       booking_date, price_per_person, number_of_travelers, total_amount,
       booking_contact_name, booking_contact_email, booking_contact_phone, status,
-      payment_status, payment_method, payment_id, order_id, currency, booking_status, booking_details
+      payment_status, payment_method, payment_id, order_id, currency, booking_status, booking_details, scanned_forms
     )
-    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
   `).run(
     data.booking_id,
     data.tour_id || '',
@@ -562,7 +582,8 @@ export function createBooking(data) {
     data.order_id || null,
     data.currency || 'INR',
     data.booking_status || 'pending',
-    typeof data.booking_details === 'object' ? JSON.stringify(data.booking_details) : (data.booking_details || '{}')
+    typeof data.booking_details === 'object' ? JSON.stringify(data.booking_details) : (data.booking_details || '{}'),
+    typeof data.scanned_forms === 'object' ? JSON.stringify(data.scanned_forms) : (data.scanned_forms || '[]')
   )
   return info.lastInsertRowid
 }
