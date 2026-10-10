@@ -2,8 +2,9 @@
   RewriteEngine On
   RewriteBase /
 
-  # Handle CORS preflight & headers (optional fallback)
-  # Header set Access-Control-Allow-Origin "*"
+  # Force HTTPS
+  RewriteCond %{HTTPS} !=on
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
   # Rule 1: Serve existing files or directories directly
   RewriteCond %{REQUEST_FILENAME} -f [OR]
@@ -12,6 +13,13 @@
 
   # Rule 2: Redirect all other single-page app routes to index.html
   RewriteRule ^ index.html [L]
+</IfModule>
+
+# Security Headers
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+  Header set X-XSS-Protection "1; mode=block"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
 </IfModule>
 
 # Browser Caching Optimizations
