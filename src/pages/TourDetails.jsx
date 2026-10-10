@@ -48,9 +48,9 @@ export default function TourDetails() {
     )
   }
 
-  const discount = tour.originalPrice > tour.price ? Math.round(((tour.originalPrice - tour.price) / tour.originalPrice) * 100) : 0
-  const hasPrice = tour.price > 0
-  const totalPrice = hasPrice ? tour.price * travelersCount : null
+  const discount = 0
+  const hasPrice = false
+  const totalPrice = null
 
   const handleShare = () => {
     if (navigator.share) {

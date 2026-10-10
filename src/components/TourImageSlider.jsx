@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { ChevronLeft, ChevronRight, ImageOff } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 const DEFAULT_INTERVAL = 4500
 const SWIPE_THRESHOLD = 40
+const FALLBACK_IMAGE = '/images/tour-image-fallback.svg'
 
 export default function TourImageSlider({
   images = [],
@@ -25,6 +26,12 @@ export default function TourImageSlider({
   const [failedImages, setFailedImages] = useState({})
   const touchStartXRef = useRef(null)
   const touchEndXRef = useRef(null)
+  const imageSetKey = validImages.map((image) => image.url).join('|')
+
+  useEffect(() => {
+    setCurrentIndex(0)
+    setFailedImages({})
+  }, [imageSetKey])
 
   // Clamp currentIndex if count changes
   useEffect(() => {
@@ -65,8 +72,19 @@ export default function TourImageSlider({
   }, [])
 
   const handleImageError = useCallback((index) => {
+    if (failedImages[index]) return
+    if (import.meta.env.DEV) console.warn(`[TourImageSlider] Image failed for "${alt}": ${validImages[index]?.url}`)
     setFailedImages((prev) => ({ ...prev, [index]: true }))
-  }, [])
+    if (index === currentIndex) {
+      for (let offset = 1; offset < count; offset += 1) {
+        const candidate = (index + offset) % count
+        if (!failedImages[candidate]) {
+          setCurrentIndex(candidate)
+          break
+        }
+      }
+    }
+  }, [alt, count, currentIndex, failedImages, validImages])
 
   // Touch swipe handling for mobile
   const handleTouchStart = (e) => {
@@ -108,11 +126,10 @@ export default function TourImageSlider({
     }
   }
 
-  if (count === 0) {
+  if (count === 0 || validImages.every((_, index) => failedImages[index])) {
     return (
-      <div className={`w-full h-full min-h-[160px] bg-slate-100 flex flex-col items-center justify-center text-slate-400 gap-1.5 p-4 text-center ${aspectRatio}`}>
-        <ImageOff size={24} className="opacity-50" />
-        <span className="text-xs font-medium tracking-wide">Destination photo coming soon</span>
+      <div className={`relative w-full h-full min-h-[160px] overflow-hidden bg-slate-100 ${aspectRatio}`}>
+        <img src={FALLBACK_IMAGE} alt={`${alt || 'Destination'} landscape illustration`} className="h-full w-full object-cover" loading={priority ? 'eager' : 'lazy'} />
       </div>
     )
   }
@@ -130,12 +147,6 @@ export default function TourImageSlider({
           loading={priority ? 'eager' : 'lazy'}
           decoding="async"
         />
-        {failedImages[0] && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-slate-800 text-slate-200" role="status">
-            <ImageOff size={24} className="opacity-70" />
-            <span className="text-xs font-medium">Photo unavailable</span>
-          </div>
-        )}
         {photo.artist && photo.pageUrl && (
           <a href={photo.pageUrl} target="_blank" rel="noopener noreferrer" title={`${photo.license || ''} — ${photo.pageUrl}`} onClick={(event) => event.stopPropagation()} className="absolute bottom-2 right-2 z-20 max-w-[55%] truncate rounded bg-black/65 px-1.5 py-1 text-[9px] text-white/90 hover:text-white">
             Photo: {photo.artist} · {photo.license || photo.source}
@@ -183,12 +194,6 @@ export default function TourImageSlider({
                 loading={i === 0 && priority ? 'eager' : 'lazy'}
                 decoding="async"
               />
-              {hasFailed && isCurrent && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-slate-800 text-slate-200" role="status">
-                  <ImageOff size={24} className="opacity-70" />
-                  <span className="text-xs font-medium">Photo unavailable</span>
-                </div>
-              )}
               {isCurrent && photo.artist && photo.pageUrl && (
                 <a href={photo.pageUrl} target="_blank" rel="noopener noreferrer" title={`${photo.license || ''} — ${photo.pageUrl}`} onClick={(event) => event.stopPropagation()} className="absolute bottom-10 right-2 z-20 max-w-[65%] truncate rounded bg-black/65 px-1.5 py-1 text-[9px] text-white/90 hover:text-white">
                   Photo: {photo.artist} · {photo.license || photo.source}

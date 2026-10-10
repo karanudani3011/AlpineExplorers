@@ -7,8 +7,17 @@ export default function TourInquiryForm({ tour, isOpen, onClose, travelers = 1 }
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const submittedRef = useRef(false)
+  const destination = tour?.location || tour?.destination || tour?.title || ''
   const today = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10)
   if (!isOpen || !tour) return null
+  const closeForm = () => {
+    if (!submitting) {
+      submittedRef.current = false
+      setSuccess(false)
+      setError('')
+    }
+    onClose()
+  }
   const update = (event) => setValues((prev) => ({ ...prev, [event.target.name]: event.target.type === 'checkbox' ? event.target.checked : event.target.value }))
   const submit = async (event) => {
     event.preventDefault(); setError('')
@@ -20,7 +29,7 @@ export default function TourInquiryForm({ tour, isOpen, onClose, travelers = 1 }
     try {
       const total = Number(values.adults) + Number(values.children)
       const details = { tourId: tour.id, adults: Number(values.adults), children: Number(values.children), returnDate: values.returnDate || null, preferredContact: values.contact, price: 'On Request', requests: values.requests }
-      const response = await fetch('/api/inquiries', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tour_id: tour.id, name: values.name.trim(), email: values.email.trim(), phone: values.phone.trim(), destination: tour.location, package_name: tour.title, travel_date: values.startDate, travelers: total, message: `Booking inquiry (not a reservation). ${JSON.stringify(details)}` }) })
+      const response = await fetch('/api/inquiries', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tour_id: tour.id, name: values.name.trim(), email: values.email.trim(), phone: values.phone.trim(), destination, package_name: tour.title, travel_date: values.startDate, travelers: total, message: `Booking inquiry (not a reservation). ${JSON.stringify(details)}` }) })
       const result = await response.json().catch(() => ({}))
       if (!response.ok) throw new Error(result.error || 'The inquiry could not be submitted. Please try again.')
       setSuccess(true)
@@ -29,10 +38,10 @@ export default function TourInquiryForm({ tour, isOpen, onClose, travelers = 1 }
   }
   return <div className="fixed inset-0 z-[70] overflow-y-auto bg-slate-950/70 p-3 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="tour-inquiry-title">
     <div className="mx-auto my-4 max-w-2xl rounded-2xl bg-white p-5 shadow-2xl sm:my-8 sm:p-7">
-      <div className="mb-5 flex items-start justify-between gap-4"><div><h2 id="tour-inquiry-title" className="text-xl font-bold text-slate-900">Booking inquiry</h2><p className="mt-1 text-sm text-slate-600">{tour.title} · {tour.location}</p><p className="mt-1 text-sm font-semibold text-emerald-800">Price: On Request</p></div><button type="button" onClick={onClose} className="rounded-lg p-2 hover:bg-slate-100" aria-label="Close inquiry form"><X size={20}/></button></div>
-      {success ? <div className="rounded-xl bg-emerald-50 p-5 text-emerald-900"><CheckCircle2 className="mb-2"/><h3 className="font-bold">Inquiry received</h3><p className="mt-1 text-sm">This is an inquiry, not a confirmed reservation. The team will review your dates and share availability and a quotation.</p><button className="mt-4 rounded-lg bg-emerald-800 px-4 py-2 text-sm font-bold text-white" onClick={onClose}>Done</button></div> : <form onSubmit={submit} className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <div className="mb-5 flex items-start justify-between gap-4"><div><h2 id="tour-inquiry-title" className="text-xl font-bold text-slate-900">Booking inquiry</h2><p className="mt-1 text-sm text-slate-600">{tour.title} · {destination}</p><p className="mt-1 text-sm font-semibold text-emerald-800">Price: On Request</p></div><button type="button" onClick={closeForm} className="rounded-lg p-2 hover:bg-slate-100" aria-label="Close inquiry form"><X size={20}/></button></div>
+      {success ? <div className="rounded-xl bg-emerald-50 p-5 text-emerald-900"><CheckCircle2 className="mb-2"/><h3 className="font-bold">Inquiry received</h3><p className="mt-1 text-sm">This is an inquiry, not a confirmed reservation. The team will review your dates and share availability and a quotation.</p><button className="mt-4 rounded-lg bg-emerald-800 px-4 py-2 text-sm font-bold text-white" onClick={closeForm}>Done</button></div> : <form onSubmit={submit} className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <label className="text-sm font-medium text-slate-700">Tour<input readOnly value={`${tour.title} — ${tour.duration}`} className="mt-1 w-full rounded-lg border bg-slate-50 p-2.5"/></label>
-        <label className="text-sm font-medium text-slate-700">Destination<input readOnly value={tour.location} className="mt-1 w-full rounded-lg border bg-slate-50 p-2.5"/></label>
+        <label className="text-sm font-medium text-slate-700">Destination<input readOnly value={destination} className="mt-1 w-full rounded-lg border bg-slate-50 p-2.5"/></label>
         <label className="text-sm font-medium text-slate-700">Travel start date *<input required type="date" name="startDate" min={today} value={values.startDate} onChange={update} className="mt-1 w-full rounded-lg border p-2.5"/></label>
         <label className="text-sm font-medium text-slate-700">Preferred return date<input type="date" name="returnDate" min={values.startDate || today} value={values.returnDate} onChange={update} className="mt-1 w-full rounded-lg border p-2.5"/></label>
         <label className="text-sm font-medium text-slate-700">Adults *<input required min="1" type="number" name="adults" value={values.adults} onChange={update} className="mt-1 w-full rounded-lg border p-2.5"/></label>

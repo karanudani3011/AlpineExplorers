@@ -5,7 +5,7 @@ import {
   Pencil, Ticket,
 } from 'lucide-react'
 import { api } from '../services/api'
-import { getTripInfo, formatPrice } from '../utils/trips'
+import { getTripInfo } from '../utils/trips'
 import TravelerForm, { calcAge } from './booking/TravelerForm'
 import { NAVY, GOLD, GOLD2, CREAM, BROWN, ERR, font, NoticeBox } from './booking/bookingUi'
 
@@ -122,8 +122,8 @@ export default function BookingModal({ item, isOpen, onClose }) {
   const trip = getTripInfo(item || {})
   const today = new Date().toISOString().slice(0, 10)
 
-  const price = typeof item?.price === 'number' && item.price > 0 ? item.price : null
-  const perPerson = price ? formatPrice(price) : null
+  const price = null
+  const perPerson = null
 
   const [count, setCountState] = useState(1)
   const [travelers, setTravelers] = useState(() => [createTraveler(trip.title, today)])
@@ -135,7 +135,7 @@ export default function BookingModal({ item, isOpen, onClose }) {
   const [errorMsg, setErrorMsg] = useState('')
   const [submittedBookingId, setSubmittedBookingId] = useState('')
 
-  const total = price ? formatPrice(price * count) : null
+  const total = null
 
   const reset = () => {
     const base = createTraveler(trip.title, today)

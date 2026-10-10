@@ -24,6 +24,7 @@ router.post('/', async (req, res) => {
       name,
       email,
       phone,
+      tour_id: tour_id || null,
       destination,
       package_name,
       travel_date,

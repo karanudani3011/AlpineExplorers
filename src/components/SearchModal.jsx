@@ -8,8 +8,7 @@ import { events } from '../data/eventsData'
 import { getCatalog } from '../services/catalog'
 
 function formatPrice(p) {
-  if (!p || p <= 0) return 'On Request'
-  return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(p)
+  return 'On Request'
 }
 
 function buildSearchIndex(catalogTours = []) {

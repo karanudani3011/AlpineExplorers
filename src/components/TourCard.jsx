@@ -1,32 +1,18 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { Star, MapPin, Calendar, Clock, ArrowRight, MessageSquare, ShieldCheck, Heart } from 'lucide-react'
-import InquiryModal from './InquiryModal'
+import TourInquiryForm from './TourInquiryForm'
 import TourImageSlider from './TourImageSlider'
 import { getTourImageRecords } from '../data/tourImageManifest'
-import { useSupabaseAuth } from '../hooks/useSupabaseAuth'
 
 export default function TourCard({ tour }) {
   const [inquiryOpen, setInquiryOpen] = useState(false)
   const [isLiked, setIsLiked] = useState(false)
-  const navigate = useNavigate()
-  const { user, openAuthModal } = useSupabaseAuth()
-
   const handleBookNow = (e) => {
     e.preventDefault()
-    if (user) {
-      navigate(`/booking/${tour.id}`)
-    } else {
-      openAuthModal({
-        message: 'Login or create an account to continue with your booking.',
-        targetTour: tour,
-        onSuccess: () => navigate(`/booking/${tour.id}`),
-      })
-    }
+    setInquiryOpen(true)
   }
-
-  const discount = tour.discount ?? (tour.originalPrice > tour.price ? Math.round(((tour.originalPrice - tour.price) / tour.originalPrice) * 100) : 0)
 
   return (
     <>
@@ -50,11 +36,6 @@ export default function TourCard({ tour }) {
             {tour.badge && (
               <span className="bg-gradient-to-r from-red-600 to-rose-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-md tracking-wider uppercase">
                 {tour.badge}
-              </span>
-            )}
-            {discount > 0 && (
-              <span className="bg-emerald-600 text-white px-2.5 py-1 rounded-full text-xs font-bold shadow-md">
-                -{discount}% OFF
               </span>
             )}
           </div>
@@ -112,7 +93,7 @@ export default function TourCard({ tour }) {
               </div>
               <div className="flex items-center gap-1.5">
                 <Calendar size={14} className="text-[color:var(--ae-gold)] flex-shrink-0" />
-                <span>{new Date(tour.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                <span>{tour.date ? new Date(tour.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'Dates on request'}</span>
               </div>
             </div>
           </div>
@@ -121,24 +102,8 @@ export default function TourCard({ tour }) {
           <div>
             <div className="flex items-baseline justify-between mb-3">
               <div>
-                <span className="text-[11px] text-gray-700 block uppercase tracking-wider font-semibold">Starting From</span>
-                <div className="flex items-baseline gap-2">
-                  {tour.price > 0 ? (
-                    <>
-                      <span className="text-2xl font-bold text-[color:var(--ae-navy)]">
-                        {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(tour.price)}
-                      </span>
-                      {tour.originalPrice > tour.price && (
-                        <span className="text-xs text-gray-600 line-through">
-                          {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(tour.originalPrice)}
-                        </span>
-                      )}
-                      <span className="text-[10px] text-gray-600 font-semibold">/ guest</span>
-                    </>
-                  ) : (
-                    <span className="text-xl font-bold text-[color:var(--ae-navy)]">On Request</span>
-                  )}
-                </div>
+                <span className="text-[11px] text-gray-700 block uppercase tracking-wider font-semibold">Price</span>
+                <div className="text-xl font-bold text-[color:var(--ae-navy)]">On Request</div>
               </div>
 
               <a
@@ -175,7 +140,7 @@ export default function TourCard({ tour }) {
       </motion.div>
 
       {/* Inquiry Modal */}
-      <InquiryModal
+      <TourInquiryForm
         isOpen={inquiryOpen}
         onClose={() => setInquiryOpen(false)}
         tour={tour}

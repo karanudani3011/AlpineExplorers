@@ -7,7 +7,7 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 const stripHtml = (value = '') => String(value).replace(/<[^>]*>/g, ' ').replace(/&amp;/g, '&').replace(/&#39;|&apos;/g, "'").replace(/&quot;/g, '"').replace(/\s+/g, ' ').trim()
 const normalize = (value = '') => String(value).normalize('NFKD').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim()
 const acceptedLicense = (value = '') => /^(CC0|Public domain|PD|CC BY(?:-SA)?(?:\s|$)|GFDL)/i.test(value.trim())
-const stopWords = new Set(['the', 'and', 'near', 'over', 'south', 'north', 'island', 'city', 'park', 'river', 'temple', 'beach', 'mountain', 'lake', 'waterfall', 'national', 'historic', 'old', 'new', 'valley', 'india', 'usa', 'united', 'states', 'gujarat', 'himachal', 'pradesh', 'uttarakhand', 'thailand', 'bali', 'france', 'switzerland', 'australia', 'maldives'])
+const stopWords = new Set(['the', 'and', 'near', 'over', 'south', 'north', 'island', 'city', 'park', 'river', 'temple', 'beach', 'mountain', 'lake', 'waterfall', 'national', 'historic', 'old', 'new', 'valley'])
 
 async function searchPlaces(placeNames) {
   const params = new URLSearchParams({
@@ -43,10 +43,10 @@ async function searchPlaces(placeNames) {
       source: 'Wikimedia Commons',
       sourcePhotoId: `commons:${page.pageid}`,
     }
-  }).filter((item) => item.imageUrl && item.pageUrl && item.artist && acceptedLicense(item.license))
+  }).filter((item) => item.imageUrl && item.pageUrl && item.artist && acceptedLicense(item.license) && /\.(jpe?g|png|webp|tiff?)$/i.test(item.fileTitle))
   const byPlace = new Map()
   for (const placeName of placeNames) {
-    const terms = normalize(placeName).split(' ').filter((term) => term.length > 3 && !stopWords.has(term))
+    const terms = normalize(placeName).split(' ').filter((term) => term.length > 2 && !stopWords.has(term))
     byPlace.set(placeName, candidates.map((candidate) => {
       const titleText = normalize(candidate.fileTitle)
       const description = normalize(candidate.description)

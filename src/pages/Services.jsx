@@ -6,6 +6,7 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import FamilyCustomizationForm from '../components/FamilyCustomizationForm'
 import { serviceCategories, serviceTours } from '../data/servicesData'
+import { getTourImageRecords } from '../data/tourImageManifest'
 
 const NAVY = 'var(--ae-navy)'
 const NAVY_MID = 'var(--ae-navy-mid)'
@@ -231,6 +232,7 @@ export default function Services() {
                 const catTours = serviceTours[cat.slug] || []
                 const tourCount = catTours.length
                 const firstTour = catTours[0]
+                const firstPhoto = getTourImageRecords(firstTour)[0]
                 const isOriginal = i >= PREPEND && i < PREPEND + CARDS
                 const isActive = i === activeCell
                 const cardStyle = {
@@ -308,7 +310,7 @@ export default function Services() {
                           {firstTour && (
                             <div className="flex items-center gap-3 p-2.5 rounded-xl mb-3 mt-auto last:mb-0" style={{ backgroundColor: 'rgb(var(--ae-gold-rgb) /0.06)' }}>
                               <img
-                                src={firstTour.image}
+                                src={firstPhoto?.url || '/images/tour-image-fallback.svg'}
                                 alt={firstTour.title}
                                 className="w-12 h-9 rounded-lg object-cover flex-shrink-0"
                                 loading="lazy"
@@ -318,7 +320,7 @@ export default function Services() {
                                   {firstTour.title}
                                 </p>
                                 <p className="text-[10px]" style={{ color: GOLD }}>
-                                  Starting from ₹{new Intl.NumberFormat('en-IN').format(firstTour.price)}
+                                  Price: On Request
                                 </p>
                               </div>
                             </div>

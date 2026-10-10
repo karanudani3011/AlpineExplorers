@@ -1,15 +1,13 @@
-import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Navbar from './Navbar'
 import Footer from './Footer'
-import InquiryModal from './InquiryModal'
 import TourInquiryForm from './TourInquiryForm'
 import TourImageSlider from './TourImageSlider'
 import { serviceTours, serviceCategories } from '../data/servicesData'
 import { tours as fallbackTours } from '../data/data'
 import { getTourImageRecords } from '../data/tourImageManifest'
-import { useSupabaseAuth } from '../hooks/useSupabaseAuth'
 import { getCatalog } from '../services/catalog'
 import {
   Star, MapPin, Calendar, Clock, Users, CheckCircle, X,
@@ -37,6 +35,40 @@ function formatINR(amount) {
     currency: 'INR',
     maximumFractionDigits: 0,
   }).format(amount)
+}
+
+function buildSuggestedItinerary(tour, duration) {
+  const durationText = String(duration || tour.duration || '')
+  const dayMatch = durationText.match(/(\d+)\s*(?:days?|d)\b/i)
+    || durationText.match(/\/\s*(\d+)\s*d\b/i)
+  const dayCount = Math.min(21, Math.max(1, Number(dayMatch?.[1]) || 1))
+  const location = tour.location || tour.destination
+  const destination = location && !/^(international|domestic|adventure|camping)$/i.test(String(location).trim())
+    ? location
+    : tour.title
+  const highlights = Array.isArray(tour.highlights) ? tour.highlights.filter(Boolean) : []
+
+  return Array.from({ length: dayCount }, (_, index) => {
+    const day = index + 1
+    const isArrival = day === 1
+    const isDeparture = day === dayCount && dayCount > 1
+    const highlight = highlights[(day - 1) % Math.max(highlights.length, 1)]
+    const title = isArrival
+      ? `Arrive in ${destination}`
+      : isDeparture
+        ? `Leisure time & departure from ${destination}`
+        : highlight || `Explore ${destination}`
+
+    return {
+      day,
+      title,
+      description: isArrival
+        ? `Suggested arrival day for ${destination}. Confirm arrival timing, transfers, and check-in arrangements with Alpine Explorers.`
+        : isDeparture
+          ? `Suggested final day in ${destination}. Confirm checkout, transport, and departure arrangements with Alpine Explorers.`
+          : `Suggested time to explore ${highlight || destination}. The route, activities, transport, and timings are indicative and subject to confirmation with Alpine Explorers.`,
+    }
+  })
 }
 
 function findTourById(id) {
@@ -76,10 +108,6 @@ export default function TourDetailsPage() {
 
   const tour = tourState.tour
   const category = tourState.category
-
-  // Auth-aware Book Now
-  const navigate = useNavigate()
-  const { user, openAuthModal } = useSupabaseAuth()
 
   // Fetch dynamic tour from catalog if not initially found in static list
   useEffect(() => {
@@ -126,16 +154,7 @@ export default function TourDetailsPage() {
   const handleBookNow = (e) => {
     e.preventDefault()
     if (!tour) return
-    if (tour.inquiryOnly) { setInquiryOpen(true); return }
-    if (user) {
-      navigate(`/booking/${tour.id}`)
-    } else {
-      openAuthModal({
-        message: 'Login or create an account to continue with your booking.',
-        targetTour: tour,
-        onSuccess: () => navigate(`/booking/${tour.id}`),
-      })
-    }
+    setInquiryOpen(true)
   }
 
   useEffect(() => { window.scrollTo(0, 0) }, [id])
@@ -190,18 +209,16 @@ export default function TourDetailsPage() {
   const activePrice = activePkg?.price ?? tour.price
   const activeOriginalPrice = activePkg?.original_price ?? tour.originalPrice
   const activeDuration = activePkg?.duration ?? tour.duration
-  const activeItinerary = (activePkg?.itinerary && activePkg.itinerary.length > 0)
+  const suppliedItinerary = (activePkg?.itinerary && activePkg.itinerary.length > 0)
     ? [...activePkg.itinerary].sort((a, b) => a.day - b.day)
     : (tour.itinerary || [])
+  const itineraryIsSuggested = suppliedItinerary.length === 0
+  const activeItinerary = itineraryIsSuggested ? buildSuggestedItinerary(tour, activeDuration) : suppliedItinerary
 
-  const discount = activeOriginalPrice > activePrice
-    ? Math.round(((activeOriginalPrice - activePrice) / activeOriginalPrice) * 100)
-    : 0
-  const hasPrice = activePrice > 0
-  const totalPrice = hasPrice ? activePrice * travelersCount : null
-  const formattedPrice = formatINR(totalPrice)
-  const formattedPerPerson = formatINR(activePrice)
-  const formattedOriginal = formatINR(activeOriginalPrice * travelersCount)
+  const hasPrice = false
+  const formattedPrice = null
+  const formattedPerPerson = null
+  const formattedOriginal = null
 
   const handleShare = () => {
     if (navigator.share) {
@@ -268,11 +285,6 @@ export default function TourDetailsPage() {
                 {tour.badge && (
                   <span className="bg-red-600 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
                     {tour.badge}
-                  </span>
-                )}
-                {discount > 0 && (
-                  <span className="bg-emerald-600 px-3 py-1 rounded-full text-[10px] font-bold">
-                    Save {discount}%
                   </span>
                 )}
               </div>
@@ -372,6 +384,7 @@ export default function TourDetailsPage() {
                   <p className="text-[11px] text-gray-500 mt-1">
                     {activeDuration} &middot; {activeItinerary.length} day{activeItinerary.length !== 1 ? 's' : ''} planned
                   </p>
+                  {itineraryIsSuggested && <p className="text-xs text-amber-800 mt-2 max-w-xl">Suggested outline only. Route, activities, transport, and timings are indicative and must be confirmed before booking.</p>}
                 </div>
                 <button
                   onClick={() => setExpandedDays(expandedDays.length === activeItinerary.length ? [] : activeItinerary.map((_, index) => index))}
@@ -525,7 +538,7 @@ export default function TourDetailsPage() {
 
               {/* Pricing */}
               <div>
-                <span className="text-[10px] text-gray-500 uppercase tracking-wider block font-semibold">{tour.inquiryOnly ? 'Price' : 'Total Price'}</span>
+                <span className="text-[10px] text-gray-500 uppercase tracking-wider block font-semibold">Price</span>
                 <div className="flex items-baseline gap-2 mt-1">
                   <span className="text-3xl font-extrabold" style={{ color: NAVY }}>
                     {formattedPrice || 'On Request'}
@@ -614,11 +627,7 @@ export default function TourDetailsPage() {
 
               {/* Trust Badges */}
               <div className="pt-3 border-t border-gray-100 space-y-1.5 text-[11px] text-gray-600">
-                {tour.inquiryOnly ? <p>We’ll confirm availability, inclusions and the current quotation after reviewing your inquiry.</p> : <>
-                  <div className="flex items-center gap-2"><CheckCircle2 size={12} className="text-emerald-600 flex-shrink-0" /><span>Free cancellation up to 30 days prior</span></div>
-                  <div className="flex items-center gap-2"><CheckCircle2 size={12} className="text-emerald-600 flex-shrink-0" /><span>24/7 dedicated concierge support</span></div>
-                  <div className="flex items-center gap-2"><CheckCircle2 size={12} className="text-emerald-600 flex-shrink-0" /><span>Best price guarantee — zero hidden fees</span></div>
-                </>}
+                <p>We’ll confirm availability, inclusions and the current quotation after reviewing your inquiry.</p>
               </div>
             </div>
           </div>
@@ -627,9 +636,7 @@ export default function TourDetailsPage() {
 
       <Footer />
 
-      {tour.inquiryOnly
-        ? <TourInquiryForm tour={tour} isOpen={inquiryOpen} onClose={() => setInquiryOpen(false)} travelers={travelersCount} />
-        : <InquiryModal isOpen={inquiryOpen} onClose={() => setInquiryOpen(false)} tour={tour} />}
+      <TourInquiryForm tour={tour} isOpen={inquiryOpen} onClose={() => setInquiryOpen(false)} travelers={travelersCount} />
     </div>
   )
 }

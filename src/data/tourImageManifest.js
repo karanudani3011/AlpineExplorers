@@ -5,8 +5,13 @@ const canonical = (value = '') => String(value).trim().toLocaleLowerCase().repla
 
 export function getTourImageRecords(tour) {
   if (!tour) return []
+  const normalizeRecords = (records) => records.map((image) => ({
+    ...image,
+    url: image.url || image.imageUrl,
+    alt: image.alt || image.placeName || tour.title,
+  })).filter((image) => image.url)
   let record = manifest[String(tour.id)]
-  if (record) return (record.images || []).filter((image) => image.titleMatchTerms > 0 || image.descriptionMatchTerms > 0)
+  if (record) return normalizeRecords((record.images || []).filter((image) => image.titleMatchTerms > 0 || image.descriptionMatchTerms > 0))
   if (!record) {
     const title = canonical(tour.title)
     for (const items of Object.values(serviceTours)) {
@@ -17,7 +22,7 @@ export function getTourImageRecords(tour) {
       }
     }
   }
-  if (record) return (record.images || []).filter((image) => image.titleMatchTerms > 0 || image.descriptionMatchTerms > 0)
+  if (record) return normalizeRecords((record.images || []).filter((image) => image.titleMatchTerms > 0 || image.descriptionMatchTerms > 0))
   if (Array.isArray(tour.images) && tour.images.length) return tour.images
   return tour.image ? [tour.image] : []
 }

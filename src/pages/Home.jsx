@@ -25,12 +25,7 @@ const font = {
 }
 
 function formatINR(amount) {
-  if (!amount || amount <= 0) return null
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    maximumFractionDigits: 0,
-  }).format(amount)
+  return 'On Request'
 }
 
 function findTour(id) {
@@ -478,7 +473,7 @@ export default function Home() {
                       <div className="flex items-baseline gap-1.5">
                         {price && (
                           <>
-                            <span className="text-[10px] uppercase tracking-wider text-gray-500">From</span>
+                            <span className="text-[10px] uppercase tracking-wider text-gray-500">Price</span>
                             <span className="text-lg font-extrabold text-[color:var(--ae-navy)]" style={font.vintage}>{price}</span>
                           </>
                         )}

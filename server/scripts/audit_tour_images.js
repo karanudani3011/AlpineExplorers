@@ -1,15 +1,31 @@
+import 'dotenv/config'
 import { writeFile } from 'node:fs/promises'
+import { db } from '../db.js'
 import { serviceTours } from '../../src/data/servicesData.js'
 import { tours as featuredTours } from '../../src/data/data.js'
 import { destinations } from '../../src/data/data.js'
 import manifest from '../../src/data/tourImageManifest.json' with { type: 'json' }
 
+const parseGallery = (value) => {
+  if (Array.isArray(value)) return value
+  try { const parsed = JSON.parse(value || '[]'); return Array.isArray(parsed) ? parsed : [] } catch { return [] }
+}
+const databaseTours = [
+  ...db.prepare("SELECT * FROM international_packages WHERE status='active'").all().map((row) => ({ id: `int-${row.id}`, title: row.destination, destination: row.country ? `${row.destination}, ${row.country}` : row.destination, location: row.country || row.destination, category: 'International', image: row.image, images: [row.image, ...parseGallery(row.gallery)].filter(Boolean) })),
+  ...db.prepare("SELECT * FROM domestic_packages WHERE status='active'").all().map((row) => ({ id: `dom-${row.id}`, title: row.destination, destination: row.state || row.destination, location: row.state || row.destination, category: 'Domestic', image: row.image, images: [row.image, ...parseGallery(row.gallery)].filter(Boolean) })),
+  ...db.prepare("SELECT * FROM adventure_packages WHERE status='active'").all().map((row) => ({ id: `adv-${row.id}`, title: row.title, destination: row.location, location: row.location, category: 'Adventure Tours & Camps', image: row.image, images: [row.image, ...parseGallery(row.gallery)].filter(Boolean) })),
+  ...db.prepare("SELECT * FROM camping_packages WHERE status='active'").all().map((row) => ({ id: `camp-${row.id}`, title: row.title, destination: row.location, location: row.location, category: 'Camping & Weekend Getaways', image: row.image, images: [row.image, ...parseGallery(row.gallery)].filter(Boolean) })),
+]
+const databaseTitles = new Set(databaseTours.map((tour) => tour.title.toLowerCase().trim()))
+const bundledServiceTours = Object.entries(serviceTours).flatMap(([category, items]) => items
+  .filter((tour) => !databaseTitles.has(tour.title.toLowerCase().trim()))
+  .map((tour) => ({ ...tour, category: tour.category || category })))
 const tours = [
-  ...Object.entries(serviceTours).flatMap(([category, items]) => items.map((tour) => ({ ...tour, category: tour.category || category }))),
+  ...databaseTours,
+  ...bundledServiceTours,
   ...featuredTours,
   ...destinations.map((destination) => ({ ...destination, id: `destination-${destination.id}`, title: destination.name, category: 'Destination card' })),
 ]
-
 const canonicalPhotoId = (url) => {
   const text = String(url || '')
   return text.match(/images\.unsplash\.com\/(photo-[^/?]+)/)?.[1] || text
@@ -99,10 +115,12 @@ for (const tour of results) {
 }
 const report = {
   generatedAt: new Date().toISOString(),
-  source: 'Bundled catalogues (40 service tours, 6 featured tours, 6 destination cards). Database-only records require a live API audit.',
+  source: `Active catalogues (${databaseTours.length} database tours, ${bundledServiceTours.length} additional bundled tours, ${featuredTours.length} featured tours, ${destinations.length} destination cards).`,
   checks: { urlAvailability: checkUrls, destinationVerification: 'Commons title/description matching; visual review required' },
   totals: {
     toursInspected: results.filter((tour) => tour.category !== 'Destination card').length,
+    databaseToursInspected: databaseTours.length,
+    databaseOnlyToursInspected: databaseTours.filter((tour) => !Object.values(serviceTours).flat().some((item) => item.title.toLowerCase().trim() === tour.title.toLowerCase().trim())).length,
     destinationCardsInspected: results.filter((tour) => tour.category === 'Destination card').length,
     recordsInspected: results.length,
     toursWithFourUniqueUrls: results.filter((tour) => tour.category !== 'Destination card' && tour.uniqueImageCount >= 4).length,

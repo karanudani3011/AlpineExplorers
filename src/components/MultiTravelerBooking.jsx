@@ -24,10 +24,7 @@ const ERR = '#dc2626'
 /* ──────────────────────────── Helpers ──────────────────────────── */
 
 function formatINR(amount) {
-  if (!amount || amount <= 0) return '₹0'
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency', currency: 'INR', maximumFractionDigits: 0,
-  }).format(amount)
+  return 'On Request'
 }
 
 function formatDate(dateStr) {
@@ -417,7 +414,7 @@ export default function MultiTravelerBooking({ tour, user, profile }) {
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
 
-  const totalPrice = tour.price > 0 ? tour.price * travelerCount : null
+  const totalPrice = null
 
   /* ── STEP 2 → STEP 3 (Submit application & open PaymentScreen) ── */
   const handleProceedToPayment = async (uploadedFormList = []) => {
@@ -433,7 +430,7 @@ export default function MultiTravelerBooking({ tour, user, profile }) {
       location: tour.location || tour.destination || '',
       duration: tour.duration || '',
       travel_date: tour.date || new Date().toISOString().slice(0, 10),
-      price_per_person: tour.price || null,
+      price_per_person: null,
       number_of_travelers: travelerCount,
       total_amount: totalPrice,
       booking_contact_name: travelers[0]?.fullName || '',
@@ -492,7 +489,7 @@ export default function MultiTravelerBooking({ tour, user, profile }) {
             tour_location: tour.location || tour.destination || null,
             tour_date: tour.date || null,
             duration: tour.duration || null,
-            price_per_person: tour.price || null,
+            price_per_person: null,
             total_travelers: travelerCount,
             total_amount: totalPrice,
             customer_name: travelers[0]?.fullName || '',
@@ -515,7 +512,7 @@ export default function MultiTravelerBooking({ tour, user, profile }) {
         tour_location: tour.location || tour.destination || null,
         tour_date: tour.date || null,
         duration: tour.duration || null,
-        price_per_person: tour.price || null,
+        price_per_person: null,
         total_travelers: travelerCount,
         total_amount: totalPrice,
         customer_name: travelers[0]?.fullName || '',
@@ -583,16 +580,7 @@ export default function MultiTravelerBooking({ tour, user, profile }) {
                   )}
                 </div>
               </div>
-              {tour.price > 0 && (
-                <div className="text-right shrink-0">
-                  <p className="text-[10px] font-bold uppercase tracking-wider mb-0.5" style={{ color: GOLD }}>
-                    Price/Person
-                  </p>
-                  <p className="text-white font-bold text-sm">
-                    {formatINR(tour.price)}
-                  </p>
-                </div>
-              )}
+              <div className="text-right shrink-0"><p className="text-[10px] font-bold uppercase tracking-wider mb-0.5" style={{ color: GOLD }}>Price</p><p className="text-white font-bold text-sm">On Request</p></div>
             </div>
 
             {/* Traveler count selector */}
@@ -666,22 +654,7 @@ export default function MultiTravelerBooking({ tour, user, profile }) {
                 ))}
               </div>
 
-              {tour.price > 0 && (
-                <div
-                  className="inline-block px-5 py-2.5 rounded-xl mb-8"
-                  style={{ backgroundColor: `${GOLD}10`, border: `1px solid ${GOLD}30` }}
-                >
-                  <span className="text-sm font-semibold" style={{ color: '#78350f' }}>
-                    Estimated Total:{' '}
-                    <span className="text-base font-extrabold" style={{ color: NAVY }}>
-                      {formatINR(tour.price * travelerCount)}
-                    </span>
-                    <span className="text-xs font-normal text-gray-500 ml-1">
-                      ({formatINR(tour.price)} × {travelerCount})
-                    </span>
-                  </span>
-                </div>
-              )}
+              <div className="inline-block px-5 py-2.5 rounded-xl mb-8" style={{ backgroundColor: `${GOLD}10`, border: `1px solid ${GOLD}30` }}><span className="text-sm font-semibold text-amber-900">Price: On Request</span></div>
 
               <div>
                 <button
@@ -878,21 +851,8 @@ export default function MultiTravelerBooking({ tour, user, profile }) {
                   <span className="text-gray-600">Total Travelers</span>
                   <span className="font-semibold text-gray-900">{travelerCount} Guest(s)</span>
                 </div>
-                {tour.price > 0 && (
-                  <>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Price per Person</span>
-                      <span className="font-semibold text-gray-900">{formatINR(tour.price)}</span>
-                    </div>
-                    <div className="border-t border-dashed my-2" style={{ borderColor: `${GOLD}50` }} />
-                    <div className="flex justify-between items-center pt-1">
-                      <span className="font-bold text-base" style={{ color: NAVY }}>Total Payable Amount</span>
-                      <span className="font-extrabold text-2xl" style={{ color: GOLD }}>
-                        {formatINR(totalPrice)}
-                      </span>
-                    </div>
-                  </>
-                )}
+                <div className="flex justify-between items-center"><span className="text-gray-600">Price</span><span className="font-semibold text-gray-900">On Request</span></div>
+                <p className="border-t border-dashed pt-2 text-xs text-gray-500">This application is an inquiry; availability and quotation will be confirmed by the team.</p>
               </div>
             </div>
 
@@ -982,7 +942,7 @@ export default function MultiTravelerBooking({ tour, user, profile }) {
             exit={{ opacity: 0, y: -15 }}
             transition={{ duration: 0.3 }}
           >
-            <PaymentScreen
+            {confirmedBooking.total_amount > 0 ? <PaymentScreen
               booking={confirmedBooking}
               tour={tour}
               onBack={() => setStep(4)}
@@ -996,7 +956,7 @@ export default function MultiTravelerBooking({ tour, user, profile }) {
                 setStep(6)
                 scrollTop()
               }}
-            />
+            /> : <div className="mx-auto max-w-2xl rounded-2xl border border-emerald-200 bg-white p-7 text-center shadow-lg"><CheckCircle2 className="mx-auto mb-3 text-emerald-700" size={36}/><h2 className="text-2xl font-bold text-slate-900">Inquiry received</h2><p className="mt-2 text-sm text-slate-600">Your application was submitted. This is an inquiry, not a confirmed reservation. The team will review availability and share the quotation.</p><p className="mt-3 font-bold text-emerald-800">Price: On Request</p><Link to="/services" className="mt-5 inline-flex rounded-xl bg-slate-900 px-5 py-3 font-bold text-white">Browse tours</Link></div>}
           </motion.div>
         )}
 

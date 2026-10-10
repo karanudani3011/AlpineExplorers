@@ -1,52 +1,23 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { Star, MapPin, Calendar, Clock, ArrowRight, Heart } from 'lucide-react'
 import InquireButton from './InquireButton'
 import BookNowButton from './BookNowButton'
-import BookingModal from './BookingModal'
 import TourImageSlider from './TourImageSlider'
 import { getTourImageRecords } from '../data/tourImageManifest'
-import { useSupabaseAuth } from '../hooks/useSupabaseAuth'
 import TourInquiryForm from './TourInquiryForm'
 
 const NAVY = 'var(--ae-navy)'
 const GOLD = 'var(--ae-gold)'
 
-function formatINR(amount) {
-  if (!amount || amount <= 0) return null
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    maximumFractionDigits: 0,
-  }).format(amount)
-}
-
 export default function ServiceTourCard({ tour }) {
   const [isLiked, setIsLiked] = useState(false)
   const [bookOpen, setBookOpen] = useState(false)
-  const navigate = useNavigate()
-  const { user, openAuthModal } = useSupabaseAuth()
 
   const handleBookNow = () => {
-    if (tour.inquiryOnly) { setBookOpen(true); return }
-    if (user) {
-      navigate(`/booking/${tour.id}`)
-    } else {
-      openAuthModal({
-        message: 'Login or create an account to continue with your booking.',
-        targetTour: tour,
-        onSuccess: () => navigate(`/booking/${tour.id}`),
-      })
-    }
+    setBookOpen(true)
   }
-
-  const discount = tour.originalPrice > tour.price
-    ? Math.round(((tour.originalPrice - tour.price) / tour.originalPrice) * 100)
-    : 0
-
-  const formattedPrice = formatINR(tour.price)
-  const formattedOriginal = formatINR(tour.originalPrice)
 
   return (
     <>
@@ -71,11 +42,6 @@ export default function ServiceTourCard({ tour }) {
                 style={{ background: `linear-gradient(135deg, ${NAVY}, var(--ae-navy-mid))` }}
               >
                 {tour.badge}
-              </span>
-            )}
-            {discount > 0 && (
-              <span className="bg-emerald-600 text-white px-2 py-1 rounded-full text-[10px] font-bold shadow-md">
-                -{discount}% OFF
               </span>
             )}
           </div>
@@ -143,23 +109,9 @@ export default function ServiceTourCard({ tour }) {
             <div className="flex items-baseline justify-between mb-3">
               <div>
                 <span className="text-[10px] text-gray-500 block uppercase tracking-wider font-semibold">
-                  {tour.inquiryOnly ? 'Price' : 'Starting From'}
+                  Price
                 </span>
-                <div className="flex items-baseline gap-2">
-                  {formattedPrice ? (
-                    <>
-                      <span className="text-xl font-bold" style={{ color: NAVY }}>
-                        {formattedPrice}
-                      </span>
-                      {formattedOriginal && tour.originalPrice > tour.price && (
-                        <span className="text-[11px] text-gray-400 line-through">{formattedOriginal}</span>
-                      )}
-                      <span className="text-[10px] text-gray-500 font-semibold">/ person</span>
-                    </>
-                  ) : (
-                    <span className="text-lg font-bold" style={{ color: NAVY }}>On Request</span>
-                  )}
-                </div>
+                <div className="text-lg font-bold" style={{ color: NAVY }}>On Request</div>
               </div>
               <InquireButton
                 item={tour}
@@ -190,9 +142,7 @@ export default function ServiceTourCard({ tour }) {
         </div>
       </motion.div>
 
-      {tour.inquiryOnly
-        ? <TourInquiryForm tour={tour} isOpen={bookOpen} onClose={() => setBookOpen(false)} />
-        : <BookingModal item={tour} isOpen={bookOpen} onClose={() => setBookOpen(false)} />}
+      <TourInquiryForm tour={tour} isOpen={bookOpen} onClose={() => setBookOpen(false)} />
     </>
   )
 }
