@@ -1,0 +1,323 @@
+.adventure-videos-section {
+  padding: clamp(5rem, 9vw, 8rem) 1.25rem;
+  overflow: hidden;
+  color: #fff;
+  background: var(--ae-navy, #0b2a5b);
+}
+
+.adventure-videos-inner {
+  width: min(100%, 80rem);
+  margin-inline: auto;
+}
+
+.adventure-videos-heading {
+  max-width: 54rem;
+  margin: 0 auto clamp(2.5rem, 5vw, 4rem);
+  text-align: center;
+}
+
+.adventure-videos-eyebrow {
+  display: inline-block;
+  margin-bottom: 0.85rem;
+  color: var(--ae-gold2, #e3c77b);
+  font: 700 0.72rem/1.2 Inter, sans-serif;
+  letter-spacing: 0.24em;
+}
+
+.adventure-videos-heading h2 {
+  margin: 0;
+  color: #fff;
+  font: 700 clamp(2rem, 4.5vw, 3.65rem)/1.12 Cinzel, serif;
+  letter-spacing: 0.015em;
+}
+
+.adventure-videos-heading p {
+  margin: 1rem 0 0;
+  color: rgb(255 255 255 / 0.78);
+  font: 400 clamp(0.92rem, 1.5vw, 1.08rem)/1.65 Inter, sans-serif;
+}
+
+.adventure-videos-layout {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(0.8rem, 2vw, 1.35rem);
+}
+
+.adventure-video-item {
+  min-width: 0;
+}
+
+.adventure-video-trigger {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0.8rem;
+  color: inherit;
+  background: #091f43;
+  text-align: left;
+  cursor: pointer;
+}
+
+.adventure-video-media {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: #10294d;
+}
+
+.adventure-video-media video,
+.adventure-video-fallback {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 800ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.adventure-video-fallback {
+  background:
+    radial-gradient(ellipse at 72% 30%, rgb(227 199 123 / 0.32), transparent 32%),
+    linear-gradient(140deg, #254b72, #0b2a5b 68%, #071b3a);
+}
+
+.adventure-video-trigger:hover .adventure-video-media video,
+.adventure-video-trigger:focus-visible .adventure-video-media video {
+  transform: scale(1.045);
+}
+
+.adventure-video-shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgb(4 16 35 / 0.04) 28%, rgb(4 16 35 / 0.25) 55%, rgb(4 16 35 / 0.88) 100%);
+}
+
+.adventure-video-play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  width: 3rem;
+  height: 3rem;
+  place-items: center;
+  padding-left: 0.18rem;
+  border: 1px solid rgb(255 255 255 / 0.8);
+  border-radius: 50%;
+  color: #0b2a5b;
+  background: rgb(255 255 255 / 0.92);
+  transform: translate(-50%, -50%);
+  transition: color 250ms ease, background 250ms ease, scale 250ms ease;
+}
+
+.adventure-video-trigger:hover .adventure-video-play,
+.adventure-video-trigger:focus-visible .adventure-video-play {
+  color: #fff;
+  background: var(--ae-gold, #c89d35);
+  scale: 1.08;
+}
+
+.adventure-video-caption {
+  position: absolute;
+  right: clamp(1rem, 2.2vw, 1.8rem);
+  bottom: clamp(1rem, 2.2vw, 1.8rem);
+  left: clamp(1rem, 2.2vw, 1.8rem);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.3rem;
+}
+
+.adventure-video-number {
+  color: var(--ae-gold2, #e3c77b);
+  font: 700 0.64rem/1.3 Inter, sans-serif;
+  letter-spacing: 0.18em;
+}
+
+.adventure-video-title {
+  color: #fff;
+  font: 700 clamp(1rem, 1.45vw, 1.35rem)/1.2 Cinzel, serif;
+  text-wrap: balance;
+}
+
+.adventure-video-description {
+  max-width: 34rem;
+  color: rgb(255 255 255 / 0.78);
+  font: 400 0.78rem/1.4 Inter, sans-serif;
+}
+
+.adventure-video-dialog {
+  width: fit-content;
+  width: -moz-fit-content;
+  max-width: none;
+  max-height: 96dvh;
+  padding: 0;
+  overflow: auto;
+  border: 0;
+  border-radius: 0.7rem;
+  color: #fff;
+  background: transparent;
+  margin: auto;
+}
+
+.adventure-video-dialog::backdrop {
+  background: rgb(2 10 24 / 0.82);
+  backdrop-filter: blur(4px);
+}
+
+.adventure-video-dialog-content {
+  width: fit-content;
+  max-width: 96vw;
+  margin: auto;
+  padding: 0;
+  border-radius: 0.7rem;
+  background: #071b3a;
+  box-shadow: 0 24px 90px rgb(0 0 0 / 0.4);
+}
+
+.adventure-video-viewer {
+  position: relative;
+  display: block;
+  width: min(92vw, calc(90dvh * var(--adventure-video-ratio, 1.77778)));
+  max-height: 90dvh;
+  aspect-ratio: var(--adventure-video-ratio, 16 / 9);
+  overflow: hidden;
+  border-radius: 0.7rem 0.7rem 0 0;
+  background: #000;
+}
+
+.adventure-video-viewer > video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+}
+
+.adventure-video-close {
+  position: absolute;
+  z-index: 2;
+  top: max(0.65rem, env(safe-area-inset-top));
+  right: max(0.65rem, env(safe-area-inset-right));
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  place-items: center;
+  border: 1px solid rgb(255 255 255 / 0.45);
+  border-radius: 50%;
+  color: white;
+  background: rgb(7 27 58 / 0.8);
+  cursor: pointer;
+}
+
+.adventure-video-fullscreen {
+  position: absolute;
+  z-index: 2;
+  top: max(0.65rem, env(safe-area-inset-top));
+  right: max(3.8rem, calc(env(safe-area-inset-right) + 3.15rem));
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  place-items: center;
+  border: 1px solid rgb(255 255 255 / 0.45);
+  border-radius: 50%;
+  color: white;
+  background: rgb(7 27 58 / 0.8);
+  cursor: pointer;
+}
+
+.adventure-video-dialog-title {
+  padding: 0.85rem 1rem 1rem;
+  text-align: center;
+}
+
+.adventure-video-dialog-title h2 {
+  margin: 0;
+  color: white;
+  font: 700 clamp(1.25rem, 3vw, 2rem)/1.2 Cinzel, serif;
+}
+
+.adventure-video-dialog-title p {
+  margin: 0.4rem 0 0;
+  color: rgb(255 255 255 / 0.75);
+  font: 400 0.92rem/1.5 Inter, sans-serif;
+}
+
+.adventure-video-error {
+  position: absolute;
+  right: 1rem;
+  bottom: 4rem;
+  left: 1rem;
+  margin: 0;
+  padding: 0.75rem;
+  border-radius: 0.35rem;
+  color: #ffe0a3;
+  background: rgb(7 27 58 / 0.9);
+  font: 500 0.9rem/1.5 Inter, sans-serif;
+}
+
+.adventure-video-viewer:fullscreen {
+  display: grid;
+  width: 100vw;
+  height: 100dvh;
+  max-height: none;
+  aspect-ratio: auto;
+  place-items: center;
+  border-radius: 0;
+  background: #000;
+}
+
+.adventure-video-viewer:fullscreen > video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+@media (max-width: 900px) {
+  .adventure-videos-layout {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .adventure-video-description {
+    max-width: 82%;
+    font-size: 0.78rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .adventure-videos-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+  }
+
+  .adventure-video-dialog {
+    max-width: calc(100vw - env(safe-area-inset-left) - env(safe-area-inset-right));
+    max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  }
+
+  .adventure-video-dialog-content {
+    max-width: 100%;
+  }
+
+  .adventure-video-viewer {
+    width: min(96vw, calc(88dvh * var(--adventure-video-ratio, 1.77778)));
+    max-height: 88dvh;
+    border-radius: 0.5rem 0.5rem 0 0;
+  }
+
+  .adventure-video-dialog-title {
+    padding: 0.7rem 0.8rem 0.85rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .adventure-video-media video,
+  .adventure-video-play {
+    transition: none;
+  }
+}

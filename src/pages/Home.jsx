@@ -6,6 +6,7 @@ import Footer from '../components/Footer'
 import { serviceTours } from '../data/servicesData'
 import { testimonials } from '../data/data'
 import TourImageSlider from '../components/TourImageSlider'
+import AdventureVideos from '../components/AdventureVideos'
 import { getTourImageRecords } from '../data/tourImageManifest'
 import { ArrowRight, ArrowUpRight, MapPin, Calendar, Clock, Compass, Award, Heart, Sparkles, Quote } from 'lucide-react'
 import { usePublicEvents } from '../services/usePublic'
@@ -401,6 +402,8 @@ export default function Home() {
           ))}
         </div>
       </section>
+
+      <AdventureVideos />
 
       {/* ===================================================================== */}
       {/* SECTION 4 — FEATURED EXPERIENCES                                      */}
