@@ -1,5 +1,7 @@
 import { motion } from 'framer-motion'
 import { Star, MapPin, ArrowRight } from 'lucide-react'
+import TourImageSlider from './TourImageSlider'
+import { getTourImageRecords } from '../data/tourImageManifest'
 
 export default function DestinationCard({ destination, index }) {
   return (
@@ -12,12 +14,10 @@ export default function DestinationCard({ destination, index }) {
     >
       <div className="relative overflow-hidden rounded-lg h-80 shadow-lg">
         {/* Image */}
-        <motion.img
-          src={destination.image}
+        <TourImageSlider
+          images={getTourImageRecords({ id: `destination-${destination.id}`, title: destination.name, image: destination.image })}
           alt={destination.name}
-          className="w-full h-full object-cover"
-          whileHover={{ scale: 1.15 }}
-          transition={{ duration: 0.5 }}
+          aspectRatio="h-80"
         />
 
         {/* Gradient overlay */}

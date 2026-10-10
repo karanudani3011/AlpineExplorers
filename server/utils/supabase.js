@@ -94,6 +94,7 @@ export async function syncInquiryToSupabase(inquiry) {
     name: inquiry.name,
     email: inquiry.email,
     mobile: inquiry.phone || null,
+    tour_id: inquiry.tour_id || null,
     tour_name: inquiry.package_name || inquiry.destination || 'General Inquiry',
     travelers: inquiry.travelers ? Number(inquiry.travelers) : 1,
     preferred_date: inquiry.travel_date || null,

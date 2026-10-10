@@ -6,8 +6,9 @@ import InquireButton from './InquireButton'
 import BookNowButton from './BookNowButton'
 import BookingModal from './BookingModal'
 import TourImageSlider from './TourImageSlider'
-import { tourImages } from '../data/tourImages'
+import { getTourImageRecords } from '../data/tourImageManifest'
 import { useSupabaseAuth } from '../hooks/useSupabaseAuth'
+import TourInquiryForm from './TourInquiryForm'
 
 const NAVY = 'var(--ae-navy)'
 const GOLD = 'var(--ae-gold)'
@@ -28,6 +29,7 @@ export default function ServiceTourCard({ tour }) {
   const { user, openAuthModal } = useSupabaseAuth()
 
   const handleBookNow = () => {
+    if (tour.inquiryOnly) { setBookOpen(true); return }
     if (user) {
       navigate(`/booking/${tour.id}`)
     } else {
@@ -56,23 +58,7 @@ export default function ServiceTourCard({ tour }) {
         {/* Image Container */}
         <div className="relative overflow-hidden h-56 sm:h-64 w-full flex-shrink-0">
           <TourImageSlider
-            images={(() => {
-              const customImgs = Array.isArray(tour?.images) && tour.images.length > 0 ? tour.images : []
-              const presetImgs = tourImages[tour?.id] || []
-              const combined = Array.from(new Set([...customImgs, ...presetImgs, ...(tour?.image ? [tour.image] : [])]))
-              if (combined.length >= 4) return combined.slice(0, 4)
-              const fallbacks = [
-                'https://images.unsplash.com/photo-1518684079-3c830dcef090?w=1000&h=700&fit=crop',
-                'https://images.unsplash.com/photo-1512100356356-de1b84283e18?w=1000&h=700&fit=crop',
-                'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1000&h=700&fit=crop',
-                'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=1000&h=700&fit=crop',
-              ]
-              for (const img of fallbacks) {
-                if (combined.length >= 4) break
-                if (!combined.includes(img)) combined.push(img)
-              }
-              return combined.slice(0, 4)
-            })()}
+            images={getTourImageRecords(tour)}
             alt={tour.title}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/15 to-transparent pointer-events-none" />
@@ -142,11 +128,11 @@ export default function ServiceTourCard({ tour }) {
               <div className="flex items-center gap-1.5">
                 <Calendar size={13} style={{ color: GOLD }} className="flex-shrink-0" />
                 <span>
-                  {new Date(tour.date).toLocaleDateString('en-IN', {
+                  {tour.date ? new Date(tour.date).toLocaleDateString('en-IN', {
                     month: 'short',
                     day: 'numeric',
                     year: 'numeric',
-                  })}
+                  }) : 'Dates on request'}
                 </span>
               </div>
             </div>
@@ -157,7 +143,7 @@ export default function ServiceTourCard({ tour }) {
             <div className="flex items-baseline justify-between mb-3">
               <div>
                 <span className="text-[10px] text-gray-500 block uppercase tracking-wider font-semibold">
-                  Starting From
+                  {tour.inquiryOnly ? 'Price' : 'Starting From'}
                 </span>
                 <div className="flex items-baseline gap-2">
                   {formattedPrice ? (
@@ -204,7 +190,9 @@ export default function ServiceTourCard({ tour }) {
         </div>
       </motion.div>
 
-      <BookingModal item={tour} isOpen={bookOpen} onClose={() => setBookOpen(false)} />
+      {tour.inquiryOnly
+        ? <TourInquiryForm tour={tour} isOpen={bookOpen} onClose={() => setBookOpen(false)} />
+        : <BookingModal item={tour} isOpen={bookOpen} onClose={() => setBookOpen(false)} />}
     </>
   )
 }

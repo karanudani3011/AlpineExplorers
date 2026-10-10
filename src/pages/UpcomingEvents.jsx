@@ -151,20 +151,10 @@ export default function UpcomingEvents() {
                 <div className="relative h-52 overflow-hidden">
                   <TourImageSlider
                     images={(() => {
-                      const list = (Array.isArray(ev.gallery) && ev.gallery.length > 0) ? ev.gallery : (Array.isArray(ev.images) && ev.images.length > 0 ? ev.images : (eventImages[ev.id] || (ev.image ? [ev.image] : [])))
-                      const combined = Array.from(new Set(list))
-                      if (combined.length >= 4) return combined.slice(0, 4)
-                      const fallbacks = [
-                        'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?w=900&h=600&fit=crop',
-                        'https://images.unsplash.com/photo-1544731612-de7f96afe55f?w=900&h=600&fit=crop',
-                        'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=900&h=600&fit=crop',
-                        'https://images.unsplash.com/photo-1483728642387-6c3bdd6c93e5?w=900&h=600&fit=crop',
-                      ]
-                      for (const img of fallbacks) {
-                        if (combined.length >= 4) break
-                        if (!combined.includes(img)) combined.push(img)
-                      }
-                      return combined.slice(0, 4)
+                      const list = (Array.isArray(ev.gallery) && ev.gallery.length > 0)
+                        ? ev.gallery
+                        : (Array.isArray(ev.images) && ev.images.length > 0 ? ev.images : (eventImages[ev.id] || (ev.image ? [ev.image] : [])))
+                      return Array.from(new Set(list.filter(Boolean))).slice(0, 4)
                     })()}
                     alt={ev.title}
                   />

@@ -1,6 +1,5 @@
 import { api } from './api'
 import { serviceTours } from '../data/servicesData'
-import { tourImages } from '../data/tourImages'
 
 const lbl = (flag, label) => (flag ? label : null)
 const parseList = (v) => {
@@ -51,34 +50,33 @@ function inferMoodAndType(title = '', destination = '', category = '', price = 0
   return { mood, destinationType, budgetTier }
 }
 
-const extractImages = (p, fallbackId) => {
+const canonicalTourName = (value = '') => String(value).trim().toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ')
+
+function getCuratedImageSet(destinationName) {
+  const targetName = canonicalTourName(destinationName)
+  if (!targetName) return []
+  for (const categoryTours of Object.values(serviceTours)) {
+    const match = categoryTours.find((tour) => canonicalTourName(tour.title) === targetName)
+    if (match) return Array.isArray(match.images) ? match.images : (match.image ? [match.image] : [])
+  }
+  return []
+}
+
+const extractImages = (p, destinationName) => {
   const gallery = Array.isArray(p.gallery) ? p.gallery : parseList(p.gallery)
   const userList = [p.image, ...gallery].filter(Boolean).filter(img => !img.includes('photo-1547203664') && !img.includes('photo-1587645585583') && !img.includes('photo-1589227365533'))
-  const presetList = tourImages[fallbackId] || tourImages[p.id] || tourImages[p.destination?.toLowerCase()] || []
-  const combined = Array.from(new Set([...userList, ...presetList]))
-
-  if (combined.length >= 4) {
-    return combined.slice(0, 4)
+  const curatedList = getCuratedImageSet(destinationName)
+  const uniqueByPhoto = new Map()
+  for (const url of [...userList, ...curatedList]) {
+    const photoId = String(url).match(/images\.unsplash\.com\/(photo-[^/?]+)/)?.[1] || url
+    if (!uniqueByPhoto.has(photoId)) uniqueByPhoto.set(photoId, url)
   }
-
-  const defaultPool = [
-    'https://images.unsplash.com/photo-1518684079-3c830dcef090?w=1000&h=700&fit=crop',
-    'https://images.unsplash.com/photo-1512100356356-de1b84283e18?w=1000&h=700&fit=crop',
-    'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1000&h=700&fit=crop',
-    'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=1000&h=700&fit=crop',
-  ]
-
-  for (const img of defaultPool) {
-    if (combined.length >= 4) break
-    if (!combined.includes(img)) combined.push(img)
-  }
-
-  return combined.slice(0, 4)
+  return [...uniqueByPhoto.values()].slice(0, 4)
 }
 
 const fromInternational = (p) => {
   const id = `int-${p.id}`
-  const images = extractImages(p, id)
+  const images = extractImages(p, p.destination)
   const meta = inferMoodAndType(p.destination, p.country, 'International', p.price)
   return {
     id,
@@ -114,7 +112,7 @@ const fromInternational = (p) => {
 
 const fromDomestic = (p) => {
   const id = `dom-${p.id}`
-  const images = extractImages(p, id)
+  const images = extractImages(p, p.destination)
   const meta = inferMoodAndType(p.destination, p.state, 'Domestic', p.price)
   return {
     id,
@@ -150,7 +148,7 @@ const fromDomestic = (p) => {
 
 const fromAdventure = (p) => {
   const id = `adv-${p.id}`
-  const images = extractImages(p, id)
+  const images = extractImages(p, p.title)
   const meta = inferMoodAndType(p.title, p.location, p.category || 'Adventure', p.price || 18000)
   return {
     id,
@@ -183,7 +181,7 @@ const fromAdventure = (p) => {
 
 const fromCamping = (p) => {
   const id = `camp-${p.id}`
-  const images = extractImages(p, id)
+  const images = extractImages(p, p.title)
   const meta = inferMoodAndType(p.title, p.location, 'Camping', 12000)
   return {
     id,
@@ -209,7 +207,7 @@ const fromCamping = (p) => {
   }
 }
 
-// Convert all curated serviceTours to catalog items with verified real photos
+// Convert curated serviceTours to catalog items without adding inferred image candidates
 function getCuratedServiceTours() {
   const list = []
   for (const cat of Object.keys(serviceTours)) {
@@ -286,4 +284,4 @@ export function formatPrice(p) {
 }
 
 export { getCatalog }
-export { fromInternational, fromDomestic, fromAdventure, fromCamping }
+export { fromInternational, fromDomestic, fromAdventure, fromCamping }

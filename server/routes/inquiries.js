@@ -6,13 +6,13 @@ import { syncInquiryToSupabase, supabaseRequest } from '../utils/supabase.js'
 const router = Router()
 
 router.post('/', async (req, res) => {
-  const { name, email, phone, destination, package_name, travel_date, travelers, message } = req.body || {}
+  const { name, email, phone, destination, package_name, travel_date, travelers, message, tour_id } = req.body || {}
   if (!name || !email) return res.status(400).json({ error: 'Name and email are required' })
 
   // 1. Save to local SQLite database so admin side always sees it immediately
   const info = db.prepare(
-    'INSERT INTO inquiries (name, email, phone, destination, package_name, travel_date, travelers, message, status) VALUES (?,?,?,?,?,?,?,?,?)'
-  ).run(String(name), String(email), phone || null, destination || null, package_name || null,
+    'INSERT INTO inquiries (tour_id, name, email, phone, destination, package_name, travel_date, travelers, message, status) VALUES (?,?,?,?,?,?,?,?,?,?)'
+  ).run(tour_id || null, String(name), String(email), phone || null, destination || null, package_name || null,
     travel_date || null, travelers ? Number(travelers) : null, message || null, 'new')
 
   const localId = Number(info.lastInsertRowid)

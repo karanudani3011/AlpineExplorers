@@ -6,7 +6,7 @@ import Footer from '../components/Footer'
 import { serviceTours } from '../data/servicesData'
 import { testimonials } from '../data/data'
 import TourImageSlider from '../components/TourImageSlider'
-import { tourImages } from '../data/tourImages'
+import { getTourImageRecords } from '../data/tourImageManifest'
 import { ArrowRight, ArrowUpRight, MapPin, Calendar, Clock, Compass, Award, Heart, Sparkles, Quote } from 'lucide-react'
 import { usePublicEvents } from '../services/usePublic'
 
@@ -444,23 +444,7 @@ export default function Home() {
                 >
                   <Link to={`/tour/${tour.id}`} className="block relative h-52 overflow-hidden flex-shrink-0">
                     <TourImageSlider
-                      images={(() => {
-                        const customImgs = Array.isArray(tour?.images) && tour.images.length > 0 ? tour.images : []
-                        const presetImgs = tourImages[tour?.id] || []
-                        const combined = Array.from(new Set([...customImgs, ...presetImgs, ...(tour?.image ? [tour.image] : [])]))
-                        if (combined.length >= 4) return combined.slice(0, 4)
-                        const fallbacks = [
-                          'https://images.unsplash.com/photo-1518684079-3c830dcef090?w=1000&h=700&fit=crop',
-                          'https://images.unsplash.com/photo-1512100356356-de1b84283e18?w=1000&h=700&fit=crop',
-                          'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1000&h=700&fit=crop',
-                          'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=1000&h=700&fit=crop',
-                        ]
-                        for (const img of fallbacks) {
-                          if (combined.length >= 4) break
-                          if (!combined.includes(img)) combined.push(img)
-                        }
-                        return combined.slice(0, 4)
-                      })()}
+                      images={getTourImageRecords(tour)}
                       alt={tour.title}
                     />
                     <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgb(var(--ae-navy-rgb) /0.45) 0%, rgb(var(--ae-navy-rgb) /0.05) 60%, transparent 100%)' }} />

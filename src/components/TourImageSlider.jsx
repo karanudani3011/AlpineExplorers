@@ -1,24 +1,39 @@
-import { useState, useEffect, useCallback } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { ChevronLeft, ChevronRight, ImageOff } from 'lucide-react'
 
-const DEFAULT_INTERVAL = 3500
+const DEFAULT_INTERVAL = 4500
+const SWIPE_THRESHOLD = 40
 
 export default function TourImageSlider({
   images = [],
   alt = '',
   paused = false,
   interval = DEFAULT_INTERVAL,
+  aspectRatio = 'aspect-[16/10]',
+  priority = false,
 }) {
   const validImages = Array.isArray(images) && images.length > 0
-    ? images.filter(Boolean)
+    ? images.filter(Boolean).map((image) => typeof image === 'string' ? { url: image, alt } : image).filter((image) => image.url).filter((image, index, all) => {
+      const photoId = image.sourcePhotoId || String(image.url).match(/images\.unsplash\.com\/(photo-[^/?]+)/)?.[1] || image.url
+      return all.findIndex((candidate) => (candidate.sourcePhotoId || String(candidate.url).match(/images\.unsplash\.com\/(photo-[^/?]+)/)?.[1] || candidate.url) === photoId) === index
+    })
     : []
 
   const count = validImages.length
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isHovered, setIsHovered] = useState(false)
   const [failedImages, setFailedImages] = useState({})
+  const touchStartXRef = useRef(null)
+  const touchEndXRef = useRef(null)
 
-  // Auto-advance only when not hovered and multiple images exist
+  // Clamp currentIndex if count changes
+  useEffect(() => {
+    if (currentIndex >= count && count > 0) {
+      setCurrentIndex(0)
+    }
+  }, [count, currentIndex])
+
+  // Auto-advance only when not hovered, not paused, and multiple images exist
   useEffect(() => {
     if (count <= 1 || paused || isHovered) return undefined
     const timer = setInterval(() => {
@@ -28,14 +43,18 @@ export default function TourImageSlider({
   }, [count, paused, isHovered, interval])
 
   const handlePrev = useCallback((e) => {
-    e.preventDefault()
-    e.stopPropagation()
+    if (e) {
+      e.preventDefault()
+      e.stopPropagation()
+    }
     setCurrentIndex((prev) => (prev - 1 + count) % count)
   }, [count])
 
   const handleNext = useCallback((e) => {
-    e.preventDefault()
-    e.stopPropagation()
+    if (e) {
+      e.preventDefault()
+      e.stopPropagation()
+    }
     setCurrentIndex((prev) => (prev + 1) % count)
   }, [count])
 
@@ -49,91 +68,169 @@ export default function TourImageSlider({
     setFailedImages((prev) => ({ ...prev, [index]: true }))
   }, [])
 
+  // Touch swipe handling for mobile
+  const handleTouchStart = (e) => {
+    setIsHovered(true)
+    touchStartXRef.current = e.touches[0].clientX
+    touchEndXRef.current = e.touches[0].clientX
+  }
+
+  const handleTouchMove = (e) => {
+    touchEndXRef.current = e.touches[0].clientX
+  }
+
+  const handleTouchEnd = () => {
+    setIsHovered(false)
+    if (touchStartXRef.current !== null && touchEndXRef.current !== null) {
+      const deltaX = touchStartXRef.current - touchEndXRef.current
+      if (Math.abs(deltaX) > SWIPE_THRESHOLD) {
+        if (deltaX > 0) {
+          // Swiped left -> next image
+          handleNext()
+        } else {
+          // Swiped right -> previous image
+          handlePrev()
+        }
+      }
+    }
+    touchStartXRef.current = null
+    touchEndXRef.current = null
+  }
+
+  // Keyboard accessibility
+  const handleKeyDown = (e) => {
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault()
+      handlePrev()
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault()
+      handleNext()
+    }
+  }
+
   if (count === 0) {
     return (
-      <div className="w-full h-full bg-slate-200 flex items-center justify-center text-slate-400 text-xs">
-        No Image Available
+      <div className={`w-full h-full min-h-[160px] bg-slate-100 flex flex-col items-center justify-center text-slate-400 gap-1.5 p-4 text-center ${aspectRatio}`}>
+        <ImageOff size={24} className="opacity-50" />
+        <span className="text-xs font-medium tracking-wide">Destination photo coming soon</span>
       </div>
     )
   }
 
-  // If only 1 image, render clean single image without slider controls
+  // Single image view
   if (count === 1) {
+    const photo = validImages[0]
     return (
-      <div className="relative w-full h-full overflow-hidden">
+      <div className={`relative w-full h-full overflow-hidden bg-slate-900 ${aspectRatio}`}>
         <img
-          src={validImages[0]}
-          alt={alt}
-          className="w-full h-full object-cover block"
-          loading="lazy"
+          src={failedImages[0] ? undefined : photo.url}
+          alt={photo.alt || alt}
+          className="w-full h-full object-cover block transition-transform duration-700 ease-out group-hover:scale-105"
+          onError={() => handleImageError(0)}
+          loading={priority ? 'eager' : 'lazy'}
+          decoding="async"
         />
+        {failedImages[0] && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-slate-800 text-slate-200" role="status">
+            <ImageOff size={24} className="opacity-70" />
+            <span className="text-xs font-medium">Photo unavailable</span>
+          </div>
+        )}
+        {photo.artist && photo.pageUrl && (
+          <a href={photo.pageUrl} target="_blank" rel="noopener noreferrer" title={`${photo.license || ''} — ${photo.pageUrl}`} onClick={(event) => event.stopPropagation()} className="absolute bottom-2 right-2 z-20 max-w-[55%] truncate rounded bg-black/65 px-1.5 py-1 text-[9px] text-white/90 hover:text-white">
+            Photo: {photo.artist} · {photo.license || photo.source}
+          </a>
+        )}
       </div>
     )
   }
 
   return (
     <div
-      className="relative w-full h-full overflow-hidden select-none group/slider"
+      role="region"
+      aria-label={`${alt || 'Destination'} photo gallery carousel`}
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
+      className={`relative w-full h-full overflow-hidden select-none group/slider bg-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-400/50 ${aspectRatio}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      onTouchStart={() => setIsHovered(true)}
-      onTouchEnd={() => setIsHovered(false)}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
     >
       {/* Slides Container */}
       <div className="relative w-full h-full">
         {validImages.map((src, i) => {
           const isCurrent = i === currentIndex
+          const hasFailed = failedImages[i]
+          const photo = src
+          const displaySrc = hasFailed ? undefined : photo.url
+
           return (
             <div
               key={`${src}-${i}`}
+              aria-hidden={!isCurrent}
               className={`absolute inset-0 w-full h-full transition-opacity duration-500 ease-in-out ${
                 isCurrent ? 'opacity-100 z-[1]' : 'opacity-0 z-0 pointer-events-none'
               }`}
             >
               <img
-                src={failedImages[i] ? validImages[0] : src}
-                alt={isCurrent ? alt : ''}
-                className="w-full h-full object-cover block"
+                src={displaySrc}
+                alt={isCurrent ? (photo.alt || `${alt} - photo ${i + 1} of ${count}`) : ''}
+                className="w-full h-full object-cover block transition-transform duration-700 ease-out group-hover:scale-105"
                 draggable={false}
                 onError={() => handleImageError(i)}
-                loading={i === 0 ? 'eager' : 'lazy'}
+                loading={i === 0 && priority ? 'eager' : 'lazy'}
+                decoding="async"
               />
+              {hasFailed && isCurrent && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-slate-800 text-slate-200" role="status">
+                  <ImageOff size={24} className="opacity-70" />
+                  <span className="text-xs font-medium">Photo unavailable</span>
+                </div>
+              )}
+              {isCurrent && photo.artist && photo.pageUrl && (
+                <a href={photo.pageUrl} target="_blank" rel="noopener noreferrer" title={`${photo.license || ''} — ${photo.pageUrl}`} onClick={(event) => event.stopPropagation()} className="absolute bottom-10 right-2 z-20 max-w-[65%] truncate rounded bg-black/65 px-1.5 py-1 text-[9px] text-white/90 hover:text-white">
+                  Photo: {photo.artist} · {photo.license || photo.source}
+                </a>
+              )}
             </div>
           )
         })}
       </div>
 
-      {/* Prev / Next Navigation Arrows (visible on hover or always subtly visible on touch) */}
+      {/* Prev Navigation Arrow */}
       <button
         type="button"
         onClick={handlePrev}
-        aria-label="Previous Image"
-        className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-black/40 hover:bg-black/75 text-white/90 hover:text-white backdrop-blur-sm flex items-center justify-center transition-all opacity-0 group-hover/slider:opacity-100 shadow-md hover:scale-105 active:scale-95 cursor-pointer"
+        aria-label="Previous Slide"
+        className="absolute left-2.5 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-black/40 hover:bg-black/80 text-white backdrop-blur-sm flex items-center justify-center transition-all opacity-0 group-hover/slider:opacity-100 shadow-md hover:scale-110 active:scale-95 cursor-pointer focus:opacity-100"
       >
         <ChevronLeft size={16} />
       </button>
 
+      {/* Next Navigation Arrow */}
       <button
         type="button"
         onClick={handleNext}
-        aria-label="Next Image"
-        className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-black/40 hover:bg-black/75 text-white/90 hover:text-white backdrop-blur-sm flex items-center justify-center transition-all opacity-0 group-hover/slider:opacity-100 shadow-md hover:scale-105 active:scale-95 cursor-pointer"
+        aria-label="Next Slide"
+        className="absolute right-2.5 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-black/40 hover:bg-black/80 text-white backdrop-blur-sm flex items-center justify-center transition-all opacity-0 group-hover/slider:opacity-100 shadow-md hover:scale-110 active:scale-95 cursor-pointer focus:opacity-100"
       >
         <ChevronRight size={16} />
       </button>
 
-      {/* Dot Indicators */}
-      <div className="absolute bottom-9 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-black/30 backdrop-blur-sm">
+      {/* Slide Indicators / Dots */}
+      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/40 backdrop-blur-md shadow-sm">
         {validImages.map((_, i) => (
           <button
             key={i}
             type="button"
             onClick={(e) => handleDotClick(e, i)}
-            aria-label={`Go to slide ${i + 1}`}
-            className={`transition-all rounded-full cursor-pointer ${
+            aria-label={`Go to slide ${i + 1} of ${count}`}
+            className={`transition-all rounded-full cursor-pointer focus:outline-none ${
               i === currentIndex
-                ? 'w-3.5 h-1.5 bg-white shadow-sm'
-                : 'w-1.5 h-1.5 bg-white/50 hover:bg-white/80'
+                ? 'w-4 h-1.5 bg-amber-400 shadow-sm'
+                : 'w-1.5 h-1.5 bg-white/60 hover:bg-white'
             }`}
           />
         ))}

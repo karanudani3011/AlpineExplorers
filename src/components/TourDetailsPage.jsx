@@ -4,9 +4,11 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Navbar from './Navbar'
 import Footer from './Footer'
 import InquiryModal from './InquiryModal'
+import TourInquiryForm from './TourInquiryForm'
+import TourImageSlider from './TourImageSlider'
 import { serviceTours, serviceCategories } from '../data/servicesData'
 import { tours as fallbackTours } from '../data/data'
-import { tourImages } from '../data/tourImages'
+import { getTourImageRecords } from '../data/tourImageManifest'
 import { useSupabaseAuth } from '../hooks/useSupabaseAuth'
 import { getCatalog } from '../services/catalog'
 import {
@@ -42,13 +44,13 @@ function findTourById(id) {
     const found = serviceTours[category].find((t) => t.id === id || String(t.id) === String(id))
     if (found) {
       const cat = serviceCategories.find((c) => c.slug === category)
-      return { tour: found, category: cat }
+      const images = Array.isArray(found.images) && found.images.length > 0 ? found.images : (found.image ? [found.image] : [])
+      return { tour: { ...found, images }, category: cat }
     }
   }
   const fallback = fallbackTours.find((t) => String(t.id) === String(id))
   if (fallback) {
-    // Attach images if not already present
-    const images = fallback.images || tourImages[fallback.id] || (fallback.image ? [fallback.image] : [])
+    const images = Array.isArray(fallback.images) && fallback.images.length > 0 ? fallback.images : (fallback.image ? [fallback.image] : [])
     return { tour: { ...fallback, images }, category: null }
   }
   return { tour: null, category: null }
@@ -56,12 +58,11 @@ function findTourById(id) {
 
 export default function TourDetailsPage() {
   const { id } = useParams()
-  const [expandedDay, setExpandedDay] = useState(0)
+  const [expandedDays, setExpandedDays] = useState([0])
   const [liked, setLiked] = useState(false)
   const [travelersCount, setTravelersCount] = useState(2)
   const [inquiryOpen, setInquiryOpen] = useState(false)
   const [copiedToast, setCopiedToast] = useState(false)
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0)
 
   // Duration packages from DB
   const [dbPackages, setDbPackages] = useState([])
@@ -125,6 +126,7 @@ export default function TourDetailsPage() {
   const handleBookNow = (e) => {
     e.preventDefault()
     if (!tour) return
+    if (tour.inquiryOnly) { setInquiryOpen(true); return }
     if (user) {
       navigate(`/booking/${tour.id}`)
     } else {
@@ -181,6 +183,8 @@ export default function TourDetailsPage() {
     )
   }
 
+  const imageRecords = getTourImageRecords(tour)
+
   // Resolve price + itinerary from selected DB package or fall back to static tour data
   const activePkg = selectedPkg
   const activePrice = activePkg?.price ?? tour.price
@@ -213,7 +217,7 @@ export default function TourDetailsPage() {
     }
   }
 
-  const whatsappMessage = `Hello Alpine Explorers!\n\nI am interested in the ${tour.title} package.\n\n📍 Location: ${tour.location}\n📅 Date: ${new Date(tour.date).toLocaleDateString('en-IN')}\n👥 Travelers: ${travelersCount}\n\nPlease share more details.`
+  const whatsappMessage = `Hello Alpine Explorers!\n\nI am interested in the ${tour.title} package.\n\n📍 Location: ${tour.location}\n⏱️ Duration: ${tour.duration}\n📅 Date: ${tour.date ? new Date(tour.date).toLocaleDateString('en-IN') : 'On request'}\n👥 Travelers: ${travelersCount}\n💬 Please share the current quotation.`
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#f8f9fa' }}>
@@ -221,15 +225,7 @@ export default function TourDetailsPage() {
 
       {/* Hero Section */}
       <section className="relative h-[55vh] sm:h-[65vh] flex items-end overflow-hidden">
-        <motion.img
-          key={selectedImageIndex}
-          src={tour.images?.[selectedImageIndex] || tour.image}
-          alt={tour.title}
-          className="absolute inset-0 w-full h-full object-cover"
-          initial={{ scale: 1.05 }}
-          animate={{ scale: 1 }}
-          transition={{ duration: 0.8 }}
-        />
+        <div className="absolute inset-0"><TourImageSlider images={imageRecords} alt={tour.title} aspectRatio="h-full" priority /></div>
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/35 to-black/10 pointer-events-none" />
 
         {/* Breadcrumb */}
@@ -304,25 +300,6 @@ export default function TourDetailsPage() {
               </div>
             </motion.div>
 
-            {/* Photo thumbnails gallery if multiple images */}
-            {tour.images && tour.images.length > 1 && (
-              <div className="flex items-center gap-2 overflow-x-auto pb-1 max-w-full">
-                {tour.images.map((imgUrl, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => setSelectedImageIndex(idx)}
-                    className={`relative w-14 h-11 sm:w-16 sm:h-12 rounded-lg overflow-hidden border-2 transition-all flex-shrink-0 cursor-pointer ${
-                      selectedImageIndex === idx
-                        ? 'border-amber-400 scale-105 shadow-lg'
-                        : 'border-white/50 opacity-70 hover:opacity-100'
-                    }`}
-                  >
-                    <img src={imgUrl} alt="" className="w-full h-full object-cover" />
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
         </div>
       </section>
@@ -343,7 +320,7 @@ export default function TourDetailsPage() {
                 <Calendar size={18} style={{ color: GOLD }} className="mb-1" />
                 <span className="text-[10px] text-gray-500 uppercase block font-semibold">Departs</span>
                 <span className="font-bold text-xs text-slate-800">
-                  {new Date(tour.date).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  {tour.date ? new Date(tour.date).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Dates on request'}
                 </span>
               </div>
               <div className="p-2">
@@ -367,6 +344,8 @@ export default function TourDetailsPage() {
                 {tour.description}
               </p>
             </div>
+
+            {tour.travelNotes && <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm leading-relaxed text-amber-950"><h2 className="mb-1 font-bold">Important travel notes</h2>{tour.travelNotes}</div>}
 
             {/* Highlights */}
             <div className="bg-white p-5 sm:p-7 rounded-2xl border border-gray-200 shadow-sm space-y-4">
@@ -395,24 +374,24 @@ export default function TourDetailsPage() {
                   </p>
                 </div>
                 <button
-                  onClick={() => setExpandedDay(expandedDay === null ? 0 : null)}
+                  onClick={() => setExpandedDays(expandedDays.length === activeItinerary.length ? [] : activeItinerary.map((_, index) => index))}
                   className="text-[11px] font-bold hover:underline"
                   style={{ color: GOLD }}
                 >
-                  {expandedDay === null ? 'Expand All' : 'Collapse All'}
+                  {expandedDays.length === activeItinerary.length ? 'Collapse All' : 'Expand All'}
                 </button>
               </div>
 
               <div className="space-y-2.5">
                 {activeItinerary.map((day, i) => {
-                  const isExpanded = expandedDay === i
+                  const isExpanded = expandedDays.includes(i)
                   return (
                     <div
                       key={day.day || i}
                       className="border border-gray-200 rounded-xl overflow-hidden transition-all duration-200"
                     >
                       <button
-                        onClick={() => setExpandedDay(isExpanded ? null : i)}
+                        onClick={() => setExpandedDays((current) => isExpanded ? current.filter((index) => index !== i) : [...current, i])}
                         className="w-full p-3.5 sm:p-4 flex items-center justify-between text-left transition"
                         style={{
                           backgroundColor: isExpanded ? 'rgb(var(--ae-gold-rgb) /0.06)' : 'white',
@@ -526,7 +505,7 @@ export default function TourDetailsPage() {
                     {dbPackages.map(pkg => (
                       <button
                         key={pkg.id}
-                        onClick={() => { setSelectedPkg(pkg); setExpandedDay(0) }}
+                        onClick={() => { setSelectedPkg(pkg); setExpandedDays([0]) }}
                         className="px-3 py-1.5 rounded-full text-xs font-bold transition-all border"
                         style={{
                           background: selectedPkg?.id === pkg.id
@@ -546,7 +525,7 @@ export default function TourDetailsPage() {
 
               {/* Pricing */}
               <div>
-                <span className="text-[10px] text-gray-500 uppercase tracking-wider block font-semibold">Total Price</span>
+                <span className="text-[10px] text-gray-500 uppercase tracking-wider block font-semibold">{tour.inquiryOnly ? 'Price' : 'Total Price'}</span>
                 <div className="flex items-baseline gap-2 mt-1">
                   <span className="text-3xl font-extrabold" style={{ color: NAVY }}>
                     {formattedPrice || 'On Request'}
@@ -560,9 +539,7 @@ export default function TourDetailsPage() {
                     {formattedPerPerson} × {travelersCount} traveler{travelersCount > 1 ? 's' : ''}
                   </p>
                 )}
-                <p className="text-[10px] text-emerald-700 font-medium mt-1">
-                  ✓ Includes all applicable taxes & permits
-                </p>
+                {hasPrice && <p className="text-[10px] text-emerald-700 font-medium mt-1">✓ Includes all applicable taxes & permits</p>}
               </div>
 
               {/* Travelers Counter */}
@@ -637,18 +614,11 @@ export default function TourDetailsPage() {
 
               {/* Trust Badges */}
               <div className="pt-3 border-t border-gray-100 space-y-1.5 text-[11px] text-gray-600">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 size={12} className="text-emerald-600 flex-shrink-0" />
-                  <span>Free cancellation up to 30 days prior</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 size={12} className="text-emerald-600 flex-shrink-0" />
-                  <span>24/7 dedicated concierge support</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 size={12} className="text-emerald-600 flex-shrink-0" />
-                  <span>Best price guarantee — zero hidden fees</span>
-                </div>
+                {tour.inquiryOnly ? <p>We’ll confirm availability, inclusions and the current quotation after reviewing your inquiry.</p> : <>
+                  <div className="flex items-center gap-2"><CheckCircle2 size={12} className="text-emerald-600 flex-shrink-0" /><span>Free cancellation up to 30 days prior</span></div>
+                  <div className="flex items-center gap-2"><CheckCircle2 size={12} className="text-emerald-600 flex-shrink-0" /><span>24/7 dedicated concierge support</span></div>
+                  <div className="flex items-center gap-2"><CheckCircle2 size={12} className="text-emerald-600 flex-shrink-0" /><span>Best price guarantee — zero hidden fees</span></div>
+                </>}
               </div>
             </div>
           </div>
@@ -657,11 +627,9 @@ export default function TourDetailsPage() {
 
       <Footer />
 
-      <InquiryModal
-        isOpen={inquiryOpen}
-        onClose={() => setInquiryOpen(false)}
-        tour={tour}
-      />
+      {tour.inquiryOnly
+        ? <TourInquiryForm tour={tour} isOpen={inquiryOpen} onClose={() => setInquiryOpen(false)} travelers={travelersCount} />
+        : <InquiryModal isOpen={inquiryOpen} onClose={() => setInquiryOpen(false)} tour={tour} />}
     </div>
   )
 }

@@ -214,6 +214,7 @@ CREATE TABLE IF NOT EXISTS media (
 
 CREATE TABLE IF NOT EXISTS inquiries (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
+  tour_id TEXT,
   name TEXT NOT NULL,
   email TEXT NOT NULL,
   phone TEXT,
@@ -417,6 +418,9 @@ CREATE TABLE IF NOT EXISTS admin_audit_logs (
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 `)
+
+// Keep selected tour IDs as structured inquiry data on existing SQLite installs too.
+try { db.exec('ALTER TABLE inquiries ADD COLUMN tour_id TEXT') } catch {}
 
 // Automatically ensure payment & booking fields exist in SQLite bookings table
 try { db.exec("ALTER TABLE bookings ADD COLUMN payment_status TEXT DEFAULT 'pending';") } catch {}
@@ -920,4 +924,4 @@ export function saveItineraryDay(packageId, dayData) {
 
 export function deleteItineraryDay(packageId, day) {
   return db.prepare('DELETE FROM tour_itineraries WHERE package_id = ? AND day = ?').run(packageId, day)
-}
+}
