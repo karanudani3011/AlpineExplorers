@@ -1,17 +1,16 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import InquireButton from '../components/InquireButton'
 import BookNowButton from '../components/BookNowButton'
-import BookingModal from '../components/BookingModal'
 import TourImageSlider from '../components/TourImageSlider'
 import { eventImages } from '../data/eventImages'
 import { events as defaultEvents } from '../data/eventsData'
 import { Calendar, Clock, MapPin, ArrowRight, Compass } from 'lucide-react'
-import { useSupabaseAuth } from '../hooks/useSupabaseAuth'
 import { usePublicEvents } from '../services/usePublic'
+import { useStartBooking } from '../hooks/useStartBooking'
 
 const NAVY = 'var(--ae-navy)'
 const NAVY_MID = 'var(--ae-navy-mid)'
@@ -28,34 +27,15 @@ const font = {
 }
 
 export default function UpcomingEvents() {
-  const { user, openAuthModal } = useSupabaseAuth()
+  const startBooking = useStartBooking()
   const { events } = usePublicEvents(defaultEvents)
 
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [])
 
-  const [selectedItem, setSelectedItem] = useState(null)
-  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false)
-
   const openBooking = (item) => {
-    if (user) {
-      setSelectedItem(item)
-      setIsBookingModalOpen(true)
-    } else {
-      openAuthModal({
-        message: 'Login or create an account to book this event.',
-        onSuccess: () => {
-          setSelectedItem(item)
-          setIsBookingModalOpen(true)
-        },
-      })
-    }
-  }
-
-  const closeBooking = () => {
-    setIsBookingModalOpen(false)
-    setSelectedItem(null)
+    startBooking(item)
   }
 
   return (
@@ -250,11 +230,6 @@ export default function UpcomingEvents() {
 
       <Footer />
 
-      <BookingModal
-        item={selectedItem}
-        isOpen={isBookingModalOpen}
-        onClose={closeBooking}
-      />
     </div>
   )
 }

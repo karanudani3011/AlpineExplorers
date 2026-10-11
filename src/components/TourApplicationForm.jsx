@@ -137,35 +137,25 @@ function Blank({ value, onChange, className = '', placeholder = '' }) {
 
 const ERROR_RED = '#cc0000'
 
-export default function TourApplicationForm({ courseName = '' }) {
+export default function TourApplicationForm({ courseName = '', traveler = null, travelerNumber = 1, hideSubmit = false, onChange, errors = {} }) {
   const [f, setF] = useState({
     course: courseName || '',
-    name: '',
-    dob: '',
-    age: '',
-    sex: '',
-    bloodGroup: '',
-    address: '',
-    contact: '',
-    education: '',
-    school: '',
-    schoolAddress: '',
-    schoolPhone: '',
-    hobbies: '',
-    experience: '',
-    details: '',
-    place: '',
-    date: '',
-    riskName: '',
-    riskCourse: '',
-    riskPlace: '',
-    riskDate: '',
+    name: traveler?.fullName || '', dob: traveler?.dob || '', age: traveler?.age || '',
+    sex: traveler?.sex === 'Male' ? 'M' : traveler?.sex === 'Female' ? 'F' : traveler?.sex || '',
+    bloodGroup: traveler?.bloodGroup || '', address: traveler?.address || '', contact: traveler?.contact || '',
+    education: traveler?.education || '', school: traveler?.school || '', schoolAddress: traveler?.schoolAddress || '',
+    schoolPhone: traveler?.schoolPhone || '', hobbies: traveler?.hobbies || '',
+    experience: traveler?.experienceYesNo || 'No', details: traveler?.experienceDetails || '',
+    place: traveler?.sigPlace || '', date: traveler?.sigDate || '',
+    riskName: traveler?.riskParticipantName || traveler?.fullName || '',
+    riskCourse: traveler?.riskCourseName || courseName || '', riskPlace: traveler?.riskPlace || '', riskDate: traveler?.riskDate || '',
   })
-  const [photo, setPhoto] = useState('')
-  const [sigApplicant, setSigApplicant] = useState('')
-  const [sigGuardian, setSigGuardian] = useState('')
+  const [photo, setPhoto] = useState(typeof traveler?.photo === 'string' ? traveler.photo : traveler?.photo?.dataUrl || '')
+  const [sigApplicant, setSigApplicant] = useState(traveler?.signature || '')
+  const [sigGuardian, setSigGuardian] = useState(traveler?.riskSignature || traveler?.sigRisk || '')
   const [submitted, setSubmitted] = useState(false)
-  const [errors, setErrors] = useState({})
+  const [formErrors, setFormErrors] = useState({})
+  const displayedErrors = { ...formErrors, ...errors }
   const photoInput = useRef(null)
 
   useEffect(() => {
@@ -176,6 +166,22 @@ export default function TourApplicationForm({ courseName = '' }) {
       setF((prev) => ({ ...prev, riskCourse: prev.course || courseName }))
     }
   }, [f.name, f.course, courseName, f.riskName, f.riskCourse])
+
+  useEffect(() => {
+    if (!onChange) return
+    onChange({
+      ...traveler, courseName: f.course || courseName, fullName: f.name, dob: f.dob, age: f.age,
+      sex: f.sex === 'M' ? 'Male' : f.sex === 'F' ? 'Female' : f.sex, bloodGroup: f.bloodGroup,
+      address: [f.address, f.address2].filter(Boolean).join(', '), contact: f.contact, education: f.education,
+      school: f.school, schoolAddress: [f.schoolAddress, f.schoolAddress2].filter(Boolean).join(', '),
+      schoolPhone: f.schoolPhone, hobbies: f.hobbies, experienceYesNo: f.experience,
+      experienceDetails: [f.details, f.details2].filter(Boolean).join('\n'), photo,
+      declarationAccepted: Boolean(sigApplicant), sigPlace: f.place, sigDate: f.date, signature: sigApplicant,
+      riskParticipantName: f.riskName || f.name, riskCourseName: f.riskCourse || f.course || courseName,
+      riskAccepted: Boolean(sigGuardian), riskPlace: f.riskPlace, riskDate: f.riskDate,
+      riskSignature: sigGuardian, participantType: Number(f.age) < 18 ? 'minor' : 'adult', guardianSignature: sigGuardian,
+    })
+  }, [f, photo, sigApplicant, sigGuardian])
 
   const set = (key) => (e) => {
     let v = e.target.value
@@ -190,11 +196,14 @@ export default function TourApplicationForm({ courseName = '' }) {
 
   const submit = async (e) => {
     e.preventDefault()
+    // The booking wizard owns persistence and navigation. Prevent implicit Enter
+    // submits from bypassing its validation and creating a separate booking.
+    if (hideSubmit) return
     const er = {}
     if (!f.name.trim()) er.name = 'NAME is required'
     if (!f.contact.trim()) er.contact = 'CONTACT No. is required'
     if (!f.sex) er.sex = 'Please select SEX'
-    setErrors(er)
+    setFormErrors(er)
     if (Object.keys(er).length > 0) return
 
     // Save to backend and Supabase
@@ -282,12 +291,14 @@ export default function TourApplicationForm({ courseName = '' }) {
 
   return (
     <form onSubmit={submit} className="bg-white" style={{ fontFamily: serif }}>
+      {hideSubmit && <h3 className="mb-2 text-sm font-bold uppercase tracking-wider" style={{ color: RED }}>Traveler {travelerNumber} Application Form</h3>}
       {/* Double red frame */}
       <div className="border-2 border-[#b3211f] p-1.5">
         <div className="border border-[#b3211f] px-3 sm:px-5 py-4 sm:py-6">
           {/* ─── Header + Photograph box ─── */}
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1 text-center sm:text-left">
+              <img src="/alpine_logo.png" alt="Alpine Explorers" className="h-14 w-14 object-contain mb-1 mx-auto sm:mx-0" />
               <h1 className="text-2xl sm:text-3xl font-bold tracking-wide" style={{ color: RED }}>
                 ALPINE EXPLORERS
               </h1>
@@ -297,7 +308,7 @@ export default function TourApplicationForm({ courseName = '' }) {
               <p className="text-[12px] sm:text-[13px] mt-2 leading-relaxed" style={{ color: INK }}>
                 1, Shubh prabha Appt. 28 Karanpara, B/h. Bus station,<br />
                 Rajkot - 360 001. Phone : 0281-222 75 83,<br />
-                E-mail : alpine_explorers@yahoo.com
+                E-mail : <a href="mailto:alpine_explorers@yahoo.com" className="underline">alpine_explorers@yahoo.com</a>
               </p>
             </div>
 
@@ -362,7 +373,7 @@ export default function TourApplicationForm({ courseName = '' }) {
             <Field label="NAME :">
               <Blank value={f.name} onChange={set('name')} />
             </Field>
-            {errors.name && <FieldError msg={errors.name} />}
+            {(displayedErrors.fullName || displayedErrors.name) && <FieldError msg={displayedErrors.fullName || displayedErrors.name} />}
 
             <div className="flex flex-wrap items-baseline gap-x-3 gap-y-2">
               <span style={{ fontFamily: serif }}>DATE OF BIRTH :</span>
@@ -371,20 +382,22 @@ export default function TourApplicationForm({ courseName = '' }) {
               <Blank value={f.age} onChange={set('age')} className="w-12" />
               <span style={{ fontFamily: serif }}>SEX :</span>
               <label className="inline-flex items-center gap-1 text-[13px]">
-                <input type="radio" name="sex" value="M" checked={f.sex === 'M'} onChange={set('sex')}
+              <input type="radio" name={`sex-${travelerNumber}`} value="M" checked={f.sex === 'M'} onChange={set('sex')}
                   className="accent-[#b3211f]" /> M
               </label>
               <label className="inline-flex items-center gap-1 text-[13px]">
-                <input type="radio" name="sex" value="F" checked={f.sex === 'F'} onChange={set('sex')}
+              <input type="radio" name={`sex-${travelerNumber}`} value="F" checked={f.sex === 'F'} onChange={set('sex')}
                   className="accent-[#b3211f]" /> F
               </label>
             </div>
-            {errors.sex && <FieldError msg={errors.sex} />}
+            {displayedErrors.dob && <FieldError msg={displayedErrors.dob} />}
+            {displayedErrors.age && <FieldError msg={displayedErrors.age} />}
+            {displayedErrors.sex && <FieldError msg={displayedErrors.sex} />}
 
             <Field label="BLOOD GROUP :">
               <Blank value={f.bloodGroup} onChange={set('bloodGroup')} placeholder="e.g. B+" />
             </Field>
-            {errors.bloodGroup && <FieldError msg={errors.bloodGroup} />}
+            {displayedErrors.bloodGroup && <FieldError msg={displayedErrors.bloodGroup} />}
 
             <MultiField label="ADDRESS :">
               <Blank value={f.address} onChange={set('address')} />
@@ -394,7 +407,7 @@ export default function TourApplicationForm({ courseName = '' }) {
             <Field label="CONTACT No. :">
               <Blank value={f.contact} onChange={set('contact')} />
             </Field>
-            {errors.contact && <FieldError msg={errors.contact} />}
+            {displayedErrors.contact && <FieldError msg={displayedErrors.contact} />}
 
             <div className="flex flex-wrap items-baseline gap-x-3 gap-y-2">
               <span style={{ fontFamily: serif }}>EDUCATION :</span>
@@ -500,7 +513,7 @@ export default function TourApplicationForm({ courseName = '' }) {
           </div>
 
           {/* ─── Submit ─── */}
-          <div className="mt-8 text-center">
+          {!hideSubmit && <div className="mt-8 text-center">
             <motion.button
               type="submit"
               whileHover={{ y: -1 }}
@@ -513,7 +526,7 @@ export default function TourApplicationForm({ courseName = '' }) {
             <p className="text-[12px] mt-2 text-gray-600" style={{ fontFamily: serif }}>
               Please review all details before submitting.
             </p>
-          </div>
+          </div>}
         </div>
       </div>
     </form>

@@ -10,7 +10,6 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { useSupabaseAuth } from '../hooks/useSupabaseAuth'
 import { supabase } from '../services/supabaseClient'
-import { api } from '../services/api'
 
 const NAVY = 'var(--ae-navy)'
 const NAVY_MID = 'var(--ae-navy-mid)'
@@ -60,34 +59,25 @@ export default function MyBookings() {
   const { user } = useSupabaseAuth()
   const [bookings, setBookings] = useState([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
   const [selectedBooking, setSelectedBooking] = useState(null)
   const [filterStatus, setFilterStatus] = useState('all')
 
   const fetchBookings = async () => {
     if (!user) return
     setLoading(true)
+    setLoadError('')
     try {
-      // 1. Fetch from our SQLite database backend
-      const userEmail = user.email || ''
-      const res = await api.get(`/bookings/my-bookings?email=${encodeURIComponent(userEmail)}`)
-      if (res && Array.isArray(res.bookings) && res.bookings.length > 0) {
-        setBookings(res.bookings)
-        return
-      }
-
-      // 2. Fallback to Supabase if any
       const { data, error } = await supabase
         .from('bookings')
         .select('*')
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false })
-
-      if (!error && Array.isArray(data) && data.length > 0) {
-        setBookings(data)
-      } else {
-        setBookings(res?.bookings || [])
-      }
+      if (error) throw error
+      setBookings(Array.isArray(data) ? data : [])
     } catch {
       setBookings([])
+      setLoadError('We could not load your bookings. Please check your connection and try again.')
     } finally {
       setLoading(false)
     }
@@ -166,6 +156,10 @@ export default function MyBookings() {
             <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: NAVY }}>
               Loading your bookings...
             </p>
+          </div>
+        ) : loadError ? (
+          <div className="rounded-2xl p-8 text-center bg-white border text-sm text-red-700" style={{ borderColor: 'rgba(220,38,38,0.25)' }}>
+            {loadError}
           </div>
         ) : filteredBookings.length === 0 ? (
           <div

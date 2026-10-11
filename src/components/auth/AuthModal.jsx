@@ -75,13 +75,10 @@ export default function AuthModal() {
       const res = await signIn({ email, password })
       handleSuccessfulAuth(res.user)
     } catch (err) {
-      console.error('Supabase login error:', err)
       if (err.code === 'email_not_confirmed' || err.message?.toLowerCase().includes('email not confirmed')) {
         setErrorMsg('Email not confirmed. Please check your inbox or contact support.')
-      } else if (err.code === 'invalid_credentials' || err.message?.toLowerCase().includes('invalid login') || err.message?.toLowerCase().includes('invalid credentials')) {
-        setErrorMsg('Incorrect email or password.')
       } else {
-        setErrorMsg(err.message || 'Failed to log in. Please try again.')
+        setErrorMsg(err.message === 'Invalid email or password.' ? err.message : 'Unable to log in. Please check your connection and try again.')
       }
     } finally {
       setLoading(false)
@@ -113,16 +110,18 @@ export default function AuthModal() {
         window.setTimeout(() => {
           handleSuccessfulAuth(res.user)
         }, 700)
+      } else if (res.needsEmailVerification) {
+        setSuccessMsg('Account created successfully. Please verify your email, then log in to continue your booking.')
       } else {
-        setSuccessMsg('Account created successfully. You can now log in.')
-        setTab('login')
+        setErrorMsg('Unable to start your session. Please log in to continue your booking.')
       }
     } catch (err) {
-      console.error('Supabase signup error:', err)
       if (err.message?.toLowerCase().includes('already registered') || err.message?.toLowerCase().includes('user already exists')) {
         setErrorMsg('An account with this email already exists. Please log in instead.')
+      } else if (err.message?.toLowerCase().includes('password')) {
+        setErrorMsg('Please choose a stronger password (at least 6 characters).')
       } else {
-        setErrorMsg(err.message || 'Unable to create account. Please check your information.')
+        setErrorMsg('Unable to create account. Please check your information and try again.')
       }
     } finally {
       setLoading(false)
@@ -136,10 +135,9 @@ export default function AuthModal() {
     setLoading(true)
     try {
       await resetPassword(email)
-      setSuccessMsg('Password reset link has been sent to your email address.')
+      setSuccessMsg('Password reset email sent.')
     } catch (err) {
-      console.error('Supabase reset password error:', err)
-      setErrorMsg(err.message || 'Unable to send password reset email.')
+      setErrorMsg(err.message || 'Unable to send password reset email. Please try again.')
     } finally {
       setLoading(false)
     }

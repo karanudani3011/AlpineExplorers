@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom'
 import { Mountain, ArrowLeft, ShieldCheck } from 'lucide-react'
 import Navbar from './Navbar'
 import Footer from './Footer'
@@ -25,13 +25,19 @@ function findTourById(id) {
 export default function BookingForm() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
   const { user, profile, openAuthModal } = useSupabaseAuth()
 
-  const [tour, setTour] = useState(() => findTourById(id))
-  const [tourLoading, setTourLoading] = useState(!findTourById(id))
+  const [tour, setTour] = useState(() => location.state?.tour || findTourById(id))
+  const [tourLoading, setTourLoading] = useState(!location.state?.tour && !findTourById(id))
 
   // Async load from catalog for DB-sourced tours (dom-*, int-*, adv-*, camp-*)
   useEffect(() => {
+    if (location.state?.tour) {
+      setTour(location.state.tour)
+      setTourLoading(false)
+      return
+    }
     const staticTour = findTourById(id)
     if (staticTour) {
       setTour(staticTour)
@@ -54,7 +60,7 @@ export default function BookingForm() {
       })
       .catch(() => setTour(null))
       .finally(() => setTourLoading(false))
-  }, [id])
+  }, [id, location.state])
 
   useEffect(() => {
     if (!user && !tourLoading) {

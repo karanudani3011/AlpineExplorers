@@ -3,10 +3,12 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import multer from 'multer'
+import { deflateRawSync } from 'node:zlib'
 import { db, logActivity, getBookings, getBookingsCount, getBookingById, getBookingByBookingId, getTravelersByBookingId, getTravelerById, getDeclarationByTravelerId, getRiskCertificateByTravelerId, getGuardianByTravelerId, updateBookingStatus, updateBookingPayment, updateBookingScannedForms, getBookingStats, getAllBookingsForExport, getAllTravelersForExport, createBooking, createTraveler, createDeclaration, createRiskCertificate, createGuardian } from '../db.js'
 import { authRequired, requirePermission } from '../middleware.js'
 import { generateBookingPdf, generateIndividualTravelerPdf, generateAllBookingsPdf } from '../utils/pdfGenerator.js'
 import { generateBookingExcel, generateIndividualTravelerExcel, generateAllBookingsExcel } from '../utils/excelGenerator.js'
+import { generateDigitalApplicationPdf } from '../utils/digitalApplicationPdf.js'
 import { syncBookingToSupabase, supabaseRequest, supabaseAdmin } from '../utils/supabase.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -61,6 +63,32 @@ function saveBase64Image(dataUrl, prefix = 'img') {
 
 const router = Router()
 
+function crc32(buffer) {
+  let crc = 0xffffffff
+  for (const byte of buffer) { crc ^= byte; for (let bit = 0; bit < 8; bit++) crc = (crc >>> 1) ^ (crc & 1 ? 0xedb88320 : 0) }
+  return (crc ^ 0xffffffff) >>> 0
+}
+
+function makeZip(files) {
+  const local = [], central = []; let offset = 0
+  for (const { name, data } of files) {
+    const fileName = Buffer.from(name), compressed = deflateRawSync(data), crc = crc32(data)
+    const header = Buffer.alloc(30); header.writeUInt32LE(0x04034b50, 0); header.writeUInt16LE(20, 4); header.writeUInt16LE(0x0800, 6); header.writeUInt16LE(8, 8); header.writeUInt32LE(crc, 14); header.writeUInt32LE(compressed.length, 18); header.writeUInt32LE(data.length, 22); header.writeUInt16LE(fileName.length, 26)
+    local.push(header, fileName, compressed)
+    const record = Buffer.alloc(46); record.writeUInt32LE(0x02014b50, 0); record.writeUInt16LE(20, 4); record.writeUInt16LE(20, 6); record.writeUInt16LE(0x0800, 8); record.writeUInt16LE(8, 10); record.writeUInt32LE(crc, 16); record.writeUInt32LE(compressed.length, 20); record.writeUInt32LE(data.length, 24); record.writeUInt16LE(fileName.length, 28); record.writeUInt32LE(offset, 42)
+    central.push(record, fileName); offset += header.length + fileName.length + compressed.length
+  }
+  const directory = Buffer.concat(central), end = Buffer.alloc(22); end.writeUInt32LE(0x06054b50, 0); end.writeUInt16LE(files.length, 8); end.writeUInt16LE(files.length, 10); end.writeUInt32LE(directory.length, 12); end.writeUInt32LE(offset, 16)
+  return Buffer.concat([...local, directory, end])
+}
+
+async function downloadStorageObject(storagePath) {
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) throw new Error('Private document export requires server Supabase configuration.')
+  const { data, error } = await supabaseAdmin.storage.from('booking-private-docs').download(storagePath)
+  if (error || !data) throw error || new Error('Stored document is unavailable.')
+  return Buffer.from(await data.arrayBuffer())
+}
+
 /* ── Public endpoint for uploading scanned application forms ── */
 router.post('/upload-forms', scannedFormUpload.any(), async (req, res) => {
   try {
@@ -110,12 +138,21 @@ router.post('/upload-forms', scannedFormUpload.any(), async (req, res) => {
 })
 
 router.post('/', async (req, res) => {
+  const bearerToken = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '').trim()
+  if (!bearerToken) return res.status(401).json({ error: 'Please log in to submit a booking' })
+  const { data: authResult, error: authError } = await supabaseAdmin.auth.getUser(bearerToken)
+  if (authError || !authResult?.user) return res.status(401).json({ error: 'Please log in to submit a booking' })
+
   const {
     booking_id, tour_id, tour_name, tour_category, location, duration, travel_date,
     price_per_person, number_of_travelers, total_amount, booking_contact_name,
     booking_contact_email, booking_contact_phone, travelers, scanned_forms,
     payment_status, payment_method, payment_id, order_id, currency, booking_status, booking_details
   } = req.body || {}
+
+  if (booking_contact_email && booking_contact_email.trim().toLowerCase() !== (authResult.user.email || '').toLowerCase()) {
+    return res.status(403).json({ error: 'Booking account does not match the signed-in user' })
+  }
   
   if (!booking_id || !tour_name || !Array.isArray(travelers) || travelers.length === 0) {
     return res.status(400).json({ error: 'A booking requires booking_id, tour_name, and at least one traveler' })
@@ -406,6 +443,115 @@ router.get('/booking-id/:bookingId', requirePermission('bookings.view'), (req, r
   res.json({ booking, travelers: travelersWithDetails })
 })
 
+// Secure Supabase application documents and payments for the existing RBAC admin detail view.
+router.get('/booking-id/:bookingId/application-data', requirePermission('bookings.view'), async (req, res) => {
+  try {
+    const { data: booking, error: bookingError } = await supabaseAdmin.from('bookings').select('*').eq('booking_reference', req.params.bookingId).maybeSingle()
+    if (bookingError) throw bookingError
+    if (!booking) return res.status(404).json({ error: 'Booking details are unavailable.' })
+    const [{ data: applications, error: applicationsError }, { data: payments, error: paymentsError }] = await Promise.all([
+      supabaseAdmin.from('traveler_applications').select('*').eq('booking_id', booking.id).order('traveler_number'),
+      supabaseAdmin.from('payments').select('*').eq('booking_id', booking.id).order('created_at', { ascending: false }),
+    ])
+    if (applicationsError) throw applicationsError
+    if (paymentsError) throw paymentsError
+    const documents = []
+    for (const app of applications || []) {
+      for (const [field, urlField] of [['photograph_path', 'photograph_url'], ['applicant_signature_path', 'applicant_signature_url'], ['parent_guardian_signature_path', 'parent_guardian_signature_url']]) {
+        if (app[field]) {
+          const { data: signed, error: signedError } = await supabaseAdmin.storage.from('booking-private-docs').createSignedUrl(app[field], 300)
+          if (signedError) throw signedError
+          app[urlField] = signed.signedUrl
+        }
+      }
+    }
+    for (const app of applications || []) {
+      const { data: rows, error } = await supabaseAdmin.from('application_documents').select('*').eq('application_id', app.id)
+      if (error) throw error
+      for (const doc of rows || []) {
+        const { data: signed, error: signedError } = await supabaseAdmin.storage.from('booking-private-docs').createSignedUrl(doc.storage_path, 300)
+        if (signedError) throw signedError
+        documents.push({ ...doc, traveler_number: app.traveler_number, signed_url: signed.signedUrl })
+      }
+    }
+    res.json({ booking, applications: applications || [], documents, payments: payments || [] })
+  } catch (error) {
+    console.error('[Admin booking application data]', error.message)
+    res.status(503).json({ error: 'Private application documents are unavailable. Check server Supabase service configuration.' })
+  }
+})
+
+router.get('/booking-id/:bookingId/applications/:travelerNumber/digital-pdf', requirePermission('bookings.export_individual_pdf'), async (req, res) => {
+  try {
+    const { data: booking, error: bookingError } = await supabaseAdmin.from('bookings').select('*').eq('booking_reference', req.params.bookingId).single()
+    if (bookingError || !booking) throw bookingError || new Error('Booking not found.')
+    const { data: app, error } = await supabaseAdmin.from('traveler_applications').select('*').eq('booking_id', booking.id).eq('traveler_number', Number(req.params.travelerNumber)).single()
+    if (error || !app) return res.status(404).json({ error: 'Digital application was not found.' })
+    const assets = {}
+    if (app.photograph_path) assets.photo = await downloadStorageObject(app.photograph_path)
+    if (app.applicant_signature_path) assets.signature = await downloadStorageObject(app.applicant_signature_path)
+    if (app.parent_guardian_signature_path) assets.guardianSignature = await downloadStorageObject(app.parent_guardian_signature_path)
+    const pdf = await generateDigitalApplicationPdf(booking, app, assets)
+    res.setHeader('Content-Type', 'application/pdf')
+    res.setHeader('Content-Disposition', `attachment; filename="${booking.booking_reference}-traveler-${app.traveler_number}-digital-application.pdf"`)
+    res.send(pdf)
+  } catch (error) {
+    console.error('[Digital application PDF]', error.message)
+    res.status(503).json({ error: error.message || 'Unable to generate the digital application PDF.' })
+  }
+})
+
+router.get('/booking-id/:bookingId/applications/:travelerNumber/original-pdf', requirePermission('bookings.view'), async (req, res) => {
+  try {
+    const { data: booking, error: bookingError } = await supabaseAdmin.from('bookings').select('id,booking_reference').eq('booking_reference', req.params.bookingId).single()
+    if (bookingError || !booking) return res.status(404).json({ error: 'Booking was not found.' })
+    const { data: app, error } = await supabaseAdmin.from('traveler_applications').select('id,traveler_number').eq('booking_id', booking.id).eq('traveler_number', Number(req.params.travelerNumber)).single()
+    if (error || !app) return res.status(404).json({ error: 'Traveler application was not found.' })
+    const { data: doc, error: docError } = await supabaseAdmin.from('application_documents').select('storage_path,original_filename').eq('application_id', app.id).single()
+    if (docError || !doc) return res.status(404).json({ error: 'Uploaded original PDF was not found.' })
+    const pdf = await downloadStorageObject(doc.storage_path)
+    const safeName = String(doc.original_filename || 'application.pdf').replace(/[\r\n"\\]/g, '_')
+    res.setHeader('Content-Type', 'application/pdf')
+    res.setHeader('Content-Disposition', `attachment; filename="${safeName}"`)
+    res.send(pdf)
+  } catch (error) {
+    console.error('[Original application download]', error.message)
+    res.status(503).json({ error: error.message || 'Uploaded original PDF is unavailable.' })
+  }
+})
+
+router.get('/download/all/digital-applications.zip', requirePermission('bookings.export_pdf'), async (req, res) => {
+  try {
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) throw new Error('Private document export requires server Supabase configuration.')
+    const files = []
+    for (let offset = 0; ; offset += 500) {
+      const { data: bookings, error } = await supabaseAdmin.from('bookings').select('*').order('created_at').range(offset, offset + 499)
+      if (error) throw error
+      if (!bookings?.length) break
+      for (const booking of bookings) {
+        const { data: applications, error: appError } = await supabaseAdmin.from('traveler_applications').select('*').eq('booking_id', booking.id).order('traveler_number')
+        if (appError) throw appError
+        for (const app of applications || []) {
+          const assets = {}
+          if (app.photograph_path) assets.photo = await downloadStorageObject(app.photograph_path)
+          if (app.applicant_signature_path) assets.signature = await downloadStorageObject(app.applicant_signature_path)
+          if (app.parent_guardian_signature_path) assets.guardianSignature = await downloadStorageObject(app.parent_guardian_signature_path)
+          const data = await generateDigitalApplicationPdf(booking, app, assets)
+          files.push({ name: `${booking.booking_reference}-traveler-${app.traveler_number}-digital-application.pdf`, data })
+        }
+      }
+      if (bookings.length < 500) break
+    }
+    if (!files.length) return res.status(404).json({ error: 'There are no digital applications to export.' })
+    res.setHeader('Content-Type', 'application/zip')
+    res.setHeader('Content-Disposition', 'attachment; filename="all-digital-applications.zip"')
+    res.send(makeZip(files))
+  } catch (error) {
+    console.error('[Bulk digital application export]', error.message)
+    res.status(503).json({ error: error.message || 'Unable to export digital applications.' })
+  }
+})
+
 router.get('/:id/travelers', requirePermission('bookings.view'), (req, res) => {
   const booking = getBookingById(req.params.id)
   if (!booking) return res.status(404).json({ error: 'Not found' })
@@ -485,6 +631,13 @@ router.patch('/:id/verify-payment', requirePermission('bookings.edit'), async (r
         body: { status: 'confirmed', updated_at: new Date().toISOString() },
         query: `booking_reference=eq.${encodeURIComponent(bookingRef)}`
       })
+    }
+    const { data: supabaseBooking } = await supabaseAdmin.from('bookings').select('id').eq('booking_reference', bookingRef).maybeSingle()
+    if (supabaseBooking?.id) {
+      const actorId = req.user?.auth_user_id || req.user?.id
+      const verifiedBy = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(actorId || '') ? actorId : null
+      const { error: paymentError } = await supabaseAdmin.from('payments').update({ payment_status: 'paid', verification_status: 'verified', verified_by: verifiedBy, verified_at: new Date().toISOString() }).eq('booking_id', supabaseBooking.id).eq('payment_method', 'UPI').eq('payment_status', 'pending_verification')
+      if (paymentError) throw paymentError
     }
   } catch (supErr) {
     console.warn('[Supabase verify payment warning]:', supErr.message)

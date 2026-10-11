@@ -6,9 +6,9 @@ import {
   Mountain, MapPin, Clock, Calendar, CreditCard, Download,
   Home, AlertCircle, Loader2, Ticket, MessageSquare, ExternalLink
 } from 'lucide-react'
-import { api } from '../services/api'
 import { supabase } from '../services/supabaseClient'
-import TravelerForm from './booking/TravelerForm'
+import { api } from '../services/api'
+import TourApplicationForm from './TourApplicationForm'
 import ReviewCard from './booking/ReviewCard'
 import PaymentScreen from './booking/PaymentScreen'
 import DownloadFormStep from './booking/DownloadFormStep'
@@ -24,7 +24,8 @@ const ERR = '#dc2626'
 /* ──────────────────────────── Helpers ──────────────────────────── */
 
 function formatINR(amount) {
-  return 'On Request'
+  const value = Number(amount || 0)
+  return value > 0 ? new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(value) : 'On Request'
 }
 
 function formatDate(dateStr) {
@@ -82,51 +83,85 @@ const INDIAN_PHONE = /^(\+91)?0?[6-9]\d{9}$/
 
 function validateTraveler(t) {
   const e = {}
-  if (!t.fullName.trim()) e.fullName = 'Please enter full name'
-  if (!t.dob) e.dob = 'Please select date of birth'
-  if (!t.sex) e.sex = 'Please select gender'
-  if (!t.bloodGroup) e.bloodGroup = 'Please select blood group'
-  if (!t.address.trim()) e.address = 'Please enter address'
-  if (!t.contact.trim()) {
+  if (!String(t.fullName || '').trim()) e.fullName = 'Please enter the applicant name'
+  if (!String(t.dob || '').trim()) e.dob = 'Please enter the date of birth'
+  else if (!isValidDateOfBirth(t.dob)) e.dob = 'Enter a valid date (DD/MM/YYYY)'
+  if (String(t.age || '').trim() && (!/^\d{1,3}$/.test(String(t.age).trim()) || Number(t.age) > 120)) e.age = 'Enter a valid age or leave it blank'
+  if (!['Male', 'Female'].includes(t.sex)) e.sex = 'Please select M or F'
+  if (!String(t.contact || '').trim()) {
     e.contact = 'Please enter contact number'
   } else if (!INDIAN_PHONE.test(t.contact.replace(/\s+/g, ''))) {
     e.contact = 'Please enter a valid Indian mobile number'
   }
-  if (!t.education.trim()) e.education = 'Please enter education qualification'
-  if (!t.school.trim()) e.school = 'Please enter school / college name'
-  if (!t.photo) e.photo = 'Please upload photograph'
-  if (!t.declarationAccepted) e.declaration = 'Please accept the declaration'
-  if (!t.sigPlace.trim()) e.sigPlace = 'Please enter place'
-  if (!t.sigDate) e.sigDate = 'Please enter date'
-  if (!t.signature) e.signature = 'Please provide applicant signature'
-  if (!t.riskParticipantName.trim()) e.riskParticipantName = 'Please enter participant name for risk certificate'
-  if (!t.riskCourseName.trim()) e.riskCourseName = 'Please enter course name for risk certificate'
-  if (!t.riskAccepted) e.risk = 'Please accept the risk certificate'
-  if (!t.riskPlace.trim()) e.riskPlace = 'Please enter place'
-  if (!t.riskDate) e.riskDate = 'Please enter date'
-  if (!t.riskSignature) e.riskSignature = 'Please provide signature for risk certificate'
-  if (!t.participantType) e.participantType = 'Please select participant type'
-  if (t.participantType === 'minor') {
-    if (!t.guardianName.trim()) e.guardianName = 'Please enter guardian name'
-    if (!t.guardianContact.trim()) {
-      e.guardianContact = 'Please enter guardian contact number'
-    } else if (!INDIAN_PHONE.test(t.guardianContact.replace(/\s+/g, ''))) {
-      e.guardianContact = 'Please enter a valid Indian mobile number'
-    }
-  }
   return e
+}
+
+function isValidDateOfBirth(value) {
+  const parts = String(value).trim().split(/[/-]/)
+  if (parts.length !== 3) return false
+  const [year, month, day] = parts[0].length === 4 ? parts.map(Number) : [Number(parts[2]), Number(parts[1]), Number(parts[0])]
+  const date = new Date(year, month - 1, day)
+  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day && date <= new Date()
+}
+
+function toIsoDate(value) {
+  if (!value) return null
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value
+  const match = String(value).match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/)
+  return match ? `${match[3]}-${match[2].padStart(2, '0')}-${match[1].padStart(2, '0')}` : null
+}
+
+function reportSupabaseFailure(operation, error) {
+  const supabaseError = error?.supabaseError || error
+  if (import.meta.env.DEV) {
+    console.error('[Booking application submission]', {
+      operation,
+      message: supabaseError?.message || error?.message || String(error),
+      code: supabaseError?.code || null,
+      details: supabaseError?.details || null,
+      hint: supabaseError?.hint || null,
+      constraint: supabaseError?.constraint || null,
+      table: supabaseError?.table || null,
+    })
+  }
+  const code = supabaseError?.code
+  if (code === 'PGRST205' || code === '42P01') {
+    return `The booking database is missing a required application table while ${operation}. Your information is still here. Please apply the pending booking application migration before continuing.`
+  }
+  if (code === '42501') {
+    return `Supabase denied permission while ${operation}. Your information is still here; sign in again or ask an administrator to check the booking access policy.`
+  }
+  if (code === '23505') {
+    return `This booking reference already exists while ${operation}. Your information is still here; retry once, and contact Alpine Explorers if the problem continues.`
+  }
+  if (code === '23514') {
+    return `The database rejected a booking value while ${operation}. Your information is still here; please contact Alpine Explorers if this continues.`
+  }
+  if (code === '23503' || code === '22P02' || code === '42703') {
+    return `The booking data did not match the database while ${operation} (error ${code}). Your information is still here; please contact Alpine Explorers.`
+  }
+  if (operation.toLowerCase().includes('upload')) {
+    return `A photograph or signature could not be uploaded while ${operation}. Check the file and try again; your form details are still here.`
+  }
+  if (operation.toLowerCase().includes('session')) {
+    return 'Your session expired. Please sign in again; your form details are still here.'
+  }
+  if (error instanceof TypeError || /failed to fetch|network|timeout/i.test(error?.message || '')) {
+    return `A network error interrupted ${operation}. Check your connection and retry; your information is still here.`
+  }
+  return `Supabase could not complete ${operation}${code ? ` (error ${code})` : ''}. Your information is still here; retry or contact Alpine Explorers.`
 }
 
 /* ──────────────────────────── Step Indicator ──────────────────────────── */
 
-const STEPS = ['Travelers', 'Application', 'Summary', 'Download Form', 'Upload Form', 'Payment', 'Confirmation']
+const STEPS = ['Application', 'Blank PDF', 'Upload PDF', 'Review', 'Payment', 'Confirmation']
 
 function StepBar({ step }) {
   return (
     <div className="flex items-center justify-center gap-0 mb-8 overflow-x-auto py-2">
       {STEPS.map((label, i) => {
-        const done = i < step
-        const active = i === step
+        const done = i < step - 1
+        const active = i === step - 1
         const last = i === STEPS.length - 1
         return (
           <div key={label} className="flex items-center shrink-0">
@@ -300,13 +335,23 @@ Thank you.`
 /* ──────────────────────────── MAIN COMPONENT ──────────────────────────── */
 
 export default function MultiTravelerBooking({ tour, user, profile }) {
-  const [step, setStep] = useState(0) // 0: Count, 1: Form, 2: Summary, 3: Download, 4: Upload, 5: Payment, 6: Done
+  const [step, setStep] = useState(1) // Application → Blank PDF → Upload → Review → Payment → Confirmation
   const [travelerCount, setTravelerCount] = useState(1)
   const [travelers, setTravelers] = useState([makeTraveler(user, profile, tour?.title || '')])
+  const bookingStorageKey = `ae_booking_draft_${user?.id || 'guest'}_${tour?.id || tour?.title || 'tour'}`
+  const [draftRestored, setDraftRestored] = useState(false)
   const [allErrors, setAllErrors] = useState([{}])
   const [confirmedCorrect, setConfirmedCorrect] = useState(false)
-  const [bookingId] = useState(generateBookingId)
+  const [bookingId] = useState(() => {
+    if (typeof window === 'undefined') return generateBookingId()
+    const existing = window.localStorage.getItem(bookingStorageKey)
+    if (existing) return existing
+    const created = generateBookingId()
+    window.localStorage.setItem(bookingStorageKey, created)
+    return created
+  })
   const [confirmedBooking, setConfirmedBooking] = useState(null)
+  const [uploadedDocuments, setUploadedDocuments] = useState([])
   const topRef = useRef(null)
 
   const scrollTop = () =>
@@ -326,6 +371,62 @@ export default function MultiTravelerBooking({ tour, user, profile }) {
       })
     }
   }, [user, profile, tour])
+
+  useEffect(() => {
+    let cancelled = false
+    const restore = async () => {
+      try {
+        if (!user?.id) return
+        const { data: booking, error: bookingError } = await supabase.from('bookings').select('id,total_travelers').eq('booking_reference', bookingId).eq('user_id', user.id).maybeSingle()
+        if (bookingError) throw bookingError
+        if (!booking) return
+        const { data: rows, error } = await supabase.from('traveler_applications').select('*').eq('booking_id', booking.id).order('traveler_number')
+        if (error) throw error
+        if (!rows?.length || cancelled) return
+        const { data: savedDocs, error: docsError } = await supabase.from('application_documents').select('application_id,storage_path,original_filename,file_type,upload_status,uploaded_at').eq('booking_id', booking.id)
+        if (docsError) throw docsError
+        const restored = await Promise.all(rows.map(async (row) => {
+          const fields = row.application_data?.original_fields || {}
+          const signedPath = async (path) => {
+            if (!path) return ''
+            const { data, error: signedError } = await supabase.storage.from('booking-private-docs').createSignedUrl(path, 3600)
+            if (signedError) throw signedError
+            return data.signedUrl
+          }
+          const [photo, signature, riskSignature] = await Promise.all([
+            signedPath(row.photograph_path), signedPath(row.applicant_signature_path), signedPath(row.parent_guardian_signature_path),
+          ])
+          return {
+            ...makeTraveler(user, profile, tour?.title || ''), ...fields,
+            courseName: row.course_name || fields.courseName || tour?.title || '',
+            fullName: row.full_name || '', dob: fields.dob || row.date_of_birth || '', age: row.age || fields.age || '',
+            sex: row.sex || '', bloodGroup: row.blood_group || '', address: row.address || '', contact: row.contact_no || '',
+            education: row.education || '', school: row.school_college || '', schoolAddress: row.school_college_address || '',
+            schoolPhone: row.school_college_phone || '', hobbies: row.hobbies || '',
+            experienceYesNo: row.adventure_experience ? 'Yes' : 'No', experienceDetails: row.adventure_details || '',
+            declarationAccepted: Boolean(row.declaration_accepted), sigPlace: row.declaration_place || '', sigDate: fields.sigDate || row.declaration_date || '',
+            riskParticipantName: row.risk_participant_name || '', riskCourseName: row.risk_course_name || '',
+            riskAccepted: Boolean(row.risk_accepted), riskPlace: row.risk_place || '', riskDate: fields.riskDate || row.risk_date || '',
+            photo, signature, riskSignature, photoStoragePath: row.photograph_path,
+            signatureStoragePath: row.applicant_signature_path, riskSignatureStoragePath: row.parent_guardian_signature_path,
+          }
+        }))
+        if (cancelled) return
+        const count = Math.max(restored.length, booking.total_travelers || 1)
+        setTravelerCount(count)
+        setTravelers(Array.from({ length: count }, (_, i) => restored[i] || makeTraveler(user, profile, tour?.title || '')))
+        setAllErrors(Array.from({ length: count }, () => ({})))
+        setUploadedDocuments((savedDocs || []).map((doc) => ({ ...doc, traveler_number: rows.find((row) => row.id === doc.application_id)?.traveler_number })))
+      } catch (error) {
+        console.error('Unable to restore saved booking draft:', error)
+        setSubmitError('We could not reload the saved application. Please refresh or try again.')
+      } finally {
+        if (!cancelled) setDraftRestored(true)
+      }
+    }
+    restore()
+    return () => { cancelled = true }
+  }, [bookingId, user?.id, tour?.id])
 
   /* ── Traveler count controls ── */
   const adjustCount = (delta) => {
@@ -378,7 +479,105 @@ export default function MultiTravelerBooking({ tour, user, profile }) {
   }
 
   /* ── STEP 1 → STEP 2 (validate all) ── */
-  const proceedToReview = () => {
+  const saveApplicationDraft = async () => {
+    if (submitting) return false
+    setSubmitting(true)
+    setSubmitError('')
+    let operation = 'checking your signed-in session'
+    try {
+      const { data: authData, error: authError } = await supabase.auth.getUser()
+      if (authError) throw Object.assign(new Error(authError.message), { supabaseError: authError })
+      if (!authData?.user) throw new Error('Your session expired. Please sign in again.')
+      const price = pricePerTraveler || null
+      operation = 'checking the booking draft'
+      let { data: booking, error: readError } = await supabase.from('bookings').select('*').eq('booking_reference', bookingId).maybeSingle()
+      if (readError) throw Object.assign(new Error(readError.message), { supabaseError: readError })
+      const bookingFields = {
+        user_id: authData.user.id, tour_id: String(tour.id || ''), tour_name: tour.title,
+        tour_location: tour.location || tour.destination || null, tour_date: toIsoDate(tour.date),
+        duration: tour.duration || null, price_per_person: price,
+        adults: travelers.filter((t) => t.participantType !== 'minor').length || 1,
+        children: travelers.filter((t) => t.participantType === 'minor').length,
+        total_travelers: travelerCount, total_amount: price ? price * travelerCount : null,
+        customer_name: travelers[0]?.fullName || user?.user_metadata?.full_name || '',
+        customer_email: authData.user.email || user?.email || '',
+        customer_phone: travelers[0]?.contact || null, whatsapp_number: travelers[0]?.contact || null,
+        special_requirements: travelers.map((t) => t.experienceDetails).filter(Boolean).join('\n') || null,
+        notes: travelers.map((t) => t.hobbies).filter(Boolean).join('\n') || null,
+        // public.bookings.status has a CHECK constraint allowing only
+        // pending / confirmed / cancelled / completed. Draft is a UI state;
+        // persist it as the valid unpaid database status.
+        status: 'pending',
+      }
+      if (booking && booking.user_id !== authData.user.id) throw new Error('This booking belongs to another account.')
+      if (booking) {
+        operation = 'updating the booking draft'
+        const { data, error } = await supabase.from('bookings').update(bookingFields).eq('id', booking.id).select('*').single()
+        if (error) throw Object.assign(new Error(error.message), { supabaseError: error })
+        booking = data
+      } else {
+        operation = 'creating the booking draft'
+        const { data, error } = await supabase.from('bookings').insert({ booking_reference: bookingId, ...bookingFields }).select('*').single()
+        if (error) throw Object.assign(new Error(error.message), { supabaseError: error })
+        booking = data
+      }
+      if (!booking?.id || !booking?.booking_reference) {
+        throw new Error('Supabase did not return the saved booking identifier.')
+      }
+      const uploadDataUrl = async (value, path, description) => {
+        if (!value?.startsWith('data:')) return null
+        operation = `validating and uploading traveler ${description}`
+        const blob = await (await fetch(value)).blob()
+        if (!['image/jpeg', 'image/png', 'image/webp'].includes(blob.type)) {
+          throw new Error(`${description} must be a JPEG, PNG or WebP image.`)
+        }
+        if (blob.size > 10 * 1024 * 1024) throw new Error(`${description} must be 10 MB or smaller.`)
+        operation = `uploading traveler ${description}`
+        const { error } = await supabase.storage.from('booking-private-docs').upload(path, blob, { contentType: blob.type || 'image/png', upsert: true })
+        if (error) throw Object.assign(new Error(error.message), { supabaseError: error })
+        return path
+      }
+      for (let i = 0; i < travelers.length; i++) {
+        const t = travelers[i]
+        const prefix = `${authData.user.id}/${bookingId}/traveler-${i + 1}`
+        const [newPhotoPath, newApplicantSignaturePath, newGuardianSignaturePath] = await Promise.all([
+          uploadDataUrl(t.photo, `${prefix}/photo`, `${i + 1} photograph`),
+          uploadDataUrl(t.signature, `${prefix}/applicant-signature.png`, `${i + 1} applicant signature`),
+          uploadDataUrl(t.riskSignature || t.sigRisk, `${prefix}/guardian-signature.png`, `${i + 1} risk certificate signature`),
+        ])
+        const photoPath = newPhotoPath || t.photoStoragePath || null
+        const applicantSignaturePath = newApplicantSignaturePath || t.signatureStoragePath || null
+        const guardianSignaturePath = newGuardianSignaturePath || t.riskSignatureStoragePath || null
+        const { photo: _photo, signature: _sig, riskSignature: _riskSig, sigRisk: _sigRisk, guardianSignature: _guardianSig, ...textFields } = t
+        operation = `saving traveler ${i + 1} application`
+        const { error } = await supabase.from('traveler_applications').upsert({
+          booking_id: booking.id, traveler_number: i + 1, course_name: t.courseName || tour.title,
+          full_name: t.fullName, date_of_birth: toIsoDate(t.dob), age: Number(t.age) || null,
+          sex: t.sex || null, blood_group: t.bloodGroup || null, address: t.address || null,
+          contact_no: t.contact || null, education: t.education || null, school_college: t.school || null,
+          school_college_address: t.schoolAddress || null, school_college_phone: t.schoolPhone || null,
+          hobbies: t.hobbies || null, adventure_experience: t.experienceYesNo === 'Yes', adventure_details: t.experienceDetails || null,
+          declaration_accepted: Boolean(t.declarationAccepted), declaration_place: t.sigPlace || null,
+          declaration_date: toIsoDate(t.sigDate), applicant_signature_path: applicantSignaturePath,
+          risk_participant_name: t.riskParticipantName || t.fullName, risk_course_name: t.riskCourseName || tour.title,
+          risk_accepted: Boolean(t.riskAccepted), risk_place: t.riskPlace || null, risk_date: toIsoDate(t.riskDate),
+          parent_guardian_signature_path: guardianSignaturePath, participant_type: t.participantType || 'adult',
+          guardian_name: t.guardianName || null, guardian_contact: t.guardianContact || null,
+          photograph_path: photoPath, application_data: { ...textFields, photo_status: photoPath ? 'uploaded' : 'missing' },
+        }, { onConflict: 'booking_id,traveler_number' })
+        if (error) throw Object.assign(new Error(error.message), { supabaseError: error })
+      }
+      return true
+    } catch (error) {
+      setSubmitError(reportSupabaseFailure(operation, error))
+      return false
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const proceedToReview = async () => {
+    if (submitting) return
     const errors = travelers.map(validateTraveler)
     const hasErrors = errors.some((e) => Object.keys(e).length > 0)
 
@@ -395,6 +594,9 @@ export default function MultiTravelerBooking({ tour, user, profile }) {
       scrollTop()
       return
     }
+
+    const saved = await saveApplicationDraft()
+    if (!saved) return
 
     setTravelers((prev) =>
       prev.map((t) => ({ ...t, isCompleted: true, isExpanded: false }))
@@ -414,13 +616,17 @@ export default function MultiTravelerBooking({ tour, user, profile }) {
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
 
-  const totalPrice = null
+  const rawTourPrice = tour.price ?? tour.price_per_person ?? tour.discountedPrice ?? tour.discount_price ?? 0
+  const parsedTourPrice = Number(String(rawTourPrice).replace(/[^\d.]/g, ''))
+  const pricePerTraveler = Number.isFinite(parsedTourPrice) && parsedTourPrice > 0 ? parsedTourPrice : 0
+  const totalPrice = pricePerTraveler * travelerCount
 
   /* ── STEP 2 → STEP 3 (Submit application & open PaymentScreen) ── */
   const handleProceedToPayment = async (uploadedFormList = []) => {
     if (!confirmedCorrect || submitting) return
     setSubmitting(true)
     setSubmitError('')
+    let operation = 'checking your signed-in session'
 
     const payload = {
       booking_id: bookingId,
@@ -438,7 +644,7 @@ export default function MultiTravelerBooking({ tour, user, profile }) {
       booking_contact_phone: travelers[0]?.contact || '',
       status: 'pending',
       payment_status: 'pending',
-      scanned_forms: uploadedFormList || [],
+      scanned_forms: [],
       travelers: travelers.map((t) => ({
         courseName: t.courseName || tour.title,
         fullName: t.fullName,
@@ -453,80 +659,131 @@ export default function MultiTravelerBooking({ tour, user, profile }) {
         schoolAddress: t.schoolAddress,
         schoolPhone: t.schoolPhone,
         hobbies: t.hobbies,
-        photo: t.photo || null,
+        photo: null,
         experienceYesNo: t.experienceYesNo || 'No',
         experienceDetails: t.experienceDetails || '',
         declarationAccepted: t.declarationAccepted,
         declarationPlace: t.sigPlace,
         declarationDate: t.sigDate,
-        signature: t.signature,
+        signature: null,
         participantType: t.participantType === 'minor' ? 'Minor' : 'Adult',
         guardianName: t.guardianName,
         guardianContact: t.guardianContact,
-        sigGuardian: t.sigGuardian || null,
+        sigGuardian: null,
         riskAccepted: t.riskAccepted,
         riskParticipantName: t.riskParticipantName,
         riskCourseName: t.riskCourseName || tour.title,
         riskPlace: t.riskPlace,
         riskDate: t.riskDate,
-        riskSignature: t.riskSignature,
+        riskSignature: null,
       }))
     }
 
     try {
-      // 1. Save to SQLite database
-      await api.post('/bookings', payload)
+      const { data: authData, error: authError } = await supabase.auth.getUser()
+      if (authError || !authData?.user) throw new Error('Your session has expired. Please log in again.')
+      const price = pricePerTraveler || null
+      const adults = travelers.filter((traveler) => traveler.participantType !== 'minor').length
+      const children = travelerCount - adults
+      operation = 'checking the saved booking'
+      let { data: savedBooking, error: existingBookingError } = await supabase.from('bookings').select('*').eq('booking_reference', bookingId).maybeSingle()
+      if (existingBookingError) throw existingBookingError
+      if (!savedBooking) {
+      operation = 'creating the booking record'
+      const { data, error: bookingError } = await supabase
+        .from('bookings')
+        .insert({
+          booking_reference: bookingId,
+          user_id: authData.user.id,
+          tour_id: String(tour.id || ''),
+          tour_name: tour.title,
+          tour_location: tour.location || tour.destination || null,
+          tour_date: toIsoDate(tour.date),
+          duration: tour.duration || null,
+          price_per_person: price,
+          adults: adults || 1,
+          children,
+          total_travelers: travelerCount,
+          total_amount: price ? price * travelerCount : null,
+          customer_name: travelers[0]?.fullName || user?.user_metadata?.full_name || '',
+          customer_email: authData.user.email || user?.email || '',
+          customer_phone: travelers[0]?.contact || null,
+          whatsapp_number: travelers[0]?.contact || null,
+          special_requirements: payload.travelers.map((traveler) => traveler.experienceDetails).filter(Boolean).join('\n') || null,
+          notes: payload.travelers.map((traveler) => traveler.hobbies).filter(Boolean).join('\n') || null,
+          status: 'pending',
+        })
+        .select('*')
+        .single()
+      if (bookingError) throw bookingError
+      savedBooking = data
+      }
 
-      // 2. Save/Sync to Supabase if configured
+      const readDataUrl = async (dataUrl, path, description) => {
+        if (!dataUrl?.startsWith('data:')) return null
+        const blob = await (await fetch(dataUrl)).blob()
+        if (!['image/jpeg', 'image/png', 'image/webp'].includes(blob.type)) throw new Error(`${description} must be a JPEG, PNG or WebP image.`)
+        if (blob.size > 10 * 1024 * 1024) throw new Error(`${description} must be 10 MB or smaller.`)
+        operation = `uploading ${description}`
+        const { error } = await supabase.storage.from('booking-private-docs').upload(path, blob, { contentType: blob.type || 'image/png', upsert: true })
+        if (error) throw Object.assign(new Error(error.message), { supabaseError: error })
+        return path
+      }
+      for (let i = 0; i < travelers.length; i++) {
+        const t = travelers[i]
+        const prefix = `${authData.user.id}/${bookingId}/traveler-${i + 1}`
+        const photoPath = await readDataUrl(t.photo, `${prefix}/photo`, `traveler ${i + 1} photograph`) || t.photoStoragePath || null
+        const applicantSignaturePath = await readDataUrl(t.signature, `${prefix}/applicant-signature.png`, `traveler ${i + 1} applicant signature`) || t.signatureStoragePath || null
+        const guardianSignaturePath = await readDataUrl(t.riskSignature || t.sigRisk, `${prefix}/guardian-signature.png`, `traveler ${i + 1} risk certificate signature`) || t.riskSignatureStoragePath || null
+        const { photo: _photoData, signature: _signatureData, riskSignature: _riskSignatureData, sigRisk: _sigRiskData, guardianSignature: _guardianSignatureData, ...textFields } = t
+        const appRow = {
+          booking_id: savedBooking.id, traveler_number: i + 1, course_name: t.courseName || tour.title,
+          full_name: t.fullName, date_of_birth: toIsoDate(t.dob),
+          age: Number(t.age) || null, sex: t.sex || null, blood_group: t.bloodGroup || null, address: t.address || null,
+          contact_no: t.contact || null, education: t.education || null, school_college: t.school || null,
+          school_college_address: t.schoolAddress || null, school_college_phone: t.schoolPhone || null, hobbies: t.hobbies || null,
+          adventure_experience: t.experienceYesNo === 'Yes', adventure_details: t.experienceDetails || null,
+          declaration_accepted: Boolean(t.declarationAccepted), declaration_place: t.sigPlace || null,
+          declaration_date: toIsoDate(t.sigDate),
+          applicant_signature_path: applicantSignaturePath, risk_participant_name: t.riskParticipantName || null,
+          risk_course_name: t.riskCourseName || null, risk_accepted: Boolean(t.riskAccepted), risk_place: t.riskPlace || null,
+          risk_date: toIsoDate(t.riskDate),
+          parent_guardian_signature_path: guardianSignaturePath, participant_type: t.participantType || 'adult',
+          guardian_name: t.guardianName || null, guardian_contact: t.guardianContact || null, photograph_path: photoPath,
+          application_data: { photo_status: photoPath ? 'uploaded' : 'missing', original_fields: textFields },
+        }
+        operation = `saving traveler ${i + 1} application`
+        const { data: app, error: appError } = await supabase.from('traveler_applications').upsert(appRow, { onConflict: 'booking_id,traveler_number' }).select('id').single()
+        if (appError) throw appError
+        const doc = uploadedFormList.find((d) => d.traveler_number === i + 1)
+        if (!doc?.storage_path) throw new Error(`Traveler ${i + 1} PDF is missing.`)
+        operation = `linking traveler ${i + 1} completed PDF`
+        const { error: docError } = await supabase.from('application_documents').upsert({ booking_id: savedBooking.id, application_id: app.id, storage_path: doc.storage_path, original_filename: doc.original_filename, file_type: 'application/pdf', upload_status: 'uploaded', uploaded_at: doc.uploaded_at }, { onConflict: 'application_id' })
+        if (docError) throw docError
+      }
+      operation = 'finalizing the booking application'
+      const { data: completedBooking, error: statusError } = await supabase.from('bookings').update({ status: 'pending', payment_status: 'pending', updated_at: new Date().toISOString() }).eq('id', savedBooking.id).select('*').single()
+      if (statusError) throw statusError
+      Object.assign(savedBooking, completedBooking)
+
+      // Keep the existing protected admin dashboard and its PDF/Excel exports in sync.
+      // Supabase remains the source of truth for the authenticated user's booking.
       try {
-        await supabase
-          .from('bookings')
-          .upsert({
-            booking_reference: bookingId,
-            user_id: user?.id || null,
-            tour_id: String(tour.id || ''),
-            tour_name: tour.title,
-            tour_location: tour.location || tour.destination || null,
-            tour_date: tour.date || null,
-            duration: tour.duration || null,
-            price_per_person: null,
-            total_travelers: travelerCount,
-            total_amount: totalPrice,
-            customer_name: travelers[0]?.fullName || '',
-            customer_email: user?.email || '',
-            customer_phone: travelers[0]?.contact || '',
-            status: 'pending',
-            payment_status: 'pending',
-            scanned_forms: uploadedFormList || [],
-          }, { onConflict: 'booking_reference' })
-      } catch (supErr) {
-        console.warn('Supabase booking sync note:', supErr.message)
+        await api.post('/bookings', payload)
+      } catch (syncError) {
+        console.warn('Admin dashboard booking mirror was unavailable:', syncError?.message)
       }
 
       const bookingRecord = {
-        booking_reference: bookingId,
-        booking_id: bookingId,
-        user_id: user?.id || null,
-        tour_id: String(tour.id || ''),
-        tour_name: tour.title,
-        tour_location: tour.location || tour.destination || null,
-        tour_date: tour.date || null,
-        duration: tour.duration || null,
-        price_per_person: null,
-        total_travelers: travelerCount,
-        total_amount: totalPrice,
-        customer_name: travelers[0]?.fullName || '',
-        customer_email: user?.email || '',
-        customer_phone: travelers[0]?.contact || '',
-        status: 'pending',
-        payment_status: 'pending',
+        ...savedBooking,
+        booking_id: savedBooking.booking_reference,
       }
 
       setConfirmedBooking(bookingRecord)
       setStep(5) // Step 5: Payment
       scrollTop()
     } catch (err) {
-      setSubmitError(err?.message || 'Unable to submit application. Please try again.')
+      setSubmitError(reportSupabaseFailure(operation, err))
     } finally {
       setSubmitting(false)
     }
@@ -580,7 +837,7 @@ export default function MultiTravelerBooking({ tour, user, profile }) {
                   )}
                 </div>
               </div>
-              <div className="text-right shrink-0"><p className="text-[10px] font-bold uppercase tracking-wider mb-0.5" style={{ color: GOLD }}>Price</p><p className="text-white font-bold text-sm">On Request</p></div>
+              <div className="text-right shrink-0"><p className="text-[10px] font-bold uppercase tracking-wider mb-0.5" style={{ color: GOLD }}>Price</p><p className="text-white font-bold text-sm">{formatINR(pricePerTraveler)}</p></div>
             </div>
 
             {/* Traveler count selector */}
@@ -692,7 +949,7 @@ export default function MultiTravelerBooking({ tour, user, profile }) {
                   Alpine Explorers Original Application Form ({travelerCount} Traveler{travelerCount > 1 ? 's' : ''})
                 </span>
                 <span className="text-xs text-gray-500">
-                  Please fill out all required fields, upload a photo, and sign the form below.
+                  Name, date of birth, sex and contact number are required. Other application details and signatures may be completed where applicable.
                 </span>
               </div>
 
@@ -740,21 +997,11 @@ export default function MultiTravelerBooking({ tour, user, profile }) {
                 </div>
 
                 {t.isExpanded && (
-                  <TravelerForm
-                    index={i}
-                    count={travelerCount}
-                    trip={tour}
-                    traveler={t}
-                    errors={allErrors[i] || {}}
-                    onChange={(field, value) => updateTraveler(i, field, value)}
-                    onSetError={(field, err) => {
-                      setAllErrors((prev) => {
-                        const next = [...prev]
-                        next[i] = { ...(next[i] || {}), [field]: err }
-                        return next
-                      })
-                    }}
-                  />
+                  <TourApplicationForm key={`${i}-${draftRestored ? 'restored' : 'fresh'}`} traveler={t} travelerNumber={i + 1} courseName={tour.title} errors={allErrors[i] || {}} hideSubmit onChange={(data) => {
+                    const updated = { ...travelers[i], ...data }
+                    setTravelers((prev) => prev.map((item, j) => j === i ? updated : item))
+                    setAllErrors((prev) => prev.map((item, j) => j === i && Object.keys(item || {}).length ? validateTraveler(updated) : item))
+                  }} />
                 )}
 
                 {!t.isExpanded && allErrors[i] && Object.keys(allErrors[i]).length > 0 && (
@@ -770,10 +1017,11 @@ export default function MultiTravelerBooking({ tour, user, profile }) {
             ))}
 
             {/* Navigation */}
+            {submitError && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">{submitError}</div>}
             <div className="flex items-center justify-between pt-4">
               <button
                 type="button"
-                onClick={() => { setStep(0); scrollTop() }}
+                onClick={() => { window.history.back() }}
                 className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition cursor-pointer bg-white border"
                 style={{ color: NAVY, borderColor: '#e2e8f0' }}
               >
@@ -783,10 +1031,11 @@ export default function MultiTravelerBooking({ tour, user, profile }) {
               <button
                 type="button"
                 onClick={proceedToReview}
+                disabled={submitting}
                 className="flex items-center gap-2 px-8 py-3 rounded-xl text-white font-bold text-sm transition cursor-pointer shadow-lg"
                 style={{ background: `linear-gradient(135deg, ${NAVY}, ${NAVY_MID})` }}
               >
-                <span>Review Application</span>
+                <span>{submitting ? 'Saving Application…' : 'Continue to Original Blank PDF'}</span>
                 <ArrowRight size={15} />
               </button>
             </div>
@@ -794,7 +1043,7 @@ export default function MultiTravelerBooking({ tour, user, profile }) {
         )}
 
         {/* ─────────── STEP 2: Booking Summary ─────────── */}
-        {step === 2 && (
+        {step === 4 && (
           <motion.div
             key="step2"
             initial={{ opacity: 0, y: 20 }}
@@ -824,6 +1073,16 @@ export default function MultiTravelerBooking({ tour, user, profile }) {
               ))}
             </div>
 
+            <section className="rounded-2xl border bg-white p-5" style={{ borderColor: 'rgba(180,160,130,.3)' }}>
+              <h3 className="text-sm font-bold uppercase tracking-wider" style={{ color: NAVY }}>Completed application PDFs</h3>
+              <div className="mt-3 space-y-2 text-sm">
+                {travelers.map((t, i) => {
+                  const doc = uploadedDocuments.find((item) => item.traveler_number === i + 1)
+                  return <p key={i} className="flex items-center gap-2 text-gray-700"><CheckCircle2 size={15} className="text-emerald-600"/> Traveler {i + 1}: {doc?.original_filename || 'Uploaded'} · Photograph {t.photo ? 'added' : 'not added'}</p>
+                })}
+              </div>
+            </section>
+
             {/* Price breakdown */}
             <div
               className="rounded-2xl p-5 bg-white border"
@@ -851,8 +1110,8 @@ export default function MultiTravelerBooking({ tour, user, profile }) {
                   <span className="text-gray-600">Total Travelers</span>
                   <span className="font-semibold text-gray-900">{travelerCount} Guest(s)</span>
                 </div>
-                <div className="flex justify-between items-center"><span className="text-gray-600">Price</span><span className="font-semibold text-gray-900">On Request</span></div>
-                <p className="border-t border-dashed pt-2 text-xs text-gray-500">This application is an inquiry; availability and quotation will be confirmed by the team.</p>
+                <div className="flex justify-between items-center"><span className="text-gray-600">Price per traveler</span><span className="font-semibold text-gray-900">{formatINR(pricePerTraveler)}</span></div>
+                <div className="flex justify-between items-center border-t pt-2"><span className="font-bold text-gray-800">Total amount</span><span className="font-bold" style={{color:NAVY}}>{formatINR(totalPrice)}</span></div>
               </div>
             </div>
 
@@ -890,8 +1149,7 @@ export default function MultiTravelerBooking({ tour, user, profile }) {
                 type="button"
                 onClick={() => {
                   if (confirmedCorrect) {
-                    setStep(3)
-                    scrollTop()
+                    handleProceedToPayment(uploadedDocuments)
                   }
                 }}
                 disabled={!confirmedCorrect}
@@ -902,34 +1160,36 @@ export default function MultiTravelerBooking({ tour, user, profile }) {
                     : '#94a3b8',
                 }}
               >
-                Continue to Download Form <ArrowRight size={16} />
+                Continue to Payment <ArrowRight size={16} />
               </button>
             </div>
           </motion.div>
         )}
 
         {/* ─────────── STEP 3: Download Form ─────────── */}
-        {step === 3 && (
+        {step === 2 && (
           <DownloadFormStep
             key="step3"
             travelers={travelers}
             tour={tour}
-            onBack={() => { setStep(2); scrollTop() }}
-            onNext={() => { setStep(4); scrollTop() }}
+            onBack={() => { setStep(1); scrollTop() }}
+            onNext={() => { setStep(3); scrollTop() }}
           />
         )}
 
         {/* ─────────── STEP 4: Upload Scanned Form ─────────── */}
-        {step === 4 && (
+        {step === 3 && (
           <UploadFormStep
             key="step4"
             travelers={travelers}
             tour={tour}
             bookingId={bookingId}
+            user={user}
+            existingDocuments={uploadedDocuments}
             submitting={submitting}
             submitError={submitError}
-            onBack={() => { setStep(3); scrollTop() }}
-            onNext={(files) => { handleProceedToPayment(files) }}
+            onBack={() => { setStep(2); scrollTop() }}
+            onNext={(files) => { setUploadedDocuments(files); setStep(4); scrollTop() }}
           />
         )}
 

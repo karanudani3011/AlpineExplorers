@@ -3,12 +3,12 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Navbar from './Navbar'
 import Footer from './Footer'
-import TourInquiryForm from './TourInquiryForm'
 import TourImageSlider from './TourImageSlider'
 import { serviceTours, serviceCategories } from '../data/servicesData'
 import { tours as fallbackTours } from '../data/data'
 import { getTourImageRecords } from '../data/tourImageManifest'
 import { getCatalog } from '../services/catalog'
+import { useStartBooking } from '../hooks/useStartBooking'
 import {
   Star, MapPin, Calendar, Clock, Users, CheckCircle, X,
   ChevronDown, ChevronUp, ChevronRight, Share2, Heart, MessageSquare,
@@ -93,7 +93,7 @@ export default function TourDetailsPage() {
   const [expandedDays, setExpandedDays] = useState([0])
   const [liked, setLiked] = useState(false)
   const [travelersCount, setTravelersCount] = useState(2)
-  const [inquiryOpen, setInquiryOpen] = useState(false)
+  const startBooking = useStartBooking()
   const [copiedToast, setCopiedToast] = useState(false)
 
   // Duration packages from DB
@@ -154,7 +154,14 @@ export default function TourDetailsPage() {
   const handleBookNow = (e) => {
     e.preventDefault()
     if (!tour) return
-    setInquiryOpen(true)
+    startBooking({
+      ...tour,
+      id: tour.id,
+      title: tour.title,
+      price: selectedPkg?.price ?? selectedPkg?.price_per_person ?? tour.price,
+      duration: selectedPkg?.duration ?? tour.duration,
+      date: selectedPkg?.date ?? tour.date,
+    })
   }
 
   useEffect(() => { window.scrollTo(0, 0) }, [id])
@@ -636,7 +643,6 @@ export default function TourDetailsPage() {
 
       <Footer />
 
-      <TourInquiryForm tour={tour} isOpen={inquiryOpen} onClose={() => setInquiryOpen(false)} travelers={travelersCount} />
     </div>
   )
 }

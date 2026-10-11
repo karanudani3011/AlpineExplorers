@@ -221,6 +221,17 @@ export default function Bookings() {
     }
   }
 
+  const downloadDigitalApplications = async () => {
+    setPdfGenerating('digital-all')
+    try {
+      const blob = await api.getBlob('/bookings/download/all/digital-applications.zip')
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a'); a.href = url; a.download = 'all-digital-applications.zip'; document.body.appendChild(a); a.click(); a.remove(); window.URL.revokeObjectURL(url)
+      addToast('Digital application PDFs downloaded.')
+    } catch (error) { addToast(error.message || 'Unable to export digital applications.', 'error') }
+    finally { setPdfGenerating(null) }
+  }
+
   const formatCurrency = (amount) => {
     if (!amount) return '—'
     return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount)
@@ -284,6 +295,11 @@ export default function Bookings() {
         subtitle="Manage customer bookings, traveler applications and risk certificates."
         actions={
           <div className="flex flex-wrap gap-2">
+            {hasPermission('bookings.export_pdf') && (
+              <Btn variant="ghostGold" onClick={downloadDigitalApplications} disabled={Boolean(pdfGenerating) || Boolean(excelGenerating)}>
+                {pdfGenerating === 'digital-all' ? <><Loader2 size={14} className="animate-spin"/><span> Preparing ZIP…</span></> : <><Download size={14}/><span> Digital Apps ZIP</span></>}
+              </Btn>
+            )}
             {hasPermission('bookings.export_pdf') && (
               <Btn variant="ghostGold" onClick={() => generatePdf(null, 'all')} disabled={pdfGenerating === 'all' || excelGenerating === 'all'}>
                 {pdfGenerating === 'all'

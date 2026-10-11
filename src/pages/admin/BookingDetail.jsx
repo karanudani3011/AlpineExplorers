@@ -33,6 +33,7 @@ export default function BookingDetail() {
   
   const [booking, setBooking] = useState(null)
   const [travelers, setTravelers] = useState([])
+  const [applicationData, setApplicationData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [updatingStatus, setUpdatingStatus] = useState(false)
   const [verifyingPayment, setVerifyingPayment] = useState(false)
@@ -49,6 +50,11 @@ export default function BookingDetail() {
       const data = await api.get(`/bookings/${id}`)
       setBooking(data.booking)
       setTravelers(data.travelers || [])
+      const ref = data.booking?.booking_id || data.booking?.booking_reference
+      if (ref) {
+        try { setApplicationData(await api.get(`/bookings/booking-id/${encodeURIComponent(ref)}/application-data`)) }
+        catch { setApplicationData(null) }
+      }
     } catch (e) {
       addToast(e.message, 'error')
       navigate('/admin/bookings')
@@ -200,6 +206,22 @@ export default function BookingDetail() {
       console.error('Traveler Excel export error:', e)
       addToast(e.message || 'Unable to generate Excel. Please try again.', 'error')
     }
+  }
+
+  const downloadApplicationFile = async (travelerNumber, kind) => {
+    try {
+      const ref = encodeURIComponent(booking?.booking_id || id)
+      const endpoint = kind === 'digital'
+        ? `/bookings/booking-id/${ref}/applications/${travelerNumber}/digital-pdf`
+        : `/bookings/booking-id/${ref}/applications/${travelerNumber}/original-pdf`
+      const blob = await api.getBlob(endpoint)
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      if (kind === 'digital') a.download = `${booking?.booking_id || id}-traveler-${travelerNumber}-digital-application.pdf`
+      document.body.appendChild(a); a.click(); a.remove(); window.URL.revokeObjectURL(url)
+      addToast(kind === 'digital' ? 'Digital application PDF downloaded.' : 'Uploaded original PDF downloaded.')
+    } catch (error) { addToast(error.message || 'Document download failed.', 'error') }
   }
 
   const formatCurrency = (amount) => {
@@ -458,6 +480,28 @@ export default function BookingDetail() {
           </Card>
         </div>
       </div>
+
+      {applicationData && (
+        <Card className="mb-6">
+          <h3 className="mb-4 flex items-center gap-2 font-bold" style={{fontFamily:'Cinzel',color:NAVY}}><FileText size={18}/> DIGITAL APPLICATIONS & PRIVATE DOCUMENTS</h3>
+          <div className="space-y-5">
+            {(applicationData.applications||[]).map((app)=> <section key={app.id} className="rounded-xl border bg-white p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2"><h4 className="font-bold" style={{color:NAVY}}>Traveler {app.traveler_number} — {app.full_name}</h4><div className="flex gap-2">{hasPermission('bookings.export_individual_pdf')&&<Btn variant="ghostGold" onClick={()=>downloadApplicationFile(app.traveler_number,'digital')}><Download size={13}/> Download Digital Application PDF</Btn>}{(applicationData.documents||[]).some(doc=>doc.traveler_number===app.traveler_number)&&hasPermission('bookings.view')&&<Btn variant="ghostGold" onClick={()=>downloadApplicationFile(app.traveler_number,'original')}><Download size={13}/> Download Uploaded Original PDF</Btn>}</div></div>
+              <div className="mt-3 grid grid-cols-1 gap-2 text-xs sm:grid-cols-2">
+                {Object.entries(app.application_data?.original_fields||{}).filter(([k,v])=>!['isExpanded','isCompleted'].includes(k)&&v!==''&&v!=null).map(([k,v])=><p key={k}><b>{k.replaceAll('_',' ')}:</b> {String(v)}</p>)}
+                {['date_of_birth','age','sex','blood_group','address','contact_no','education','school_college','school_college_address','school_college_phone','hobbies','adventure_details','declaration_place','declaration_date','risk_participant_name','risk_course_name','risk_place','risk_date'].map(k=>app[k]&&<p key={k}><b>{k.replaceAll('_',' ')}:</b> {String(app[k])}</p>)}
+              </div>
+              <div className="mt-3 flex flex-wrap gap-3 text-xs">
+                {app.photograph_url&&<a className="underline" href={app.photograph_url} target="_blank" rel="noreferrer">View photograph</a>}
+                {app.applicant_signature_url&&<a className="underline" href={app.applicant_signature_url} target="_blank" rel="noreferrer">Applicant signature</a>}
+                {app.parent_guardian_signature_url&&<a className="underline" href={app.parent_guardian_signature_url} target="_blank" rel="noreferrer">Parent / guardian signature</a>}
+              </div>
+            </section>)}
+            {(applicationData.documents||[]).map(doc=><p key={doc.id} className="flex flex-wrap items-center gap-3 text-xs"><FileText size={15}/>Traveler {doc.traveler_number}: {doc.original_filename} · {doc.upload_status} · {doc.uploaded_at&&new Date(doc.uploaded_at).toLocaleString('en-IN')}<a className="font-bold underline" href={doc.signed_url} target="_blank" rel="noreferrer">Open uploaded original PDF</a></p>)}
+            {(applicationData.payments||[]).map(p=><p key={p.id} className="text-xs"><b>Payment:</b> {p.payment_method} · ₹{Number(p.amount).toLocaleString('en-IN')} · {p.payment_status} / {p.verification_status}{p.gateway_reference_id?` · Ref ${p.gateway_reference_id}`:''}</p>)}
+          </div>
+        </Card>
+      )}
 
       {/* Scanned Forms Section */}
       {safeScannedForms(booking.scanned_forms).length > 0 && (

@@ -1,6 +1,5 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import QRCode from 'qrcode'
 import {
   QrCode, CreditCard, ShieldCheck, CheckCircle2, AlertCircle,
   Loader2, ArrowRight, MessageSquare, ExternalLink, ArrowLeft,
@@ -48,8 +47,6 @@ export default function PaymentScreen({
   onBack,
 }) {
   const [method, setMethod] = useState('upi') // 'upi' | 'card'
-  const [qrDataUrl, setQrDataUrl] = useState('')
-  const [loadingQr, setLoadingQr] = useState(true)
   const [copiedUpi, setCopiedUpi] = useState(false)
   const [processing, setProcessing] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
@@ -57,70 +54,9 @@ export default function PaymentScreen({
   const [cardPaid, setCardPaid] = useState(booking.payment_status === 'paid')
   const [paymentDetails, setPaymentDetails] = useState(null)
 
-  // Card Form State
-  const [cardName, setCardName] = useState(booking.customer_name || '')
-  const [cardNumber, setCardNumber] = useState('')
-  const [cardExpiry, setCardExpiry] = useState('')
-  const [cardCvv, setCardCvv] = useState('')
-  const [cardErrors, setCardErrors] = useState({})
-
-  const handleCardNumChange = (e) => {
-    const raw = e.target.value.replace(/\D/g, '').slice(0, 16)
-    const formatted = raw.replace(/(\d{4})/g, '$1 ').trim()
-    setCardNumber(formatted)
-    if (cardErrors.cardNumber) setCardErrors((prev) => ({ ...prev, cardNumber: '' }))
-  }
-
-  const handleExpiryChange = (e) => {
-    let raw = e.target.value.replace(/\D/g, '').slice(0, 4)
-    if (raw.length >= 2) {
-      raw = `${raw.slice(0, 2)}/${raw.slice(2)}`
-    }
-    setCardExpiry(raw)
-    if (cardErrors.cardExpiry) setCardErrors((prev) => ({ ...prev, cardExpiry: '' }))
-  }
-
-  const handleCvvChange = (e) => {
-    const raw = e.target.value.replace(/\D/g, '').slice(0, 4)
-    setCardCvv(raw)
-    if (cardErrors.cardCvv) setCardErrors((prev) => ({ ...prev, cardCvv: '' }))
-  }
 
   const bookingRef = booking.booking_reference || booking.booking_id || 'ALP-BOOKING'
   const totalAmount = Number(booking.total_amount || 0)
-
-  // Generate UPI URI
-  const upiUri = useMemo(() => {
-    const encodedName = encodeURIComponent('Alpine Explorers')
-    const encodedNote = encodeURIComponent(`Booking ${bookingRef}`)
-    return `upi://pay?pa=${UPI_VPA}&pn=${encodedName}&am=${totalAmount}&cu=INR&tn=${encodedNote}`
-  }, [bookingRef, totalAmount])
-
-  // Generate QR Code dynamically from exact booking total if static image has issues
-  useEffect(() => {
-    let active = true
-    setLoadingQr(true)
-    QRCode.toDataURL(upiUri, {
-      width: 280,
-      margin: 2,
-      color: {
-        dark: 'var(--ae-navy)',
-        light: '#ffffff',
-      },
-    })
-      .then((url) => {
-        if (active) {
-          setQrDataUrl(url)
-          setLoadingQr(false)
-        }
-      })
-      .catch((err) => {
-        console.error('Failed to generate QR code:', err)
-        if (active) setLoadingQr(false)
-      })
-
-    return () => { active = false }
-  }, [upiUri])
 
   // Programmatic WhatsApp deep-link generation
   const buildWhatsAppUrl = () => {
@@ -141,34 +77,8 @@ Thank you.`
     setProcessing(true)
     setErrorMsg('')
     try {
-      // 1. Update status in backend SQLite
-      try {
-        await api.post('/bookings', {
-          booking_id: bookingRef,
-          payment_status: 'pending_verification',
-          payment_method: 'UPI',
-          booking_status: 'pending',
-          total_amount: totalAmount,
-          travelers: [{ fullName: booking.customer_name }],
-        })
-      } catch (err) {
-        console.warn('Backend UPI update note:', err.message)
-      }
-
-      // 2. Update status in Supabase
-      try {
-        await supabase
-          .from('bookings')
-          .update({
-            payment_status: 'pending_verification',
-            payment_method: 'UPI',
-            status: 'pending',
-            updated_at: new Date().toISOString(),
-          })
-          .eq('booking_reference', bookingRef)
-      } catch (supErr) {
-        console.warn('Supabase UPI update note:', supErr.message)
-      }
+      const { error } = await supabase.rpc('report_upi_payment', { p_booking_reference: bookingRef })
+      if (error) throw error
 
       setUpiSubmitted(true)
 
@@ -183,36 +93,16 @@ Thank you.`
           payment_method: 'UPI',
         })
       }
-    } catch (err) {
-      setErrorMsg(err.message || 'Unable to submit payment confirmation. Please try again.')
+    } catch {
+      setErrorMsg('We could not record your payment confirmation. Please try again or contact Alpine Explorers.')
     } finally {
       setProcessing(false)
     }
   }
 
-  // Handle Card Payment (Razorpay / Direct Card Checkout)
+  // Card details are collected only by Razorpay's hosted checkout.
   const handleCardPayment = async () => {
-    // Validate card input fields
-    const errs = {}
-    if (!cardName.trim()) errs.cardName = 'Cardholder name is required'
-    const rawNum = cardNumber.replace(/\s+/g, '')
-    if (!rawNum) errs.cardNumber = 'Card number is required'
-    else if (rawNum.length < 15 || rawNum.length > 16) errs.cardNumber = 'Enter a valid 16-digit card number'
-
-    if (!cardExpiry.trim()) errs.cardExpiry = 'Expiry date required'
-    else if (!/^(0[1-9]|1[0-2])\/[0-9]{2}$/.test(cardExpiry)) errs.cardExpiry = 'Format MM/YY'
-
-    if (!cardCvv.trim()) errs.cardCvv = 'CVV is required'
-    else if (cardCvv.length < 3) errs.cardCvv = '3-4 digits required'
-
-    if (Object.keys(errs).length > 0) {
-      setCardErrors(errs)
-      return
-    }
-
-    setProcessing(true)
-    setErrorMsg('')
-
+    setProcessing(true); setErrorMsg('')
     try {
       // 1. Create order on backend
       const orderData = await api.post('/payments/create-order', {
@@ -240,7 +130,6 @@ Thank you.`
 
       const scriptLoaded = await loadRazorpayScript()
 
-      // If Razorpay script loaded and order is a live/test gateway order
       if (scriptLoaded && window.Razorpay && !orderData.isMock) {
         const options = {
           key: orderData.keyId,
@@ -302,39 +191,9 @@ Thank you.`
           setProcessing(false)
         })
         rzp.open()
-      } else {
-        // Fallback Sandbox Simulator (when no live Razorpay API keys are configured in .env)
-        // Simulate a 1.2-second secure gateway handshake and verify via backend
-        window.setTimeout(async () => {
-          try {
-            const verifyRes = await api.post('/payments/verify', {
-              booking_id: bookingRef,
-              razorpay_order_id: orderData.order_id,
-              razorpay_payment_id: `pay_sim_${Date.now()}`,
-              razorpay_signature: 'sandbox_verified_sig',
-              payment_method: 'CARD',
-              amount: totalAmount,
-            })
-
-            setCardPaid(true)
-            setPaymentDetails(verifyRes)
-            if (typeof onPaymentSuccess === 'function') {
-              onPaymentSuccess({
-                ...booking,
-                payment_status: 'paid',
-                payment_id: verifyRes.payment_id,
-                order_id: verifyRes.order_id,
-              })
-            }
-          } catch (simErr) {
-            setErrorMsg(simErr.message || 'Sandbox verification failed')
-          } finally {
-            setProcessing(false)
-          }
-        }, 1200)
-      }
-    } catch (err) {
-      setErrorMsg(err.message || 'Unable to initialize card payment. Please try again.')
+      } else throw new Error('Card checkout is not configured yet. Please use UPI or contact Alpine Explorers.')
+    } catch {
+      setErrorMsg('Secure card checkout is unavailable right now. Please use UPI or contact Alpine Explorers.')
       setProcessing(false)
     }
   }
@@ -555,11 +414,6 @@ Thank you.`
               <div className="inline-block p-3.5 bg-white rounded-2xl shadow-md border" style={{ borderColor: 'rgba(180,160,130,0.35)' }}>
                 <img
                   src={QR_IMAGE}
-                  onError={(e) => {
-                    if (qrDataUrl && e.target.src !== qrDataUrl) {
-                      e.target.src = qrDataUrl
-                    }
-                  }}
                   alt={`UPI QR code for ₹${totalAmount}`}
                   className="w-56 h-56 sm:w-64 sm:h-64 object-contain mx-auto"
                 />
@@ -569,6 +423,9 @@ Thank you.`
               <p className="text-xs font-semibold text-gray-700 mt-4 max-w-sm mx-auto">
                 Scan this QR using Google Pay, PhonePe, Paytm or any UPI app.
               </p>
+              <button type="button" onClick={copyUpiId} className="mt-2 inline-flex items-center gap-2 rounded-lg border bg-white px-3 py-2 text-xs" style={{borderColor:'rgba(180,160,130,.4)',color:NAVY}}>
+                UPI ID: {UPI_VPA} {copiedUpi ? <Check size={13}/> : <Copy size={13}/>}
+              </button>
             </div>
 
             {/* Verification notice box */}
@@ -625,172 +482,16 @@ Thank you.`
           </div>
         )}
 
-        {/* ── OPTION 2: CARD PAYMENT WITH DETAIL FORM ── */}
+        {/* Hosted gateway only. No card data is collected by this site. */}
         {method === 'card' && (
-          <div className="space-y-6">
-            {/* Visual Card Preview */}
-            <div
-              className="rounded-2xl p-6 text-white shadow-xl relative overflow-hidden transition-all"
-              style={{
-                background: `linear-gradient(135deg, ${NAVY}, var(--ae-navy-mid), #1e293b)`,
-                border: '1.5px solid rgb(var(--ae-gold2-rgb) /0.4)',
-              }}
-            >
-              <div className="flex justify-between items-start mb-6">
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-300">Credit / Debit Card</p>
-                  <p className="text-xs text-white/70">Alpine Explorers Payment</p>
-                </div>
-                <div className="flex items-center gap-1 font-mono text-[10px] font-bold text-amber-300 bg-white/10 px-2.5 py-1 rounded-md">
-                  <Lock size={12} className="text-amber-400" /> SECURE 256-BIT
-                </div>
-              </div>
-
-              {/* Card Number Preview */}
-              <div className="font-mono text-xl sm:text-2xl font-bold tracking-[0.18em] my-4 text-amber-100">
-                {cardNumber || '•••• •••• •••• ••••'}
-              </div>
-
-              <div className="flex justify-between items-end text-xs pt-2 border-t border-white/15">
-                <div>
-                  <p className="text-[9px] uppercase font-bold text-white/60 tracking-wider">Cardholder Name</p>
-                  <p className="font-bold text-white uppercase tracking-wider text-sm truncate max-w-[180px]">
-                    {cardName || 'YOUR NAME HERE'}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-[9px] uppercase font-bold text-white/60 tracking-wider">Expires</p>
-                  <p className="font-mono font-bold text-white text-sm">
-                    {cardExpiry || 'MM/YY'}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Interactive Card Form Inputs */}
-            <form onSubmit={(e) => { e.preventDefault(); handleCardPayment(); }} className="space-y-4 bg-gray-50/80 p-5 rounded-2xl border border-gray-200">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-gray-700 flex items-center gap-2">
-                <CreditCard size={15} style={{ color: GOLD }} />
-                <span>Enter Card Details</span>
-              </h4>
-
-              {/* Cardholder Name */}
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">
-                  Cardholder Name <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <User size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                  <input
-                    type="text"
-                    placeholder="Full name on card"
-                    value={cardName}
-                    onChange={(e) => {
-                      setCardName(e.target.value)
-                      if (cardErrors.cardName) setCardErrors((prev) => ({ ...prev, cardName: '' }))
-                    }}
-                    className={`w-full pl-9 pr-4 py-2.5 rounded-xl border text-sm focus:outline-none transition ${
-                      cardErrors.cardName ? 'border-red-500 bg-red-50/30' : 'border-gray-300 focus:border-amber-600 bg-white'
-                    }`}
-                  />
-                </div>
-                {cardErrors.cardName && <p className="text-[11px] font-semibold text-red-600 mt-1">{cardErrors.cardName}</p>}
-              </div>
-
-              {/* Card Number */}
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">
-                  Card Number <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <CreditCard size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                  <input
-                    type="text"
-                    placeholder="1234 5678 9012 3456"
-                    maxLength={19}
-                    value={cardNumber}
-                    onChange={handleCardNumChange}
-                    className={`w-full pl-9 pr-4 py-2.5 rounded-xl border text-sm font-mono tracking-wider focus:outline-none transition ${
-                      cardErrors.cardNumber ? 'border-red-500 bg-red-50/30' : 'border-gray-300 focus:border-amber-600 bg-white'
-                    }`}
-                  />
-                </div>
-                {cardErrors.cardNumber && <p className="text-[11px] font-semibold text-red-600 mt-1">{cardErrors.cardNumber}</p>}
-              </div>
-
-              {/* Expiry & CVV grid */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">
-                    Expiry Date <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <Calendar size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                    <input
-                      type="text"
-                      placeholder="MM/YY"
-                      maxLength={5}
-                      value={cardExpiry}
-                      onChange={handleExpiryChange}
-                      className={`w-full pl-9 pr-3 py-2.5 rounded-xl border text-sm font-mono focus:outline-none transition ${
-                        cardErrors.cardExpiry ? 'border-red-500 bg-red-50/30' : 'border-gray-300 focus:border-amber-600 bg-white'
-                      }`}
-                    />
-                  </div>
-                  {cardErrors.cardExpiry && <p className="text-[11px] font-semibold text-red-600 mt-1">{cardErrors.cardExpiry}</p>}
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">
-                    CVV / CVC <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <Lock size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                    <input
-                      type="password"
-                      placeholder="123"
-                      maxLength={4}
-                      value={cardCvv}
-                      onChange={handleCvvChange}
-                      className={`w-full pl-9 pr-3 py-2.5 rounded-xl border text-sm font-mono tracking-widest focus:outline-none transition ${
-                        cardErrors.cardCvv ? 'border-red-500 bg-red-50/30' : 'border-gray-300 focus:border-amber-600 bg-white'
-                      }`}
-                    />
-                  </div>
-                  {cardErrors.cardCvv && <p className="text-[11px] font-semibold text-red-600 mt-1">{cardErrors.cardCvv}</p>}
-                </div>
-              </div>
-
-              {/* Pay Now Button */}
-              <div className="pt-2">
-                <button
-                  type="submit"
-                  disabled={processing}
-                  className="w-full py-3.5 rounded-xl text-white font-bold text-sm sm:text-base flex items-center justify-center gap-2 shadow-lg transition cursor-pointer disabled:opacity-50"
-                  style={{ backgroundColor: NAVY }}
-                  onMouseEnter={(e) => { if (!processing) e.currentTarget.style.backgroundColor = NAVY_MID }}
-                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = NAVY }}
-                >
-                  {processing ? (
-                    <>
-                      <Loader2 size={18} className="animate-spin" />
-                      <span>Processing Card Payment...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Lock size={16} />
-                      <span>Pay {formatINR(totalAmount)} Now</span>
-                      <ArrowRight size={16} />
-                    </>
-                  )}
-                </button>
-              </div>
-
-              <div className="flex items-center justify-center gap-4 text-gray-500 text-[11px] pt-1 flex-wrap">
-                <span className="flex items-center gap-1"><ShieldCheck size={13} className="text-emerald-600" /> Encrypted & Secure</span>
-                <span className="flex items-center gap-1"><CheckCircle2 size={13} className="text-blue-600" /> Credit & Debit Cards Supported</span>
-              </div>
-            </form>
+          <div className="space-y-5 rounded-2xl border p-6 text-center" style={{backgroundColor:'#fcfaf6',borderColor:'rgb(var(--ae-gold2-rgb) /0.3)'}}>
+            <CreditCard size={34} className="mx-auto" style={{color:NAVY}} />
+            <h3 className="text-lg font-bold" style={{color:NAVY,fontFamily:'Cinzel, serif'}}>Secure Card Checkout</h3>
+            <p className="mx-auto max-w-lg text-sm text-gray-600">Payable amount: <strong>{formatINR(totalAmount)}</strong>. Card details are entered only in the payment provider's hosted checkout.</p>
+            <button type="button" onClick={handleCardPayment} disabled={processing} className="inline-flex items-center justify-center gap-2 rounded-xl px-7 py-3.5 text-sm font-bold text-white disabled:opacity-60" style={{backgroundColor:NAVY}}>
+              {processing ? <Loader2 size={17} className="animate-spin"/> : <Lock size={16}/>} {processing ? 'Opening secure checkout…' : `Proceed to Pay ${formatINR(totalAmount)}`}
+            </button>
+            <p className="text-xs text-gray-500">Payment is confirmed only after trusted provider verification. If card checkout is not configured, use UPI or contact Alpine Explorers.</p>
           </div>
         )}
       </div>

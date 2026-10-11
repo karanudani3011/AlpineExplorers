@@ -6,18 +6,14 @@ import InquireButton from './InquireButton'
 import BookNowButton from './BookNowButton'
 import TourImageSlider from './TourImageSlider'
 import { getTourImageRecords } from '../data/tourImageManifest'
-import TourInquiryForm from './TourInquiryForm'
+import { useStartBooking } from '../hooks/useStartBooking'
 
 const NAVY = 'var(--ae-navy)'
 const GOLD = 'var(--ae-gold)'
 
 export default function ServiceTourCard({ tour }) {
   const [isLiked, setIsLiked] = useState(false)
-  const [bookOpen, setBookOpen] = useState(false)
-
-  const handleBookNow = () => {
-    setBookOpen(true)
-  }
+  const startBooking = useStartBooking()
 
   return (
     <>
@@ -132,7 +128,7 @@ export default function ServiceTourCard({ tour }) {
               </Link>
               <BookNowButton
                 item={tour}
-                onOpen={handleBookNow}
+                onOpen={startBooking}
                 className="w-full py-2.5 justify-center text-white font-bold rounded-xl text-xs text-center shadow-md"
                 style={{ backgroundColor: NAVY }}
                 hoverStyle={{ backgroundColor: 'var(--ae-navy-mid)' }}
@@ -142,7 +138,6 @@ export default function ServiceTourCard({ tour }) {
         </div>
       </motion.div>
 
-      <TourInquiryForm tour={tour} isOpen={bookOpen} onClose={() => setBookOpen(false)} />
     </>
   )
 }

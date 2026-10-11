@@ -1,6 +1,5 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { supabase } from '../services/supabaseClient'
-import { api, API } from '../services/api'
 
 export const SupabaseAuthContext = createContext(null)
 
@@ -53,26 +52,7 @@ export function SupabaseAuthProvider({ children }) {
   useEffect(() => {
     let mounted = true
 
-    // 1. Check local session first (synchronous)
-    const savedUserStr = localStorage.getItem('ae_traveler_user')
-    const savedToken = API.getToken()
-
-    if (savedUserStr && savedToken) {
-      try {
-        const parsed = JSON.parse(savedUserStr)
-        if (mounted) {
-          setUser(parsed)
-          setProfile(parsed)
-          setSession({ access_token: savedToken, user: parsed })
-        }
-      } catch {}
-    }
-
-    // Resolve loading immediately — don't block the Landing page on Supabase network I/O.
-    // Session check runs in the background and updates state when it arrives.
-    if (mounted) setLoading(false)
-
-    // 2. Background Supabase session check (safely caught if unreachable)
+    // Supabase restores the persisted session after refresh.
     supabase.auth.getSession().then(({ data }) => {
       if (!mounted) return
       if (data?.session?.user) {
@@ -85,9 +65,8 @@ export function SupabaseAuthProvider({ children }) {
           currentUser.user_metadata?.full_name || ''
         )
       }
-    }).catch(() => {
-      // Supabase unreachable — already set loading=false above, no action needed
-    })
+      if (mounted) setLoading(false)
+    }).catch(() => { if (mounted) setLoading(false) })
 
     // 3. Listen to Supabase auth state changes safely
     let subscription = null
@@ -103,6 +82,10 @@ export function SupabaseAuthProvider({ children }) {
             currentUser.email,
             currentUser.user_metadata?.full_name || ''
           )
+        } else {
+          setSession(null)
+          setUser(null)
+          setProfile(null)
         }
       })
       subscription = subRes?.data?.subscription
@@ -134,32 +117,6 @@ export function SupabaseAuthProvider({ children }) {
       throw new Error('Please enter both email and password.')
     }
 
-    console.log('[Auth] Attempting sign in for:', cleanEmail)
-
-    // 1. Try our backend API (SQLite database)
-    try {
-      const res = await api.post('/auth/login', { email: cleanEmail, password })
-      if (res && res.token && res.user) {
-        API.setToken(res.token)
-        localStorage.setItem('ae_traveler_user', JSON.stringify(res.user))
-        setUser(res.user)
-        setProfile(res.user)
-        const sess = { access_token: res.token, user: res.user }
-        setSession(sess)
-
-        // Try Supabase in background if available
-        supabase.auth.signInWithPassword({ email: cleanEmail, password }).catch(() => {})
-
-        return { user: res.user, session: sess }
-      }
-    } catch (apiErr) {
-      // If error is invalid credentials or deactivated account, throw directly
-      if (apiErr.status === 401 || apiErr.status === 403 || apiErr.message?.includes('Invalid')) {
-        throw new Error(apiErr.message || 'Incorrect email or password.')
-      }
-    }
-
-    // 2. Fallback to Supabase
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email: cleanEmail,
@@ -175,11 +132,10 @@ export function SupabaseAuthProvider({ children }) {
       }
       return data
     } catch (err) {
-      console.error('[Auth] Sign in error:', err)
       if (err.code === 'invalid_credentials' || err.message?.toLowerCase().includes('invalid')) {
-        throw new Error('Incorrect email or password.')
+        throw new Error('Invalid email or password.')
       }
-      throw new Error(err.message || 'Failed to log in. Please try again.')
+      throw new Error('Unable to log in. Please check your connection and try again.')
     }
   }, [fetchProfile])
 
@@ -195,46 +151,6 @@ export function SupabaseAuthProvider({ children }) {
       throw new Error('Passwords do not match.')
     }
 
-    console.log('[Auth] Attempting sign up for:', cleanEmail)
-
-    // 1. Try our backend API (stores directly in database!)
-    try {
-      const res = await api.post('/auth/register', {
-        fullName: cleanName,
-        email: cleanEmail,
-        password,
-        phone,
-      })
-
-      if (res && res.token && res.user) {
-        API.setToken(res.token)
-        localStorage.setItem('ae_traveler_user', JSON.stringify(res.user))
-        setUser(res.user)
-        setProfile(res.user)
-        const sess = { access_token: res.token, user: res.user }
-        setSession(sess)
-
-        // Sync with Supabase in background if reachable
-        supabase.auth.signUp({
-          email: cleanEmail,
-          password,
-          options: { data: { full_name: cleanName, phone: phone || '' } },
-        }).catch(() => {})
-
-        return {
-          user: res.user,
-          session: sess,
-          needsEmailVerification: false,
-        }
-      }
-    } catch (apiErr) {
-      if (apiErr.status === 400 || apiErr.message?.includes('already exists')) {
-        throw new Error(apiErr.message || 'An account with this email already exists.')
-      }
-      console.warn('[Auth API Register warning]:', apiErr.message)
-    }
-
-    // 2. Fallback to Supabase if backend had an issue
     try {
       const { data, error } = await supabase.auth.signUp({
         email: cleanEmail,
@@ -253,22 +169,20 @@ export function SupabaseAuthProvider({ children }) {
       return {
         user: data?.user || null,
         session: data?.session || null,
-        needsEmailVerification: false,
+        needsEmailVerification: !data?.session,
       }
     } catch (err) {
-      console.error('[Auth] Sign up error:', err)
       if (err.message?.toLowerCase().includes('already registered') || err.message?.toLowerCase().includes('exists')) {
         throw new Error('An account with this email already exists. Please log in instead.')
       }
-      throw new Error(err.message || 'Unable to create account. Please try again.')
+      throw new Error('Unable to create account. Please check your details and try again.')
     }
   }, [fetchProfile])
 
   const signOut = useCallback(async () => {
     try {
-      API.clearToken()
-      localStorage.removeItem('ae_traveler_user')
-      await supabase.auth.signOut().catch(() => {})
+      const { error } = await supabase.auth.signOut()
+      if (error) throw error
     } finally {
       setUser(null)
       setSession(null)
@@ -284,9 +198,8 @@ export function SupabaseAuthProvider({ children }) {
       const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail)
       if (error) throw error
       return true
-    } catch (err) {
-      console.warn('[Auth] Password reset:', err.message)
-      return true // Friendly response
+    } catch {
+      throw new Error('Unable to send the password reset email. Please try again.')
     }
   }, [])
 
