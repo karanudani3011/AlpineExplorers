@@ -205,6 +205,16 @@ GRANT SELECT, INSERT, UPDATE ON public.application_documents TO authenticated;
 GRANT SELECT ON public.payments TO authenticated;
 
 DROP TRIGGER IF EXISTS applications_payment_updated_at ON public.payments;
+-- Keep this migration rerunnable on projects where the booking-flow base
+-- migration was only partially applied or its shared trigger function is absent.
+CREATE OR REPLACE FUNCTION public.handle_booking_flow_updated_at()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$;
+
 CREATE TRIGGER applications_payment_updated_at BEFORE UPDATE ON public.payments
 FOR EACH ROW EXECUTE FUNCTION public.handle_booking_flow_updated_at();
 
