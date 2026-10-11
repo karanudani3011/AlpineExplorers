@@ -20,6 +20,64 @@ const NAVY_MID = 'var(--ae-navy-mid)'
 const GOLD = 'var(--ae-gold)'
 const GOLD2 = 'var(--ae-gold2)'
 const ERR = '#dc2626'
+const BOOKING_FILES_BUCKET = 'booking-private-docs'
+const MAX_BOOKING_FILE_BYTES = 10 * 1024 * 1024
+const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
+
+function uploadValidationError(message) {
+  return Object.assign(new Error(message), { uploadValidation: true })
+}
+
+async function toUploadFile(value, fallbackName) {
+  if (typeof File !== 'undefined' && value instanceof File) return value
+  if (typeof value !== 'string' || !value.startsWith('data:')) return null
+  const response = await fetch(value)
+  if (!response.ok) throw new Error('The selected image could not be prepared for upload.')
+  const blob = await response.blob()
+  return new File([blob], fallbackName, { type: blob.type })
+}
+
+async function uploadTravelerImage({ value, file, path, description, isAuthenticated }) {
+  const uploadFile = file || await toUploadFile(value, path.split('/').pop() + '.png')
+  if (!uploadFile) return null
+  if (!isAuthenticated) throw new Error('Your session expired. Please sign in again; your form details are still here.')
+  if (!ALLOWED_IMAGE_TYPES.has(uploadFile.type)) {
+    throw uploadValidationError(`${description} must be a JPEG, PNG or WebP image.`)
+  }
+  if (uploadFile.size > MAX_BOOKING_FILE_BYTES) {
+    throw uploadValidationError(`${description} must be 10 MB or smaller.`)
+  }
+
+  const { data, error } = await supabase.storage.from(BOOKING_FILES_BUCKET).upload(path, uploadFile, {
+    contentType: uploadFile.type,
+    upsert: true,
+  })
+  if (error) {
+    if (import.meta.env.DEV) {
+      console.error('[Booking file upload]', {
+        operation: description,
+        bucket: BOOKING_FILES_BUCKET,
+        authenticated: isAuthenticated,
+        fileSelected: true,
+        validationPassed: true,
+        fileType: uploadFile.type,
+        fileSize: uploadFile.size,
+        name: error.name || null,
+        message: error.message || null,
+        code: error.code || null,
+        status: error.status || null,
+        statusCode: error.statusCode || null,
+        details: error.details || null,
+        hint: error.hint || null,
+      })
+    }
+    throw Object.assign(new Error(error.message || 'Storage upload failed.'), { supabaseError: error, operation: description })
+  }
+  if (!data?.path) {
+    throw Object.assign(new Error('Supabase did not confirm the uploaded file path.'), { operation: description })
+  }
+  return data.path
+}
 
 /* ──────────────────────────── Helpers ──────────────────────────── */
 
@@ -113,6 +171,8 @@ function toIsoDate(value) {
 
 function reportSupabaseFailure(operation, error) {
   const supabaseError = error?.supabaseError || error
+  operation = error?.operation || operation
+  if (error?.uploadValidation) return error.message
   if (import.meta.env.DEV) {
     console.error('[Booking application submission]', {
       operation,
@@ -130,6 +190,12 @@ function reportSupabaseFailure(operation, error) {
   }
   if (code === '42501') {
     return `Supabase denied permission while ${operation}. Your information is still here; sign in again or ask an administrator to check the booking access policy.`
+  }
+  if (supabaseError?.statusCode === '404' || supabaseError?.code === 'NoSuchBucket' || /bucket not found/i.test(supabaseError?.message || '')) {
+    return 'The private booking file storage is not configured yet. Your form details are still here; please apply the booking application Storage migration and retry.'
+  }
+  if (supabaseError?.statusCode === '403' || supabaseError?.status === 403) {
+    return `Storage permission was denied while ${operation}. Your form details are still here; check the private bucket owner policies.`
   }
   if (code === '23505') {
     return `This booking reference already exists while ${operation}. Your information is still here; retry once, and contact Alpine Explorers if the problem continues.`
@@ -524,31 +590,28 @@ export default function MultiTravelerBooking({ tour, user, profile }) {
       if (!booking?.id || !booking?.booking_reference) {
         throw new Error('Supabase did not return the saved booking identifier.')
       }
-      const uploadDataUrl = async (value, path, description) => {
-        if (!value?.startsWith('data:')) return null
-        operation = `validating and uploading traveler ${description}`
-        const blob = await (await fetch(value)).blob()
-        if (!['image/jpeg', 'image/png', 'image/webp'].includes(blob.type)) {
-          throw new Error(`${description} must be a JPEG, PNG or WebP image.`)
-        }
-        if (blob.size > 10 * 1024 * 1024) throw new Error(`${description} must be 10 MB or smaller.`)
-        operation = `uploading traveler ${description}`
-        const { error } = await supabase.storage.from('booking-private-docs').upload(path, blob, { contentType: blob.type || 'image/png', upsert: true })
-        if (error) throw Object.assign(new Error(error.message), { supabaseError: error })
-        return path
-      }
       for (let i = 0; i < travelers.length; i++) {
         const t = travelers[i]
         const prefix = `${authData.user.id}/${bookingId}/traveler-${i + 1}`
+        operation = `uploading traveler ${i + 1} application assets`
         const [newPhotoPath, newApplicantSignaturePath, newGuardianSignaturePath] = await Promise.all([
-          uploadDataUrl(t.photo, `${prefix}/photo`, `${i + 1} photograph`),
-          uploadDataUrl(t.signature, `${prefix}/applicant-signature.png`, `${i + 1} applicant signature`),
-          uploadDataUrl(t.riskSignature || t.sigRisk, `${prefix}/guardian-signature.png`, `${i + 1} risk certificate signature`),
+          t.photoStoragePath && !t.photoFile ? t.photoStoragePath : uploadTravelerImage({ value: t.photo, file: t.photoFile, path: `${prefix}/photo`, description: `traveler ${i + 1} photograph`, isAuthenticated: Boolean(authData.user) }),
+          t.signatureStoragePath ? t.signatureStoragePath : uploadTravelerImage({ value: t.signature, path: `${prefix}/applicant-signature.png`, description: `traveler ${i + 1} applicant signature`, isAuthenticated: Boolean(authData.user) }),
+          t.riskSignatureStoragePath ? t.riskSignatureStoragePath : uploadTravelerImage({ value: t.riskSignature || t.sigRisk, path: `${prefix}/guardian-signature.png`, description: `traveler ${i + 1} risk certificate signature`, isAuthenticated: Boolean(authData.user) }),
         ])
         const photoPath = newPhotoPath || t.photoStoragePath || null
         const applicantSignaturePath = newApplicantSignaturePath || t.signatureStoragePath || null
         const guardianSignaturePath = newGuardianSignaturePath || t.riskSignatureStoragePath || null
-        const { photo: _photo, signature: _sig, riskSignature: _riskSig, sigRisk: _sigRisk, guardianSignature: _guardianSig, ...textFields } = t
+        // Retain successful storage paths immediately. If the relational write
+        // fails, a retry can save these references without uploading duplicates.
+        setTravelers((previous) => previous.map((item, index) => index === i ? {
+          ...item,
+          photoStoragePath: photoPath,
+          signatureStoragePath: applicantSignaturePath,
+          riskSignatureStoragePath: guardianSignaturePath,
+          photoFile: null,
+        } : item))
+        const { photo: _photo, photoFile: _photoFile, signature: _sig, riskSignature: _riskSig, sigRisk: _sigRisk, guardianSignature: _guardianSig, ...textFields } = t
         operation = `saving traveler ${i + 1} application`
         const { error } = await supabase.from('traveler_applications').upsert({
           booking_id: booking.id, traveler_number: i + 1, course_name: t.courseName || tour.title,
@@ -719,23 +782,26 @@ export default function MultiTravelerBooking({ tour, user, profile }) {
       savedBooking = data
       }
 
-      const readDataUrl = async (dataUrl, path, description) => {
-        if (!dataUrl?.startsWith('data:')) return null
-        const blob = await (await fetch(dataUrl)).blob()
-        if (!['image/jpeg', 'image/png', 'image/webp'].includes(blob.type)) throw new Error(`${description} must be a JPEG, PNG or WebP image.`)
-        if (blob.size > 10 * 1024 * 1024) throw new Error(`${description} must be 10 MB or smaller.`)
-        operation = `uploading ${description}`
-        const { error } = await supabase.storage.from('booking-private-docs').upload(path, blob, { contentType: blob.type || 'image/png', upsert: true })
-        if (error) throw Object.assign(new Error(error.message), { supabaseError: error })
-        return path
-      }
       for (let i = 0; i < travelers.length; i++) {
         const t = travelers[i]
         const prefix = `${authData.user.id}/${bookingId}/traveler-${i + 1}`
-        const photoPath = await readDataUrl(t.photo, `${prefix}/photo`, `traveler ${i + 1} photograph`) || t.photoStoragePath || null
-        const applicantSignaturePath = await readDataUrl(t.signature, `${prefix}/applicant-signature.png`, `traveler ${i + 1} applicant signature`) || t.signatureStoragePath || null
-        const guardianSignaturePath = await readDataUrl(t.riskSignature || t.sigRisk, `${prefix}/guardian-signature.png`, `traveler ${i + 1} risk certificate signature`) || t.riskSignatureStoragePath || null
-        const { photo: _photoData, signature: _signatureData, riskSignature: _riskSignatureData, sigRisk: _sigRiskData, guardianSignature: _guardianSignatureData, ...textFields } = t
+        operation = `uploading traveler ${i + 1} application assets`
+        const [newPhotoPath, newApplicantSignaturePath, newGuardianSignaturePath] = await Promise.all([
+          t.photoStoragePath && !t.photoFile ? t.photoStoragePath : uploadTravelerImage({ value: t.photo, file: t.photoFile, path: `${prefix}/photo`, description: `traveler ${i + 1} photograph`, isAuthenticated: Boolean(authData.user) }),
+          t.signatureStoragePath ? t.signatureStoragePath : uploadTravelerImage({ value: t.signature, path: `${prefix}/applicant-signature.png`, description: `traveler ${i + 1} applicant signature`, isAuthenticated: Boolean(authData.user) }),
+          t.riskSignatureStoragePath ? t.riskSignatureStoragePath : uploadTravelerImage({ value: t.riskSignature || t.sigRisk, path: `${prefix}/guardian-signature.png`, description: `traveler ${i + 1} risk certificate signature`, isAuthenticated: Boolean(authData.user) }),
+        ])
+        const photoPath = newPhotoPath || t.photoStoragePath || null
+        const applicantSignaturePath = newApplicantSignaturePath || t.signatureStoragePath || null
+        const guardianSignaturePath = newGuardianSignaturePath || t.riskSignatureStoragePath || null
+        setTravelers((previous) => previous.map((item, index) => index === i ? {
+          ...item,
+          photoStoragePath: photoPath,
+          signatureStoragePath: applicantSignaturePath,
+          riskSignatureStoragePath: guardianSignaturePath,
+          photoFile: null,
+        } : item))
+        const { photo: _photoData, photoFile: _photoFile, signature: _signatureData, riskSignature: _riskSignatureData, sigRisk: _sigRiskData, guardianSignature: _guardianSignatureData, ...textFields } = t
         const appRow = {
           booking_id: savedBooking.id, traveler_number: i + 1, course_name: t.courseName || tour.title,
           full_name: t.fullName, date_of_birth: toIsoDate(t.dob),

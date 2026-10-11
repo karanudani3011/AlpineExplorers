@@ -262,9 +262,9 @@ export default function Footer() {
                   <Mail size={14} style={{ color: GOLD2 }} />
                 </span>
                 <div>
-                 
-                  <a href="mailto:alpine_explorers@yahoo.co.in" className="block font-semibold hover:text-[var(--ae-bg-hover)] transition" style={{ color: CREAM }}>
-                    alpine_explorers@yahoo.co.in
+
+                  <a href="mailto:alpineexplorers.travel@gmail.com" className="block font-semibold hover:text-[var(--ae-bg-hover)] transition" style={{ color: CREAM }}>
+                    alpineexplorers.travel@gmail.com
                   </a>
                 </div>
               </li>

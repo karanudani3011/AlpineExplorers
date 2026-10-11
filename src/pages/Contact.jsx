@@ -335,7 +335,7 @@ function TreeIcon({ tone = 0.4 }) {
 const DEFAULT_CONTACT = {
   phone: '+91 99798 83339',
   whatsapp: '+91 99798 83339',
-  email: 'alpine_explorers@yahoo.co.in',
+  email: 'alpineexplorers.travel@gmail.com',
   address: 'B-309, The One World, Near Ayodhya Chowk, 150 Feet Ring Road, Rajkot - 360 006, Gujarat, India.',
   map_link: 'https://www.google.com/maps/search/?api=1&query=Ayodhya+Chowk+Rajkot',
   business_hours: 'Mon – Sat · 10:00 AM to 7:00 PM',
@@ -409,10 +409,10 @@ export default function Contact() {
       icon: MapPin, label: 'Head Office Address', title: 'Head Office Address', lines: ['B-309, The One World,', 'Near Ayodhya Chowk, 150 Feet Ring Road,', 'Rajkot - 360 006, Gujarat, India.'], sub: 'Visit us in person', href: c.map_link, hrefLabel: 'View on Map',
     },
     {
-      icon: Phone, label: 'Phone Numbers', title: 'Phone Numbers', lines: ['+91 99798 83339', '+91 281 2589090'], sub: 'Mon – Sat · 10 AM to 7 PM', href: null, links: true,
+      icon: Phone, label: 'Phone Numbers', title: 'Phone Numbers', lines: ['+91 99798 83339', '+91 99134 83334'], sub: 'Mon – Sat · 10 AM to 7 PM', href: null, links: true,
     },
     {
-      icon: Mail, label: 'Email Support', title: 'Email Support', lines: ['alpine_explorers@yahoo.co.in'], sub: "We'll reply within a day", href: null, mails: true,
+      icon: Mail, label: 'Email Support', title: 'Email Support', lines: ['alpineexplorers.travel@gmail.com'], sub: "We'll reply within a day", href: null, mails: true,
     },
   ]
 
@@ -737,8 +737,8 @@ export default function Contact() {
                 <span className="mt-8 text-lg" style={{ ...font.script, color: GOLD }}>EMAIL US</span>
                 <h3 className="text-xl font-bold mb-2 mt-1" style={{ ...font.vintage, color: NAVY }}>Write To Us</h3>
                 <div className="flex-1" />
-                <a href="mailto:alpine_explorers@yahoo.co.in" className="text-sm font-bold mb-4 leading-relaxed break-all" style={{ color: 'var(--ae-navy-soft)', ...font.body }}>alpine_explorers@yahoo.co.in</a>
-                <motion.a href="mailto:alpine_explorers@yahoo.co.in" whileHover={{ y: -2 }} whileTap={{ scale: 0.97 }}
+                <a href="mailto:alpineexplorers.travel@gmail.com" className="text-sm font-bold mb-4 leading-relaxed break-all" style={{ color: 'var(--ae-navy-soft)', ...font.body }}>alpineexplorers.travel@gmail.com</a>
+                <motion.a href="mailto:alpineexplorers.travel@gmail.com" whileHover={{ y: -2 }} whileTap={{ scale: 0.97 }}
                   className="group inline-flex items-center gap-2 px-6 py-3 rounded-full text-xs uppercase font-bold tracking-widest mb-5"
                   style={{ backgroundColor: GOLD, color: NAVY, ...font.vintage, boxShadow: '0 8px 22px rgb(var(--ae-gold-rgb) /0.35)' }}>
                   Email Us <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
@@ -781,8 +781,8 @@ export default function Contact() {
                     <Phone size={16} style={{ color: GOLD }} /> +91 99798 83339
                   </a>
                   <span className="hidden sm:inline text-sm" style={{ color: 'rgb(var(--ae-ink-rgb) /0.4)' }}>|</span>
-                  <a href="mailto:alpine_explorers@yahoo.co.in" className="inline-flex items-center gap-2 text-sm font-bold" style={{ color: NAVY, ...font.body }}>
-                    <Mail size={16} style={{ color: GOLD }} /> alpine_explorers@yahoo.co.in
+                  <a href="mailto:alpineexplorers.travel@gmail.com" className="inline-flex items-center gap-2 text-sm font-bold" style={{ color: NAVY, ...font.body }}>
+                    <Mail size={16} style={{ color: GOLD }} /> alpineexplorers.travel@gmail.com
                   </a>
                 </motion.div>
 

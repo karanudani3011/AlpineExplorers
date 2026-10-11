@@ -151,8 +151,12 @@ export default function TourApplicationForm({ courseName = '', traveler = null, 
     riskCourse: traveler?.riskCourseName || courseName || '', riskPlace: traveler?.riskPlace || '', riskDate: traveler?.riskDate || '',
   })
   const [photo, setPhoto] = useState(typeof traveler?.photo === 'string' ? traveler.photo : traveler?.photo?.dataUrl || '')
+  const [photoFile, setPhotoFile] = useState(traveler?.photoFile || null)
+  const [photoError, setPhotoError] = useState('')
   const [sigApplicant, setSigApplicant] = useState(traveler?.signature || '')
   const [sigGuardian, setSigGuardian] = useState(traveler?.riskSignature || traveler?.sigRisk || '')
+  const [applicantSignatureChanged, setApplicantSignatureChanged] = useState(false)
+  const [guardianSignatureChanged, setGuardianSignatureChanged] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [formErrors, setFormErrors] = useState({})
   const displayedErrors = { ...formErrors, ...errors }
@@ -175,19 +179,36 @@ export default function TourApplicationForm({ courseName = '', traveler = null, 
       address: [f.address, f.address2].filter(Boolean).join(', '), contact: f.contact, education: f.education,
       school: f.school, schoolAddress: [f.schoolAddress, f.schoolAddress2].filter(Boolean).join(', '),
       schoolPhone: f.schoolPhone, hobbies: f.hobbies, experienceYesNo: f.experience,
-      experienceDetails: [f.details, f.details2].filter(Boolean).join('\n'), photo,
+      experienceDetails: [f.details, f.details2].filter(Boolean).join('\n'), photo, photoFile,
+      photoStoragePath: photo && !photoFile ? traveler?.photoStoragePath || null : null,
       declarationAccepted: Boolean(sigApplicant), sigPlace: f.place, sigDate: f.date, signature: sigApplicant,
+      signatureStoragePath: applicantSignatureChanged ? null : traveler?.signatureStoragePath || null,
       riskParticipantName: f.riskName || f.name, riskCourseName: f.riskCourse || f.course || courseName,
       riskAccepted: Boolean(sigGuardian), riskPlace: f.riskPlace, riskDate: f.riskDate,
       riskSignature: sigGuardian, participantType: Number(f.age) < 18 ? 'minor' : 'adult', guardianSignature: sigGuardian,
+      riskSignatureStoragePath: guardianSignatureChanged ? null : traveler?.riskSignatureStoragePath || null,
     })
-  }, [f, photo, sigApplicant, sigGuardian])
+  }, [f, photo, photoFile, sigApplicant, sigGuardian, applicantSignatureChanged, guardianSignatureChanged])
 
   const set = (key) => (e) => {
     let v = e.target.value
     if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0]
+      if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+        setPhotoError('Choose a JPEG, PNG or WebP photograph.')
+        e.target.value = ''
+        return
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        setPhotoError('The photograph must be 10 MB or smaller.')
+        e.target.value = ''
+        return
+      }
+      setPhotoError('')
+      setPhotoFile(file)
       const reader = new FileReader()
       reader.onload = () => setPhoto(reader.result)
+      reader.onerror = () => setPhotoError('The photograph could not be read. Please select it again.')
       reader.readAsDataURL(e.target.files[0])
       return
     }
@@ -341,7 +362,7 @@ export default function TourApplicationForm({ courseName = '', traveler = null, 
                     </button>
                     <button
                       type="button"
-                      onClick={() => setPhoto('')}
+                      onClick={() => { setPhoto(''); setPhotoFile(null); setPhotoError('') }}
                       className="absolute top-1 right-1 w-5 h-5 rounded-full bg-white/80 text-rose-700 flex items-center justify-center shadow-sm"
                       title="Remove photo"
                     >
@@ -349,11 +370,12 @@ export default function TourApplicationForm({ courseName = '', traveler = null, 
                     </button>
                   </>
                 )}
-                <input ref={photoInput} type="file" accept="image/*" className="hidden" onChange={set('photo')} />
+                <input ref={photoInput} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={set('photo')} />
               </div>
               <p className="text-[11px] text-center mt-1 tracking-widest uppercase" style={{ color: RED }}>
                 Photograph
               </p>
+              {photoError && <p role="alert" className="mt-1 max-w-36 text-center text-[11px] text-red-700">{photoError}</p>}
             </div>
           </div>
 
@@ -465,7 +487,7 @@ export default function TourApplicationForm({ courseName = '', traveler = null, 
             </div>
 
             <div className="mt-5">
-              <SignaturePad label="Applicant's signature" value={sigApplicant} onChange={setSigApplicant} />
+              <SignaturePad label="Applicant's signature" value={sigApplicant} onChange={(value) => { setSigApplicant(value); setApplicantSignatureChanged(true) }} />
             </div>
 
             {/* ─── Risk Certificate ─── */}
@@ -507,7 +529,7 @@ export default function TourApplicationForm({ courseName = '', traveler = null, 
                 label="Signature parents/guardian/applicant"
                 sub="(If applier minor)"
                 value={sigGuardian}
-                onChange={setSigGuardian}
+                onChange={(value) => { setSigGuardian(value); setGuardianSignatureChanged(true) }}
               />
             </div>
           </div>
