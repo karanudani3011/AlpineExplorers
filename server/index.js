@@ -28,14 +28,43 @@ const PORT = process.env.PORT || 5000
 const uploadsDir = path.join(__dirname, '..', 'uploads')
 const distDir = path.join(__dirname, '..', 'dist')
 
-const allowedOrigins = process.env.FRONTEND_URL
-  ? process.env.FRONTEND_URL.split(',').map((url) => url.trim())
-  : '*'
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow non-browser requests (tools, curl, server-to-server)
+    if (!origin) return callback(null, true)
 
-app.use(cors({
-  origin: allowedOrigins,
+    try {
+      const parsed = new URL(origin)
+      const host = parsed.hostname.toLowerCase()
+      // Allow localhost, local IPs, Render services, and any alpineexplores/alpineexplorers variant
+      if (
+        host === 'localhost' ||
+        host === '127.0.0.1' ||
+        host.endsWith('.onrender.com') ||
+        host.includes('alpineexplore')
+      ) {
+        return callback(null, true)
+      }
+    } catch {}
+
+    // Allow configured origins from FRONTEND_URL
+    if (process.env.FRONTEND_URL) {
+      const allowed = process.env.FRONTEND_URL
+        .split(',')
+        .map((u) => u.trim().replace(/\/+$/, '').toLowerCase())
+      const cleanOrigin = origin.replace(/\/+$/, '').toLowerCase()
+      if (allowed.includes(cleanOrigin) || allowed.includes('*')) {
+        return callback(null, true)
+      }
+    }
+
+    // Default fallback: allow origin
+    return callback(null, true)
+  },
   credentials: true,
-}))
+}
+
+app.use(cors(corsOptions))
 app.use(express.json({ limit: '5mb' }))
 
 /* Uploads */

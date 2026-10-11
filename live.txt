@@ -64,8 +64,7 @@ STEP 3: Configure Environment Variables on Render
   NODE_VERSION           22.x   (CRITICAL: node:sqlite requires Node 22+)
   NODE_ENV               production
   PORT                   5000
-  JWT_SECRET             [Generate a long random string, e.g. a8f9c2d7e1...]
-  FRONTEND_URL           https://yourdomain.com (your Hostinger frontend domain)
+  FRONTEND_URL           https://alpineexplores.com,https://www.alpineexplores.com,https://alpineexplorers.com,https://www.alpineexplorers.com
   DATA_DIR               /data  (Required ONLY if attaching a Render Disk)
   
   CLOUDINARY_CLOUD_NAME  izgswkwq
