@@ -273,7 +273,7 @@ export default function Home() {
               style={{ backgroundColor: '#FAF5EA', border: '1px solid rgb(var(--ae-gold2-rgb) /0.4)', boxShadow: '0 12px 36px rgba(11,42,91,0.25)' }}>
               {[
                 { value: '120+', label: 'DESTINATIONS' },
-                { value: '5000+', label: 'HAPPY TRAVELERS' },
+                { value: '20000+', label: 'HAPPY TRAVELERS' },
                 { value: '1998', label: 'SINCE' },
               ].map((stat, i) => (
                 <div key={stat.label + stat.value} className="flex items-center gap-4 sm:gap-8">

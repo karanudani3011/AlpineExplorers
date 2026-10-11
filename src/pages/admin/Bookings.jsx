@@ -25,6 +25,7 @@ export default function Bookings() {
   const [statsLoading, setStatsLoading] = useState(true)
   
   const [search, setSearch] = useState('')
+  const [searchInput, setSearchInput] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
   const [filterPaymentStatus, setFilterPaymentStatus] = useState('')
   const [filterTour, setFilterTour] = useState('')
@@ -39,6 +40,7 @@ export default function Bookings() {
   const [pdfGenerating, setPdfGenerating] = useState(null)
   const [excelGenerating, setExcelGenerating] = useState(null)
   const [verifyingId, setVerifyingId] = useState(null)
+  const [reprocessingSearchIndex, setReprocessingSearchIndex] = useState(false)
 
   const loadBookings = useCallback(async () => {
     setLoading(true)
@@ -83,8 +85,13 @@ export default function Bookings() {
     loadStats()
   }, [loadBookings, loadStats])
 
+  useEffect(() => {
+    const timer = window.setTimeout(() => setSearch(searchInput.trim()), 300)
+    return () => window.clearTimeout(timer)
+  }, [searchInput])
+
   const handleSearch = (e) => {
-    setSearch(e.target.value)
+    setSearchInput(e.target.value)
     setPage(1)
   }
 
@@ -120,6 +127,34 @@ export default function Bookings() {
     }
   }
 
+  const reprocessSearchIndex = async () => {
+    setReprocessingSearchIndex(true)
+    try {
+      const result = await api.post('/bookings/search-index/reprocess', {})
+      addToast(`Document indexing finished: ${result.indexed} indexed, ${result.failed} failed.`)
+      await loadBookings()
+    } catch (error) {
+      addToast(error.message || 'Unable to reprocess scanned document search.', 'error')
+    } finally {
+      setReprocessingSearchIndex(false)
+    }
+  }
+
+  const openScannedDocument = async (form, booking, preview = false) => {
+    try {
+      const blob = form.url?.startsWith('/uploads/')
+        ? await api.getBlob(`/bookings/local-files/${encodeURIComponent(form.url.split('/').pop())}`)
+        : await fetch(form.url).then(response => { if (!response.ok) throw new Error('Scanned document is unavailable.'); return response.blob() })
+      const href = URL.createObjectURL(blob)
+      if (preview) {
+        if (!window.open(href, '_blank', 'noopener,noreferrer')) addToast('Allow pop-ups to preview the scanned PDF.', 'error')
+      } else {
+        const anchor = document.createElement('a'); anchor.href = href; anchor.download = form.name || `Scanned_Form_${booking.booking_id}.pdf`; document.body.appendChild(anchor); anchor.click(); anchor.remove()
+      }
+      window.setTimeout(() => URL.revokeObjectURL(href), 60000)
+    } catch (error) { addToast(error.message || 'Scanned document could not be opened.', 'error') }
+  }
+
   const downloadDatewisePdfs = async (dateType = 'booking') => {
     const targetDate = dateType === 'travel' ? filterTravelDate : filterBookingDate
     if (!targetDate) {
@@ -149,18 +184,7 @@ export default function Bookings() {
       for (const b of matchingBookings) {
         const forms = safeScannedForms(b.scanned_forms)
         if (forms.length > 0) {
-          for (const form of forms) {
-            if (form.url) {
-              const link = document.createElement('a')
-              link.href = form.url
-              link.target = '_blank'
-              link.download = form.name || `Scanned_Form_${b.booking_id}.pdf`
-              document.body.appendChild(link)
-              link.click()
-              link.remove()
-              downloadedCount++
-            }
-          }
+          for (const form of forms) if (form.url) { await openScannedDocument(form, b); downloadedCount++ }
         }
       }
 
@@ -180,7 +204,17 @@ export default function Bookings() {
   const generatePdf = async (bookingId, type = 'booking') => {
     setPdfGenerating(bookingId || 'all')
     try {
-      const path = type === 'all' ? '/bookings/download/all/pdf' : `/bookings/${bookingId}/download/pdf`
+      const params = new URLSearchParams()
+      if (filterStatus) params.set('status', filterStatus)
+      if (filterPaymentStatus) params.set('payment_status', filterPaymentStatus)
+      if (search) params.set('search', search)
+      if (filterTour) params.set('tour', filterTour)
+      if (filterTravelDate) params.set('travelDate', filterTravelDate)
+      if (filterBookingDate) params.set('bookingDate', filterBookingDate)
+      if (filterMinTravelers) params.set('minTravelers', filterMinTravelers)
+      if (filterMaxTravelers) params.set('maxTravelers', filterMaxTravelers)
+      if (filterHasScannedForm) params.set('hasScannedForm', filterHasScannedForm)
+      const path = type === 'all' ? `/bookings/download/all/pdf?${params}` : `/bookings/${bookingId}/download/pdf`
       const blob = await api.getBlob(path)
       const downloadUrl = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
@@ -202,7 +236,17 @@ export default function Bookings() {
   const generateExcel = async (bookingId, type = 'booking') => {
     setExcelGenerating(bookingId || 'all')
     try {
-      const path = type === 'all' ? '/bookings/download/all/excel' : `/bookings/${bookingId}/download/excel`
+      const params = new URLSearchParams()
+      if (filterStatus) params.set('status', filterStatus)
+      if (filterPaymentStatus) params.set('payment_status', filterPaymentStatus)
+      if (search) params.set('search', search)
+      if (filterTour) params.set('tour', filterTour)
+      if (filterTravelDate) params.set('travelDate', filterTravelDate)
+      if (filterBookingDate) params.set('bookingDate', filterBookingDate)
+      if (filterMinTravelers) params.set('minTravelers', filterMinTravelers)
+      if (filterMaxTravelers) params.set('maxTravelers', filterMaxTravelers)
+      if (filterHasScannedForm) params.set('hasScannedForm', filterHasScannedForm)
+      const path = type === 'all' ? `/bookings/download/all/excel?${params}` : `/bookings/${bookingId}/download/excel`
       const blob = await api.getBlob(path)
       const downloadUrl = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
@@ -224,7 +268,17 @@ export default function Bookings() {
   const downloadDigitalApplications = async () => {
     setPdfGenerating('digital-all')
     try {
-      const blob = await api.getBlob('/bookings/download/all/digital-applications.zip')
+      const params = new URLSearchParams()
+      if (filterStatus) params.set('status', filterStatus)
+      if (filterPaymentStatus) params.set('payment_status', filterPaymentStatus)
+      if (search) params.set('search', search)
+      if (filterTour) params.set('tour', filterTour)
+      if (filterTravelDate) params.set('travelDate', filterTravelDate)
+      if (filterBookingDate) params.set('bookingDate', filterBookingDate)
+      if (filterMinTravelers) params.set('minTravelers', filterMinTravelers)
+      if (filterMaxTravelers) params.set('maxTravelers', filterMaxTravelers)
+      if (filterHasScannedForm) params.set('hasScannedForm', filterHasScannedForm)
+      const blob = await api.getBlob(`/bookings/download/all/digital-applications.zip?${params}`)
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a'); a.href = url; a.download = 'all-digital-applications.zip'; document.body.appendChild(a); a.click(); a.remove(); window.URL.revokeObjectURL(url)
       addToast('Digital application PDFs downloaded.')
@@ -295,6 +349,7 @@ export default function Bookings() {
         subtitle="Manage customer bookings, traveler applications and risk certificates."
         actions={
           <div className="flex flex-wrap gap-2">
+            {hasPermission('bookings.edit') && <Btn variant="ghostGold" onClick={reprocessSearchIndex} disabled={reprocessingSearchIndex}>{reprocessingSearchIndex ? <><Loader2 size={14} className="animate-spin"/> Indexing…</> : <><Search size={14}/> Retry PDF indexing</>}</Btn>}
             {hasPermission('bookings.export_pdf') && (
               <Btn variant="ghostGold" onClick={downloadDigitalApplications} disabled={Boolean(pdfGenerating) || Boolean(excelGenerating)}>
                 {pdfGenerating === 'digital-all' ? <><Loader2 size={14} className="animate-spin"/><span> Preparing ZIP…</span></> : <><Download size={14}/><span> Digital Apps ZIP</span></>}
@@ -335,7 +390,7 @@ export default function Bookings() {
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 opacity-40" />
             <input
               type="text"
-              value={search}
+                value={searchInput}
               onChange={handleSearch}
               placeholder="Search bookings..."
               className="w-full px-10 py-2.5 rounded-xl border outline-none text-sm"
@@ -536,24 +591,19 @@ export default function Bookings() {
                   {/* Mobile Scanned Form link */}
                   <div className="flex items-center gap-2 mb-3 text-xs">
                     <span className="font-bold text-gray-500">Scanned Form:</span>
-                    {safeScannedForms(booking.scanned_forms).length > 0 ? (
-                      <div className="flex gap-1 flex-wrap">
+                    <div className="flex gap-1 flex-wrap">
                         {safeScannedForms(booking.scanned_forms).map((form, fIdx) => (
-                          <a
+                          <button type="button"
                             key={fIdx}
-                            href={form.url}
-                            target="_blank"
-                            rel="noreferrer"
-                            download={form.name || `Scanned_Form_${booking.booking_id}.pdf`}
+                            onClick={() => openScannedDocument(form, booking)}
                             className="inline-flex items-center gap-1 text-red-700 font-bold bg-red-50 border border-red-200 px-2 py-0.5 rounded-md"
                           >
-                            <FileText size={11} className="text-red-600" /> Scan {safeScannedForms(booking.scanned_forms).length > 1 ? `#${fIdx + 1}` : '(PDF)'}
-                          </a>
+                            <FileText size={11} className="text-red-600" /> Scan {safeScannedForms(booking.scanned_forms).length > 1 ? `#${fIdx + 1}` : '(PDF)'} · {form.search_match ? `Match, page ${form.search_match.page || 'unknown'}` : form.search_index?.index_status || 'Not indexed'}
+                          </button>
                         ))}
-                      </div>
-                    ) : (
-                      <span className="text-gray-400 italic">Not Uploaded</span>
-                    )}
+                        {(booking.search_document_matches || []).map((match, matchIndex) => <span key={`match-${matchIndex}`} className="text-emerald-700 font-semibold">{match.document_name}{match.page ? ` · p.${match.page}` : ''}</span>)}
+                        {safeScannedForms(booking.scanned_forms).length === 0 && !(booking.search_document_matches || []).length && <span className="text-gray-400 italic">Not Uploaded</span>}
+                    </div>
                   </div>
 
                   <div className="flex items-center gap-2">
@@ -645,26 +695,24 @@ export default function Bookings() {
                         </div>
                       </td>
                       <td className="px-5 py-4">
-                        {safeScannedForms(booking.scanned_forms).length > 0 ? (
+                        {safeScannedForms(booking.scanned_forms).length > 0 || (booking.search_document_matches || []).length ? (
                           <div className="flex flex-col gap-1">
                             {safeScannedForms(booking.scanned_forms).map((form, fIdx) => (
-                              <a
+                              <button type="button"
                                 key={fIdx}
-                                href={form.url}
-                                target="_blank"
-                                rel="noreferrer"
-                                download={form.name || `Scanned_Form_${booking.booking_id}.pdf`}
+                                onClick={() => openScannedDocument(form, booking)}
                                 className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold text-red-700 bg-red-50 border border-red-200 hover:bg-red-100 transition truncate max-w-[130px]"
                                 title={form.name || 'Download Scanned Form PDF'}
                               >
                                 <FileText size={12} className="shrink-0 text-red-600" />
-                                <span className="truncate">{safeScannedForms(booking.scanned_forms).length === 1 ? 'User Scan (PDF)' : `Scan #${fIdx + 1}`}</span>
+                                <span className="truncate">{safeScannedForms(booking.scanned_forms).length === 1 ? 'User Scan (PDF)' : `Scan #${fIdx + 1}`} · {form.search_match ? `Match page ${form.search_match.page || 'unknown'}` : form.search_index?.index_status || 'Not indexed'}</span>
                                 <Download size={10} className="shrink-0 opacity-60 ml-auto" />
-                              </a>
+                              </button>
                             ))}
+                            {(booking.search_document_matches || []).map((match, matchIndex) => <span key={`match-${matchIndex}`} className="max-w-[150px] truncate text-[11px] font-semibold text-emerald-700" title={match.document_name}>{match.document_name}{match.page ? ` · p.${match.page}` : ''}</span>)}
                           </div>
                         ) : (
-                          <span className="text-xs text-gray-400 italic">Not Uploaded</span>
+                            <span className="text-xs text-gray-400 italic">Not Uploaded</span>
                         )}
                       </td>
                       <td className="px-5 py-4">{getStatusBadge(booking.status)}</td>

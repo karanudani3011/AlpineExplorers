@@ -69,6 +69,11 @@ app.use(express.json({ limit: '5mb' }))
 
 /* Uploads */
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true })
+app.use('/uploads', (req, res, next) => {
+  const name = path.basename(decodeURIComponent(req.path || '')).toLowerCase()
+  if (/^(photo|sig|scanned-form|guardian|application)[-_]/.test(name)) return res.status(404).json({ error: 'Private booking files require authorized access.' })
+  next()
+})
 app.use('/uploads', express.static(uploadsDir))
 
 const HOST = process.env.HOST || 'http://localhost'

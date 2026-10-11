@@ -10,6 +10,7 @@ import { generateBookingPdf, generateIndividualTravelerPdf, generateAllBookingsP
 import { generateBookingExcel, generateIndividualTravelerExcel, generateAllBookingsExcel } from '../utils/excelGenerator.js'
 import { generateDigitalApplicationPdf } from '../utils/digitalApplicationPdf.js'
 import { syncBookingToSupabase, supabaseRequest, supabaseAdmin } from '../utils/supabase.js'
+import { indexScannedDocument, indexSupabaseBookingDocuments, reprocessScannedDocuments } from '../utils/scannedDocumentIndex.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const uploadsDir = path.join(__dirname, '..', '..', 'uploads')
@@ -63,6 +64,26 @@ function saveBase64Image(dataUrl, prefix = 'img') {
 
 const router = Router()
 
+router.get('/local-files/:filename', authRequired, requirePermission('bookings.view'), (req, res) => {
+  const filename = path.basename(req.params.filename || '')
+  const filePath = path.resolve(uploadsDir, filename)
+  if (!filename || filePath !== path.join(uploadsDir, filename) || !fs.existsSync(filePath)) return res.status(404).json({ error: 'Private booking file was not found.' })
+  const relativePath = `/uploads/${filename}`
+  const referenced = db.prepare("SELECT 1 AS found FROM bookings WHERE scanned_forms LIKE ? LIMIT 1").get(`%${relativePath}%`)
+    || db.prepare('SELECT 1 AS found FROM travelers WHERE photo_url=? OR scanned_form_url=? LIMIT 1').get(relativePath, relativePath)
+    || db.prepare('SELECT 1 AS found FROM declarations WHERE signature_url=? LIMIT 1').get(relativePath)
+    || db.prepare('SELECT 1 AS found FROM risk_certificates WHERE signature_url=? LIMIT 1').get(relativePath)
+    || db.prepare('SELECT 1 AS found FROM guardians WHERE guardian_signature_url=? LIMIT 1').get(relativePath)
+  if (!referenced) return res.status(404).json({ error: 'Private booking file was not found.' })
+  const ext = path.extname(filename).toLowerCase()
+  const contentType = ({ '.pdf':'application/pdf','.jpg':'image/jpeg','.jpeg':'image/jpeg','.png':'image/png','.webp':'image/webp' })[ext]
+  if (!contentType) return res.status(415).json({ error: 'Unsupported booking file type.' })
+  res.setHeader('Content-Type', contentType)
+  res.setHeader('Content-Disposition', `inline; filename="${filename.replace(/[\r\n"\\]/g, '_')}"`)
+  res.setHeader('Cache-Control', 'private, no-store')
+  res.sendFile(filePath)
+})
+
 function crc32(buffer) {
   let crc = 0xffffffff
   for (const byte of buffer) { crc ^= byte; for (let bit = 0; bit < 8; bit++) crc = (crc >>> 1) ^ (crc & 1 ? 0xedb88320 : 0) }
@@ -114,6 +135,12 @@ router.post('/upload-forms', scannedFormUpload.any(), async (req, res) => {
         } catch (e) {}
         const merged = [...existingForms, ...uploadedFiles]
         updateBookingScannedForms(existing.id, merged)
+
+        req.files.forEach((source, index) => {
+          const isPdf = source.originalname.toLowerCase().endsWith('.pdf') || source.mimetype === 'application/pdf'
+          uploadedFiles[index].search_index_status = isPdf ? 'processing' : 'not_applicable'
+          if (isPdf) void indexScannedDocument({ bookingId: existing.id, documentPath: `/uploads/${source.filename}`, documentName: source.originalname }).catch(error => console.error('[Scanned PDF index]', error.message))
+        })
 
         // Sync to Supabase bookings table
         try {
@@ -390,7 +417,20 @@ router.get('/', requirePermission('bookings.view'), async (req, res) => {
     try {
       parsedForms = typeof b.scanned_forms === 'string' ? JSON.parse(b.scanned_forms || '[]') : (b.scanned_forms || [])
     } catch(e) {}
-    return { ...b, scanned_forms: parsedForms }
+    const indexRows = db.prepare('SELECT document_path,document_name,index_status,index_error,indexed_at,extracted_text FROM scanned_document_index WHERE booking_id=?').all(b.id)
+    const needle = String(search || '').trim().toLowerCase()
+    const search_document_matches = needle ? indexRows.flatMap(index => {
+      const matchAt = index.index_status === 'indexed' ? index.extracted_text.toLowerCase().indexOf(needle) : -1
+      if (matchAt < 0) return []
+      const pagePrefix = index.extracted_text.slice(0, matchAt).match(/\[Page (\d+)\]/g)?.at(-1)
+      return [{ document_name: index.document_name, page: pagePrefix?.match(/\d+/)?.[0] || null }]
+    }) : []
+    return { ...b, search_document_matches, scanned_forms: parsedForms.map(form => {
+      const index = indexRows.find(row => row.document_path === form.url) || null
+      const matchAt = needle && index?.index_status === 'indexed' ? index.extracted_text.toLowerCase().indexOf(needle) : -1
+      const pagePrefix = matchAt >= 0 ? index.extracted_text.slice(0, matchAt).match(/\[Page (\d+)\]/g)?.at(-1) : null
+      return { ...form, search_index: index ? { ...index, extracted_text: undefined } : null, search_match: matchAt >= 0 ? { document_name: index.document_name, page: pagePrefix?.match(/\d+/)?.[0] || null } : null }
+    }) }
   })
 
   const total = getBookingsCount({
@@ -425,7 +465,8 @@ router.get('/:id', requirePermission('bookings.view'), (req, res) => {
     guardian: getGuardianByTravelerId(t.id)
   }))
   
-  res.json({ booking: { ...booking, scanned_forms: parsedForms }, travelers: travelersWithDetails })
+  const indexRows = db.prepare('SELECT document_path,index_status,index_error,indexed_at FROM scanned_document_index WHERE booking_id=?').all(booking.id)
+  res.json({ booking: { ...booking, scanned_forms: parsedForms.map(form => ({ ...form, search_index: indexRows.find(row => row.document_path === form.url) || null })) }, travelers: travelersWithDetails })
 })
 
 router.get('/booking-id/:bookingId', requirePermission('bookings.view'), (req, res) => {
@@ -441,6 +482,29 @@ router.get('/booking-id/:bookingId', requirePermission('bookings.view'), (req, r
   }))
   
   res.json({ booking, travelers: travelersWithDetails })
+})
+
+router.post('/search-index/reprocess', requirePermission('bookings.edit'), async (req, res) => {
+  try {
+    const bookingId = req.body?.booking_id ? getBookingByBookingId(req.body.booking_id)?.id : null
+    if (req.body?.booking_id && !bookingId) return res.status(404).json({ error: 'Booking was not found.' })
+    const results = await reprocessScannedDocuments(bookingId)
+    res.json({ processed: results.length, indexed: results.filter(row => row.status === 'indexed').length, failed: results.filter(row => row.status === 'failed').length, results })
+  } catch (error) {
+    res.status(500).json({ error: 'Unable to reprocess scanned document search indexes.' })
+  }
+})
+
+router.post('/index-user-documents', authRequired, async (req, res) => {
+  try {
+    const bookingReference = String(req.body?.booking_reference || '')
+    if (!bookingReference) return res.status(400).json({ error: 'Booking reference is required.' })
+    const result = await indexSupabaseBookingDocuments(bookingReference, req.user.auth_user_id || req.user.id)
+    if (!result.found) return res.status(404).json({ error: 'Your booking or its saved application documents were not found.' })
+    res.json(result)
+  } catch (error) {
+    res.status(503).json({ error: error.message || 'Application document search indexing failed.' })
+  }
 })
 
 // Secure Supabase application documents and payments for the existing RBAC admin detail view.
@@ -460,8 +524,8 @@ router.get('/booking-id/:bookingId/application-data', requirePermission('booking
       for (const [field, urlField] of [['photograph_path', 'photograph_url'], ['applicant_signature_path', 'applicant_signature_url'], ['parent_guardian_signature_path', 'parent_guardian_signature_url']]) {
         if (app[field]) {
           const { data: signed, error: signedError } = await supabaseAdmin.storage.from('booking-private-docs').createSignedUrl(app[field], 300)
-          if (signedError) throw signedError
-          app[urlField] = signed.signedUrl
+          if (!signedError && signed?.signedUrl) app[urlField] = signed.signedUrl
+          else app[`${urlField}_error`] = 'Private file unavailable.'
         }
       }
     }
@@ -470,8 +534,8 @@ router.get('/booking-id/:bookingId/application-data', requirePermission('booking
       if (error) throw error
       for (const doc of rows || []) {
         const { data: signed, error: signedError } = await supabaseAdmin.storage.from('booking-private-docs').createSignedUrl(doc.storage_path, 300)
-        if (signedError) throw signedError
-        documents.push({ ...doc, traveler_number: app.traveler_number, signed_url: signed.signedUrl })
+        const indexed = db.prepare('SELECT index_status,index_error,indexed_at FROM scanned_document_index WHERE document_path=?').get(`supabase://booking-private-docs/${doc.storage_path}`)
+        documents.push({ ...doc, traveler_number: app.traveler_number, signed_url: !signedError ? signed?.signedUrl : null, search_index: indexed || null })
       }
     }
     res.json({ booking, applications: applications || [], documents, payments: payments || [] })
@@ -523,9 +587,11 @@ router.get('/booking-id/:bookingId/applications/:travelerNumber/original-pdf', r
 router.get('/download/all/digital-applications.zip', requirePermission('bookings.export_pdf'), async (req, res) => {
   try {
     if (!process.env.SUPABASE_SERVICE_ROLE_KEY) throw new Error('Private document export requires server Supabase configuration.')
+    const exportReferences = getAllBookingsForExport(bookingExportFilters(req.query)).map(row => row.booking_id)
+    if (!exportReferences.length) return res.status(404).json({ error: 'No bookings match the selected filters.' })
     const files = []
     for (let offset = 0; ; offset += 500) {
-      const { data: bookings, error } = await supabaseAdmin.from('bookings').select('*').order('created_at').range(offset, offset + 499)
+      const { data: bookings, error } = await supabaseAdmin.from('bookings').select('*').in('booking_reference', exportReferences).order('created_at').range(offset, offset + 499)
       if (error) throw error
       if (!bookings?.length) break
       for (const booking of bookings) {
@@ -764,10 +830,24 @@ router.delete('/:id', requirePermission('bookings.delete'), async (req, res) => 
 
 // PDF & Excel Downloads — NOTE: Specific static routes MUST come BEFORE parameterized /:id routes in Express!
 
+function bookingExportFilters(query = {}) {
+  return {
+    status: query.status || undefined,
+    paymentStatus: query.payment_status || query.paymentStatus || undefined,
+    search: query.search || undefined,
+    tour: query.tour || undefined,
+    travelDate: query.travelDate || undefined,
+    bookingDate: query.bookingDate || undefined,
+    minTravelers: query.minTravelers ? Number(query.minTravelers) : undefined,
+    maxTravelers: query.maxTravelers ? Number(query.maxTravelers) : undefined,
+    hasScannedForm: query.hasScannedForm || query.has_scanned_form || undefined,
+  }
+}
+
 // 1. All Bookings PDF
 router.get('/download/all/pdf', requirePermission('bookings.export_pdf'), async (req, res) => {
   try {
-    const pdfBuffer = await generateAllBookingsPdf()
+    const pdfBuffer = await generateAllBookingsPdf(bookingExportFilters(req.query))
     res.setHeader('Content-Type', 'application/pdf')
     res.setHeader('Content-Disposition', 'attachment; filename="all-bookings.pdf"')
     res.send(pdfBuffer)
@@ -780,7 +860,7 @@ router.get('/download/all/pdf', requirePermission('bookings.export_pdf'), async 
 // 2. All Bookings Excel
 router.get('/download/all/excel', requirePermission('bookings.export_excel'), async (req, res) => {
   try {
-    const excelBuffer = await generateAllBookingsExcel()
+    const excelBuffer = await generateAllBookingsExcel(bookingExportFilters(req.query))
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     res.setHeader('Content-Disposition', 'attachment; filename="all-bookings.xlsx"')
     res.send(excelBuffer)

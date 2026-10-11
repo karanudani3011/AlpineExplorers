@@ -3,6 +3,7 @@ import { getBookingById, getTravelersByBookingId, getDeclarationByTravelerId, ge
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { supabaseAdmin } from './supabase.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const uploadsDir = path.join(__dirname, '..', '..', 'uploads')
@@ -21,17 +22,17 @@ function fmt(amount) {
 
 function fmtDate(d) {
   if (!d) return '—'
-  try { return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) } catch { return d }
+  try { const parsed = new Date(d); return Number.isNaN(parsed.getTime()) ? 'Not provided' : parsed.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) } catch { return 'Not provided' }
 }
 
 function addImg(doc, src, x, y, w, h) {
-  if (!src || typeof src !== 'string') return false
+  if (!src || (!Buffer.isBuffer(src) && typeof src !== 'string')) return false
   try {
-    let buf = null
-    if (src.startsWith('data:image/')) {
+    let buf = Buffer.isBuffer(src) ? src : null
+    if (!buf && src.startsWith('data:image/')) {
       const p = src.split(',')
       if (p.length > 1) buf = Buffer.from(p[1], 'base64')
-    } else {
+    } else if (!buf) {
       const rel = src.replace(/^\/?uploads\//, '')
       const fp  = path.join(uploadsDir, rel)
       if (fs.existsSync(fp)) buf = fs.readFileSync(fp)
@@ -53,11 +54,8 @@ function header(doc, booking, pageNum) {
   border(doc)
 
   // Logo block
-  doc.rect(30, 28, 36, 36).fillAndStroke(RED, RED)
-  doc.fontSize(7).font('Helvetica-Bold').fillColor('#fff')
-  doc.text('ALPINE', 30, 36, { width: 36, align: 'center' })
-  doc.fontSize(5).font('Helvetica').fillColor('#fff')
-  doc.text('EXPLORERS', 30, 44, { width: 36, align: 'center' })
+  const logo = path.join(__dirname, '..', '..', 'public', 'alpine_logo.png')
+  if (fs.existsSync(logo)) { try { doc.image(logo, 30, 27, { fit: [38, 38] }) } catch {} }
 
   // Company name + tagline
   doc.fontSize(13).font('Times-Bold').fillColor(RED).text('ALPINE EXPLORERS', 72, 29)
@@ -66,7 +64,7 @@ function header(doc, booking, pageNum) {
 
   // Booking ref + page
   doc.fontSize(6.5).font('Helvetica-Bold').fillColor(NAVY)
-  doc.text(`Ref: ${booking.booking_id}   |   Page ${pageNum} of 2`, 350, 29, { width: 215, align: 'right' })
+  doc.text(`Ref: ${booking.booking_id}   |   Page ${pageNum}`, 350, 29, { width: 215, align: 'right' })
 
   // Red divider
   doc.moveTo(28, 68).lineTo(572, 68).lineWidth(1.2).strokeColor(RED).stroke()
@@ -194,20 +192,34 @@ function page1(doc, booking, t, idx) {
   doc.moveTo(sigX - 5, y + 22).lineTo(sigX + 120, y + 22).lineWidth(0.4).strokeColor(GRAY).stroke()
   doc.fontSize(6).font('Helvetica-Bold').fillColor(BLACK)
   doc.text('Signature of Applicant', sigX - 5, y + 24, { width: 125, align: 'center' })
+  let contentEnd = y + 42
+  const extraFields = t.application_data?.original_fields || {}
+  const represented = new Set(['courseName','course_name','fullName','name','dob','date_of_birth','age','sex','bloodGroup','blood_group','address','contact','contact_number','education','school','school_college','schoolAddress','school_college_address','schoolPhone','school_college_phone','hobbies','experienceYesNo','adventure_experience','experienceDetails','adventure_details','declarationAccepted','declarationAgreed','sigPlace','declaration_place','sigDate','declaration_date','riskParticipantName','risk_participant_name','riskCourseName','risk_course_name','riskAccepted','risk_place','risk_date','riskPlace','riskDate','guardianName','guardianContact','participantType','photo','photoFile','signature','sigApplicant','riskSignature','sigRisk','sigGuardian','guardianSignature'])
+  const extras = Object.entries(extraFields).filter(([key,value]) => !represented.has(key) && !['isExpanded','isCompleted','photo_status'].includes(key) && value != null && value !== '')
+  if (extras.length) {
+    contentEnd += 4
+    doc.fontSize(7).font('Helvetica-Bold').fillColor(NAVY).text('ADDITIONAL APPLICATION DETAILS', 28, contentEnd, { width: 544 })
+    contentEnd += 11
+    for (const [key,value] of extras) {
+      const text = typeof value === 'object' ? JSON.stringify(value) : String(value)
+      const valueHeight = Math.max(9, doc.heightOfString(text, { width: 420, font: 'Helvetica', fontSize: 7, lineGap: 0 }))
+      doc.fontSize(6.5).font('Helvetica-Bold').fillColor(BLACK).text(key.replaceAll('_',' '), 32, contentEnd, { width: 118, height: valueHeight })
+      doc.fontSize(7).font('Helvetica').fillColor(NAVY).text(text, 152, contentEnd, { width: 420, height: valueHeight, lineGap: 0 })
+      contentEnd += valueHeight + 3
+    }
+  }
+  return contentEnd
 }
 
 /* =============================================================
    PAGE 2 — Risk Certificate + Booking Summary + Office Use
    ============================================================= */
-function page2(doc, booking, t, idx) {
-  doc.addPage()
-  header(doc, booking, 2)
-
-  let y = 72
+function page2(doc, booking, t, idx, startY) {
+  let y = startY
 
   // ── RISK CERTIFICATE ──
   const risk = t.risk_certificate || {}
-  doc.rect(28, y, 544, 115).lineWidth(1).strokeColor(RED).stroke()
+  doc.rect(28, y, 544, 92).lineWidth(1).strokeColor(RED).stroke()
   doc.rect(28, y, 544, 13).fillAndStroke(RED, RED)
   doc.fontSize(8).font('Helvetica-Bold').fillColor('#fff').text('RISK CERTIFICATE', 28, y + 3, { width: 544, align: 'center' })
 
@@ -220,7 +232,7 @@ function page2(doc, booking, t, idx) {
     36, y + 18, { width: 528, align: 'justify', lineGap: 2 }
   )
 
-  const rSigY = y + 72
+  const rSigY = y + 52
   doc.fontSize(6.5).font('Helvetica-Bold').fillColor(BLACK)
   doc.text(`Place : ${risk.place || '—'}`, 36, rSigY)
   doc.text(`Date  : ${fmtDate(risk.date)}`, 36, rSigY + 11)
@@ -232,14 +244,14 @@ function page2(doc, booking, t, idx) {
   doc.text('Signature of Parent / Guardian / Applicant', rSigX - 5, rSigY + 24, { width: 140, align: 'center' })
   doc.fontSize(5.5).font('Helvetica').fillColor(GRAY).text('(In case of minor, parent signature required)', rSigX - 5, rSigY + 32, { width: 140, align: 'center' })
 
-  y += 120
+  y += 97
 
   // ── BOOKING & PAYMENT SUMMARY ──
   doc.rect(28, y, 544, 12).fillAndStroke(NAVY, NAVY)
   doc.fontSize(7.5).font('Helvetica-Bold').fillColor('#fff').text('OFFICIAL BOOKING & PAYMENT DETAILS', 28, y + 2.5, { width: 544, align: 'center' })
 
   y += 16
-  doc.rect(28, y, 544, 95).lineWidth(0.5).strokeColor('#cbd5e1').stroke()
+  doc.rect(28, y, 544, 88).lineWidth(0.5).strokeColor('#cbd5e1').stroke()
 
   const c1 = 38, c2 = 300
   let ry = y + 7
@@ -267,7 +279,7 @@ function page2(doc, booking, t, idx) {
   ry += 13
   brow('CONTACT :', `${booking.booking_contact_name || '—'} (${booking.booking_contact_phone || '—'})`, 'EMAIL :', booking.booking_contact_email)
 
-  y += 100
+  y += 93
 
   // ── SCANNED FORMS SECTION ──
   let scannedForms = []
@@ -301,7 +313,7 @@ function page2(doc, booking, t, idx) {
   y += sfH + 8
 
   // ── OFFICE USE BOX ──
-  const offH = 52
+  const offH = 95
   doc.rect(28, y, 544, offH).lineWidth(0.6).strokeColor('#94a3b8').stroke()
   doc.fontSize(7).font('Helvetica-Bold').fillColor(NAVY).text('FOR ALPINE EXPLORERS OFFICE USE ONLY', 36, y + 5)
   doc.fontSize(6.5).font('Helvetica').fillColor('#475569')
@@ -311,15 +323,61 @@ function page2(doc, booking, t, idx) {
   )
 
   const stX = 400
-  doc.rect(stX, y + 6, 132, 42).lineWidth(0.4).strokeColor('#94a3b8').stroke()
-  doc.moveTo(stX, y + 42).lineTo(stX + 132, y + 42).lineWidth(0.3).strokeColor(GRAY).stroke()
+  doc.rect(stX, y + 6, 132, 78).lineWidth(0.4).strokeColor('#94a3b8').stroke()
+  doc.moveTo(stX, y + 78).lineTo(stX + 132, y + 78).lineWidth(0.3).strokeColor(GRAY).stroke()
   doc.fontSize(6).font('Helvetica-Bold').fillColor(NAVY)
-  doc.text('Authorized Signature & Seal', stX, y + 44, { width: 132, align: 'center' })
+  doc.text('Authorized Signature & Seal', stX, y + 80, { width: 132, align: 'center' })
 }
 
 /* =============================================================
    Public exports
    ============================================================= */
+async function attachSupabaseAssets(booking, travelers) {
+  const reference = booking?.booking_id
+  if (!reference || !process.env.SUPABASE_SERVICE_ROLE_KEY) return travelers
+  const { data: sbBooking, error } = await supabaseAdmin.from('bookings').select('id').eq('booking_reference', reference).maybeSingle()
+  if (error || !sbBooking) return travelers
+  const { data: apps, error: appError } = await supabaseAdmin.from('traveler_applications').select('*').eq('booking_id', sbBooking.id)
+  if (appError) throw appError
+  return Promise.all(travelers.map(async traveler => {
+    const app = (apps || []).find(row => Number(row.traveler_number) === Number(traveler.traveler_number))
+    if (!app) return traveler
+    const download = async key => {
+      if (!app[key]) return null
+      const { data, error: storageError } = await supabaseAdmin.storage.from('booking-private-docs').download(app[key])
+      if (storageError || !data) throw new Error(`A saved private application image could not be loaded (${key}).`)
+      return Buffer.from(await data.arrayBuffer())
+    }
+    const [photo, signature, guardianSignature] = await Promise.all([
+      download('photograph_path'), download('applicant_signature_path'), download('parent_guardian_signature_path')
+    ])
+    return {
+      ...traveler,
+      course_name: app.course_name || traveler.course_name,
+      full_name: app.full_name || traveler.full_name,
+      date_of_birth: app.date_of_birth || traveler.date_of_birth,
+      age: app.age ?? traveler.age,
+      sex: app.sex || traveler.sex,
+      blood_group: app.blood_group || traveler.blood_group,
+      address: app.address || traveler.address,
+      contact_number: app.contact_no || traveler.contact_number,
+      education: app.education || traveler.education,
+      school_college: app.school_college || traveler.school_college,
+      school_college_address: app.school_college_address || traveler.school_college_address,
+      school_college_phone: app.school_college_phone || traveler.school_college_phone,
+      hobbies: app.hobbies || traveler.hobbies,
+      adventure_experience: app.adventure_experience ? 'Yes' : (traveler.adventure_experience || 'No'),
+      adventure_details: app.adventure_details || traveler.adventure_details,
+      participant_type: app.participant_type || traveler.participant_type,
+      application_data: app.application_data || traveler.application_data,
+      photo_url: photo || traveler.photo_url,
+      declaration: { ...(traveler.declaration || {}), accepted: app.declaration_accepted ?? traveler.declaration?.accepted, place: app.declaration_place || traveler.declaration?.place, date: app.declaration_date || traveler.declaration?.date, signature_url: signature || traveler.declaration?.signature_url },
+      risk_certificate: { ...(traveler.risk_certificate || {}), participant_name: app.risk_participant_name || traveler.risk_certificate?.participant_name, course_name: app.risk_course_name || traveler.risk_certificate?.course_name, accepted: app.risk_accepted ?? traveler.risk_certificate?.accepted, place: app.risk_place || traveler.risk_certificate?.place, date: app.risk_date || traveler.risk_certificate?.date, signature_url: guardianSignature || traveler.risk_certificate?.signature_url },
+      guardian: { ...(traveler.guardian || {}), guardian_name: app.guardian_name || traveler.guardian?.guardian_name, guardian_contact: app.guardian_contact || traveler.guardian?.guardian_contact, guardian_signature_url: guardianSignature || traveler.guardian?.guardian_signature_url },
+    }
+  }))
+}
+
 export async function generateBookingPdf(bookingId) {
   const booking = getBookingById(bookingId)
   if (!booking) throw new Error('Booking not found')
@@ -331,15 +389,17 @@ export async function generateBookingPdf(bookingId) {
     risk_certificate: getRiskCertificateByTravelerId(t.id),
     guardian:         getGuardianByTravelerId(t.id)
   }))
+  const withAssets = await attachSupabaseAssets(booking, withDetails)
 
   const doc = new PDFDocument({ margin: 20, size: 'A4', autoFirstPage: true })
   const chunks = []
   doc.on('data', c => chunks.push(c))
 
-  for (let i = 0; i < withDetails.length; i++) {
+  for (let i = 0; i < withAssets.length; i++) {
     if (i > 0) doc.addPage()
-    page1(doc, booking, withDetails[i], i)
-    page2(doc, booking, withDetails[i], i)
+    let y = page1(doc, booking, withAssets[i], i)
+    if (y + 400 > 800) { doc.addPage(); header(doc, booking, 2); y = 72 }
+    page2(doc, booking, withAssets[i], i, y)
   }
 
   doc.end()
@@ -360,13 +420,16 @@ export async function generateIndividualTravelerPdf(travelerId) {
     risk_certificate: getRiskCertificateByTravelerId(t.id),
     guardian:         getGuardianByTravelerId(t.id)
   }
+  const [tWithAssets] = await attachSupabaseAssets(booking, [tWithDetails])
 
   const doc = new PDFDocument({ margin: 20, size: 'A4', autoFirstPage: true })
   const chunks = []
   doc.on('data', c => chunks.push(c))
 
-  page1(doc, booking || { booking_id: `T-${travelerId}`, number_of_travelers: 1 }, tWithDetails, (t.traveler_number || 1) - 1)
-  page2(doc, booking || { booking_id: `T-${travelerId}` }, tWithDetails, (t.traveler_number || 1) - 1)
+  const displayBooking = booking || { booking_id: `T-${travelerId}`, number_of_travelers: 1 }
+  let y = page1(doc, displayBooking, tWithAssets, (t.traveler_number || 1) - 1)
+  if (y + 400 > 800) { doc.addPage(); header(doc, displayBooking, 2); y = 72 }
+  page2(doc, displayBooking, tWithAssets, (t.traveler_number || 1) - 1, y)
 
   doc.end()
   return new Promise((resolve, reject) => {
@@ -375,9 +438,9 @@ export async function generateIndividualTravelerPdf(travelerId) {
   })
 }
 
-export async function generateAllBookingsPdf() {
-  const bookings = getAllBookingsForExport()
-  const allT     = getAllTravelersForExport()
+export async function generateAllBookingsPdf(filters = {}) {
+  const bookings = getAllBookingsForExport(filters)
+  const allT     = getAllTravelersForExport(bookings.map(booking => booking.id))
 
   const doc = new PDFDocument({ margin: 20, size: 'A4', autoFirstPage: true })
   const chunks = []
@@ -395,8 +458,9 @@ export async function generateAllBookingsPdf() {
       }
       if (!first) doc.addPage()
       first = false
-      page1(doc, b, twd, i)
-      page2(doc, b, twd, i)
+      let y = page1(doc, b, twd, i)
+      if (y + 400 > 800) { doc.addPage(); header(doc, b, 2); y = 72 }
+      page2(doc, b, twd, i, y)
     }
   }
 

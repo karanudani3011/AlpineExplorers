@@ -9,6 +9,7 @@ import {
   deleteTourPackage,
   saveItineraryDay,
   deleteItineraryDay,
+  saveCompleteItinerary,
 } from '../db.js'
 import { authRequired, requirePermission } from '../middleware.js'
 
@@ -170,6 +171,28 @@ toursRouter.put('/admin/packages/:packageId/full', authRequired, requirePermissi
     res.json({ package: saved })
   } catch (err) {
     res.status(500).json({ error: err.message })
+  }
+})
+
+// Replace a package itinerary as one atomic, ordered update. Package metadata is untouched.
+toursRouter.put('/admin/packages/:packageId/itinerary', authRequired, requirePermission('services.edit'), (req, res) => {
+  try {
+    const packageId = Number(req.params.packageId)
+    if (!Number.isInteger(packageId) || !db.prepare('SELECT id FROM tour_duration_packages WHERE id = ?').get(packageId)) {
+      return res.status(404).json({ error: 'Package not found' })
+    }
+    const { itinerary } = req.body
+    if (!Array.isArray(itinerary)) return res.status(400).json({ error: 'An itinerary list is required.' })
+    const saved = saveCompleteItinerary(packageId, itinerary)
+    logActivity({
+      user_name: req.user.full_name || req.user.username || req.user.email,
+      action: 'Updated Tour Itinerary',
+      module: 'Tours',
+      details: `Package #${packageId} with ${saved.length} days`,
+    })
+    res.json({ itinerary: saved })
+  } catch (err) {
+    res.status(400).json({ error: err.message || 'Unable to save itinerary.' })
   }
 })
 

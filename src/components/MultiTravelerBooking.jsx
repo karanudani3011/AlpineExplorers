@@ -839,6 +839,11 @@ export default function MultiTravelerBooking({ tour, user, profile }) {
       } catch (syncError) {
         console.warn('Admin dashboard booking mirror was unavailable:', syncError?.message)
       }
+      try {
+        await api.post('/bookings/index-user-documents', { booking_reference: savedBooking.booking_reference })
+      } catch (indexError) {
+        console.warn('Scanned application search indexing is pending administrator retry:', indexError?.message)
+      }
 
       const bookingRecord = {
         ...savedBooking,

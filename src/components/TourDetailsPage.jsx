@@ -100,6 +100,7 @@ export default function TourDetailsPage() {
   const [dbPackages, setDbPackages] = useState([])
   const [selectedPkg, setSelectedPkg] = useState(null)
   const [pkgLoading, setPkgLoading] = useState(false)
+  const [pkgError, setPkgError] = useState(false)
 
   // catalogLoading = true until the async catalog fetch resolves
   const initial = findTourById(id)
@@ -137,18 +138,25 @@ export default function TourDetailsPage() {
   // Fetch duration packages from DB
   useEffect(() => {
     if (!id) return
+    let active = true
     setPkgLoading(true)
+    setPkgError(false)
     fetch(`/api/public/tours/${id}/packages`)
-      .then(r => r.json())
-      .catch(() => ({ packages: [] }))
+      .then((response) => {
+        if (!response.ok) throw new Error('Unable to load this tour itinerary.')
+        return response.json()
+      })
       .then(data => {
+        if (!active) return
         const pkgs = data.packages || []
         setDbPackages(pkgs)
         // Auto-select: prefer is_default, else first
         const def = pkgs.find(p => p.is_default) || pkgs[0] || null
         setSelectedPkg(def)
       })
-      .finally(() => setPkgLoading(false))
+      .catch(() => { if (active) { setDbPackages([]); setSelectedPkg(null); setPkgError(true) } })
+      .finally(() => { if (active) setPkgLoading(false) })
+    return () => { active = false }
   }, [id])
 
   const handleBookNow = (e) => {
@@ -216,11 +224,11 @@ export default function TourDetailsPage() {
   const activePrice = activePkg?.price ?? tour.price
   const activeOriginalPrice = activePkg?.original_price ?? tour.originalPrice
   const activeDuration = activePkg?.duration ?? tour.duration
-  const suppliedItinerary = (activePkg?.itinerary && activePkg.itinerary.length > 0)
-    ? [...activePkg.itinerary].sort((a, b) => a.day - b.day)
-    : (tour.itinerary || [])
-  const itineraryIsSuggested = suppliedItinerary.length === 0
-  const activeItinerary = itineraryIsSuggested ? buildSuggestedItinerary(tour, activeDuration) : suppliedItinerary
+  const suppliedItinerary = activePkg
+    ? [...(activePkg.itinerary || [])].sort((a, b) => a.day - b.day)
+    : (pkgError ? [] : (tour.itinerary || []))
+  const itineraryIsSuggested = !activePkg && suppliedItinerary.length === 0
+  const activeItinerary = pkgError ? [] : activePkg ? suppliedItinerary : itineraryIsSuggested ? buildSuggestedItinerary(tour, activeDuration) : suppliedItinerary
 
   const hasPrice = false
   const formattedPrice = null
@@ -391,7 +399,7 @@ export default function TourDetailsPage() {
                   <p className="text-[11px] text-gray-500 mt-1">
                     {activeDuration} &middot; {activeItinerary.length} day{activeItinerary.length !== 1 ? 's' : ''} planned
                   </p>
-                  {itineraryIsSuggested && <p className="text-xs text-amber-800 mt-2 max-w-xl">Suggested outline only. Route, activities, transport, and timings are indicative and must be confirmed before booking.</p>}
+                  {itineraryIsSuggested && !pkgError && <p className="text-xs text-amber-800 mt-2 max-w-xl">Suggested outline only. Route, activities, transport, and timings are indicative and must be confirmed before booking.</p>}
                 </div>
                 <button
                   onClick={() => setExpandedDays(expandedDays.length === activeItinerary.length ? [] : activeItinerary.map((_, index) => index))}
@@ -402,6 +410,9 @@ export default function TourDetailsPage() {
                 </button>
               </div>
 
+              {pkgLoading && <p className="text-sm text-slate-500">Loading itinerary…</p>}
+              {pkgError && <p role="status" className="text-sm text-rose-700">The itinerary could not be loaded. Please try again later.</p>}
+              {!pkgLoading && !pkgError && activeItinerary.length === 0 && <p className="text-sm text-slate-500">No itinerary days have been published for this tour yet.</p>}
               <div className="space-y-2.5">
                 {activeItinerary.map((day, i) => {
                   const isExpanded = expandedDays.includes(i)
@@ -455,7 +466,17 @@ export default function TourDetailsPage() {
                             className="overflow-hidden"
                           >
                             <div className="p-4 bg-white text-gray-700 text-sm leading-relaxed space-y-2">
-                              <p>{day.description}</p>
+                              {day.summary && <p className="font-semibold text-slate-800">{day.summary}</p>}
+                              {day.description && <p className="whitespace-pre-line">{day.description}</p>}
+                              {(Array.isArray(day.places) && day.places.length > 0) && <p><strong>Places:</strong> {day.places.join(', ')}</p>}
+                              {(Array.isArray(day.activities) && day.activities.length > 0) && <p><strong>Activities:</strong> {day.activities.join(', ')}</p>}
+                              {(Array.isArray(day.meals) && day.meals.length > 0) && <p><strong>Meals:</strong> {day.meals.join(', ')}</p>}
+                              {(day.start_time || day.end_time) && <p><strong>Timing:</strong> {[day.start_time, day.end_time].filter(Boolean).join(' – ')}</p>}
+                              {day.overnight && <p><strong>Accommodation:</strong> {day.overnight}</p>}
+                              {day.transportation && <p><strong>Transportation:</strong> {day.transportation}</p>}
+                              {day.map_location && <p><strong>Map location:</strong> {day.map_location}</p>}
+                              {day.notes && <p><strong>Notes:</strong> {day.notes}</p>}
+                              {Array.isArray(day.image_urls) && day.image_urls.length > 0 && <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-2">{day.image_urls.map((url, imageIndex) => <img key={`${url}-${imageIndex}`} src={url} alt={`${day.title} ${imageIndex + 1}`} loading="lazy" className="w-full aspect-[4/3] object-cover rounded-lg border border-gray-200" />)}</div>}
                             </div>
                           </motion.div>
                         )}

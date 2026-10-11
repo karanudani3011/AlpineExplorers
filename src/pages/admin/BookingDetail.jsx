@@ -11,6 +11,7 @@ import { useToasts } from '../../components/admin/useToasts'
 import { PageHeader, Btn, Card, Spinner, Badge, NAVY, GOLD, GOLD2, BG, font, Modal } from '../../components/admin/admin-ui'
 import { TravelerDetailModal } from './BookingDetailModal'
 import { useAuth } from '../../contexts/AuthContext'
+import PrivateAssetImage from '../../components/admin/PrivateAssetImage'
 
 const STATUSES = ['pending', 'confirmed', 'cancelled', 'completed']
 
@@ -24,6 +25,18 @@ const safeScannedForms = (raw) => {
     return []
   }
 }
+
+const applicationLabels = {
+  course_name: 'NAME OF COURSE', full_name: 'NAME', date_of_birth: 'DATE OF BIRTH', age: 'AGE', sex: 'SEX',
+  blood_group: 'BLOOD GROUP', address: 'ADDRESS', contact_no: 'CONTACT No.', education: 'EDUCATION',
+  school_college: 'SCHOOL / COLLEGE', school_college_address: 'SCHOOL / COLLEGE ADDRESS',
+  school_college_phone: 'SCHOOL/COLLEGE PHONE No.', hobbies: 'HOBBIES', adventure_experience: 'Adventure / Cultural Activities experience',
+  adventure_details: 'Give Details', declaration_accepted: 'Terms accepted', declaration_place: 'PLACE', declaration_date: 'DATE',
+  risk_participant_name: 'Risk Certificate participant', risk_course_name: 'Risk Certificate course', risk_accepted: 'Risk accepted',
+  risk_place: 'Risk Certificate PLACE', risk_date: 'Risk Certificate DATE', guardian_name: 'Parent / Guardian name', guardian_contact: 'Parent / Guardian contact',
+}
+
+const displayValue = value => value === true ? 'Yes' : value === false ? 'No' : value == null || value === '' ? 'Not provided' : typeof value === 'object' ? JSON.stringify(value) : String(value)
 
 export default function BookingDetail() {
   const { id } = useParams()
@@ -53,7 +66,7 @@ export default function BookingDetail() {
       const ref = data.booking?.booking_id || data.booking?.booking_reference
       if (ref) {
         try { setApplicationData(await api.get(`/bookings/booking-id/${encodeURIComponent(ref)}/application-data`)) }
-        catch { setApplicationData(null) }
+        catch (error) { setApplicationData(null); addToast(error.message || 'Private application details could not be loaded.', 'error') }
       }
     } catch (e) {
       addToast(e.message, 'error')
@@ -224,6 +237,22 @@ export default function BookingDetail() {
     } catch (error) { addToast(error.message || 'Document download failed.', 'error') }
   }
 
+  const downloadScannedFile = async (form, preview = false) => {
+    try {
+      const blob = form.url?.startsWith('/uploads/')
+        ? await api.getBlob(`/bookings/local-files/${encodeURIComponent(form.url.split('/').pop())}`)
+        : await fetch(form.url).then(response => { if (!response.ok) throw new Error('Scanned document is unavailable.'); return response.blob() })
+      const objectUrl = URL.createObjectURL(blob)
+      if (preview) {
+        const opened = window.open(objectUrl, '_blank', 'noopener,noreferrer')
+        if (!opened) addToast('Allow pop-ups to preview the scanned PDF.', 'error')
+      } else {
+        const anchor = document.createElement('a'); anchor.href = objectUrl; anchor.download = form.name || `Scanned_Form_${booking?.booking_id || id}.pdf`; document.body.appendChild(anchor); anchor.click(); anchor.remove()
+      }
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60000)
+    } catch (error) { addToast(error.message || 'Scanned document could not be opened.', 'error') }
+  }
+
   const formatCurrency = (amount) => {
     if (!amount) return '—'
     return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount)
@@ -231,7 +260,8 @@ export default function BookingDetail() {
 
   const formatDate = (dateStr) => {
     if (!dateStr) return '—'
-    return new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })
+    const date = new Date(dateStr)
+    return Number.isNaN(date.getTime()) ? 'Not provided' : date.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })
   }
 
   const getStatusBadge = (status) => {
@@ -488,16 +518,15 @@ export default function BookingDetail() {
             {(applicationData.applications||[]).map((app)=> <section key={app.id} className="rounded-xl border bg-white p-4">
               <div className="flex flex-wrap items-center justify-between gap-2"><h4 className="font-bold" style={{color:NAVY}}>Traveler {app.traveler_number} — {app.full_name}</h4><div className="flex gap-2">{hasPermission('bookings.export_individual_pdf')&&<Btn variant="ghostGold" onClick={()=>downloadApplicationFile(app.traveler_number,'digital')}><Download size={13}/> Download Digital Application PDF</Btn>}{(applicationData.documents||[]).some(doc=>doc.traveler_number===app.traveler_number)&&hasPermission('bookings.view')&&<Btn variant="ghostGold" onClick={()=>downloadApplicationFile(app.traveler_number,'original')}><Download size={13}/> Download Uploaded Original PDF</Btn>}</div></div>
               <div className="mt-3 grid grid-cols-1 gap-2 text-xs sm:grid-cols-2">
-                {Object.entries(app.application_data?.original_fields||{}).filter(([k,v])=>!['isExpanded','isCompleted'].includes(k)&&v!==''&&v!=null).map(([k,v])=><p key={k}><b>{k.replaceAll('_',' ')}:</b> {String(v)}</p>)}
-                {['date_of_birth','age','sex','blood_group','address','contact_no','education','school_college','school_college_address','school_college_phone','hobbies','adventure_details','declaration_place','declaration_date','risk_participant_name','risk_course_name','risk_place','risk_date'].map(k=>app[k]&&<p key={k}><b>{k.replaceAll('_',' ')}:</b> {String(app[k])}</p>)}
+                {Object.entries(applicationLabels).map(([key,label])=><p key={key}><b>{label}:</b> {displayValue(app[key] ?? app.application_data?.original_fields?.[key])}</p>)}
+                {Object.entries(app.application_data?.original_fields || {}).filter(([key])=>!applicationLabels[key]&&!['isExpanded','isCompleted'].includes(key)).map(([key,value])=><p key={key}><b>{key.replaceAll('_',' ')}:</b> {displayValue(value)}</p>)}
+                <p><b>Application submitted:</b> {app.submitted_at ? new Date(app.submitted_at).toLocaleString('en-IN') : 'Not provided'}</p>
               </div>
-              <div className="mt-3 flex flex-wrap gap-3 text-xs">
-                {app.photograph_url&&<a className="underline" href={app.photograph_url} target="_blank" rel="noreferrer">View photograph</a>}
-                {app.applicant_signature_url&&<a className="underline" href={app.applicant_signature_url} target="_blank" rel="noreferrer">Applicant signature</a>}
-                {app.parent_guardian_signature_url&&<a className="underline" href={app.parent_guardian_signature_url} target="_blank" rel="noreferrer">Parent / guardian signature</a>}
+              <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                {[['Photograph',app.photograph_url,app.photograph_path],['Applicant signature',app.applicant_signature_url,app.applicant_signature_path],['Parent / guardian signature',app.parent_guardian_signature_url,app.parent_guardian_signature_path]].map(([label,url,storagePath])=><div key={label} className="rounded-lg border p-2"><p className="mb-2 text-xs font-bold">{label}</p>{url ? <PrivateAssetImage source={url} alt={label} className="h-24 w-full rounded object-contain bg-white" /> : <p className="text-xs text-gray-500">{storagePath ? 'Stored file could not be opened' : 'Not provided'}</p>}</div>)}
               </div>
             </section>)}
-            {(applicationData.documents||[]).map(doc=><p key={doc.id} className="flex flex-wrap items-center gap-3 text-xs"><FileText size={15}/>Traveler {doc.traveler_number}: {doc.original_filename} · {doc.upload_status} · {doc.uploaded_at&&new Date(doc.uploaded_at).toLocaleString('en-IN')}<a className="font-bold underline" href={doc.signed_url} target="_blank" rel="noreferrer">Open uploaded original PDF</a></p>)}
+            {(applicationData.documents||[]).map(doc=><p key={doc.id} className="flex flex-wrap items-center gap-3 text-xs"><FileText size={15}/>Traveler {doc.traveler_number}: {doc.original_filename} · {doc.upload_status} · Search {doc.search_index?.index_status || 'Not indexed'}{doc.search_index?.index_error ? ` (${doc.search_index.index_error})` : ''} · {doc.uploaded_at&&new Date(doc.uploaded_at).toLocaleString('en-IN')}{doc.signed_url ? <a className="font-bold underline" href={doc.signed_url} target="_blank" rel="noreferrer">Open uploaded original PDF</a> : <span className="text-red-700">Private file unavailable</span>}</p>)}
             {(applicationData.payments||[]).map(p=><p key={p.id} className="text-xs"><b>Payment:</b> {p.payment_method} · ₹{Number(p.amount).toLocaleString('en-IN')} · {p.payment_status} / {p.verification_status}{p.gateway_reference_id?` · Ref ${p.gateway_reference_id}`:''}</p>)}
           </div>
         </Card>
@@ -541,22 +570,8 @@ export default function BookingDetail() {
                 </div>
 
                 <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
-                  <a
-                    href={form.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-bold text-navy bg-gray-100 hover:bg-gray-200 transition"
-                  >
-                    <Eye size={12} /> View
-                  </a>
-                  <a
-                    href={form.url}
-                    download={form.name || `Scanned_Form_${booking.booking_id}_${idx + 1}.pdf`}
-                    className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-bold text-white transition shadow-sm"
-                    style={{ background: NAVY }}
-                  >
-                    <Download size={12} /> Download
-                  </a>
+                  <button type="button" onClick={() => downloadScannedFile(form, true)} className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-bold text-navy bg-gray-100 hover:bg-gray-200 transition"><Eye size={12} /> View</button>
+                  <button type="button" onClick={() => downloadScannedFile(form)} className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-bold text-white transition shadow-sm" style={{ background: NAVY }}><Download size={12} /> Download</button>
                 </div>
               </div>
             ))}
@@ -718,7 +733,7 @@ function TravelerCard({ traveler, index, booking, onView, onDownloadPdf, onDownl
           <div className="shrink-0 flex flex-col items-center">
             <div className="w-24 h-28 rounded-xl overflow-hidden border-2 shadow-sm" style={{ borderColor: `${GOLD}60` }}>
               {traveler.photo_url ? (
-                <img src={traveler.photo_url} alt={traveler.full_name} className="w-full h-full object-cover" />
+                <PrivateAssetImage source={traveler.photo_url} alt={`${traveler.full_name} photograph`} className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center" style={{ background: `${NAVY}05` }}>
                   <Camera size={20} className="text-gray-300 mb-1" />
@@ -726,17 +741,6 @@ function TravelerCard({ traveler, index, booking, onView, onDownloadPdf, onDownl
                 </div>
               )}
             </div>
-            {traveler.photo_url && (
-              <a
-                href={traveler.photo_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-1.5 text-[11px] font-bold underline hover:opacity-80 transition"
-                style={{ color: GOLD }}
-              >
-                View Photo
-              </a>
-            )}
           </div>
 
           {/* Info Grid */}
@@ -773,7 +777,7 @@ function TravelerCard({ traveler, index, booking, onView, onDownloadPdf, onDownl
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-wider mb-1.5" style={{ color: NAVY }}>Applicant Signature</p>
                 <div className="rounded-xl overflow-hidden border max-w-xs" style={{ borderColor: `${GOLD}30` }}>
-                  <img src={traveler.declaration.signature_url} alt="Applicant signature" className="w-full h-16 object-contain bg-white" />
+                  <PrivateAssetImage source={traveler.declaration.signature_url} alt="Applicant signature" className="w-full h-16 object-contain bg-white" />
                 </div>
               </div>
             )}
@@ -781,7 +785,7 @@ function TravelerCard({ traveler, index, booking, onView, onDownloadPdf, onDownl
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-wider mb-1.5" style={{ color: NAVY }}>Risk Certificate Signature</p>
                 <div className="rounded-xl overflow-hidden border max-w-xs" style={{ borderColor: `${GOLD}30` }}>
-                  <img src={traveler.risk_certificate.signature_url} alt="Risk signature" className="w-full h-16 object-contain bg-white" />
+                  <PrivateAssetImage source={traveler.risk_certificate.signature_url} alt="Risk signature" className="w-full h-16 object-contain bg-white" />
                 </div>
               </div>
             )}

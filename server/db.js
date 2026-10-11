@@ -323,6 +323,20 @@ CREATE TABLE IF NOT EXISTS guardians (
   guardian_signature_url TEXT
 );
 
+CREATE TABLE IF NOT EXISTS scanned_document_index (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  booking_id INTEGER NOT NULL REFERENCES bookings(id) ON DELETE CASCADE,
+  document_path TEXT NOT NULL UNIQUE,
+  document_name TEXT NOT NULL,
+  extracted_text TEXT NOT NULL DEFAULT '',
+  index_status TEXT NOT NULL DEFAULT 'pending' CHECK(index_status IN ('pending','processing','indexed','failed')),
+  index_error TEXT,
+  indexed_at TEXT,
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_scanned_document_index_booking ON scanned_document_index(booking_id);
+CREATE INDEX IF NOT EXISTS idx_scanned_document_index_status ON scanned_document_index(index_status);
+
 CREATE TABLE IF NOT EXISTS homepage (
   id INTEGER PRIMARY KEY CHECK(id = 1),
   hero_title TEXT,
@@ -419,6 +433,29 @@ CREATE TABLE IF NOT EXISTS admin_audit_logs (
 );
 `)
 
+// Backward-compatible itinerary extensions for existing SQLite installations.
+// The server owns tour administration today; these columns preserve the current
+// package/day relationship while supporting richer itinerary entries.
+const itineraryColumns = new Set(db.prepare('PRAGMA table_info(tour_itineraries)').all().map((column) => column.name))
+const itineraryColumnDefinitions = {
+  summary: 'TEXT DEFAULT \'\'',
+  places: 'TEXT DEFAULT \'[]\'',
+  start_time: 'TEXT DEFAULT \'\'',
+  end_time: 'TEXT DEFAULT \'\'',
+  transportation: 'TEXT DEFAULT \'\'',
+  image_urls: 'TEXT DEFAULT \'[]\'',
+  notes: 'TEXT DEFAULT \'\'',
+  map_location: 'TEXT DEFAULT \'\'',
+  latitude: 'REAL',
+  longitude: 'REAL',
+  is_visible: 'INTEGER NOT NULL DEFAULT 1',
+  sort_order: 'INTEGER NOT NULL DEFAULT 0',
+}
+for (const [column, definition] of Object.entries(itineraryColumnDefinitions)) {
+  if (!itineraryColumns.has(column)) db.exec(`ALTER TABLE tour_itineraries ADD COLUMN ${column} ${definition}`)
+}
+db.exec('UPDATE tour_itineraries SET sort_order = day WHERE sort_order = 0')
+
 // Keep selected tour IDs as structured inquiry data on existing SQLite installs too.
 try { db.exec('ALTER TABLE inquiries ADD COLUMN tour_id TEXT') } catch {}
 
@@ -489,8 +526,8 @@ export function getBookings({ status, paymentStatus, search, tour, travelDate, b
   if (status) { sql += ' AND status = ?'; params.push(status) }
   if (paymentStatus) { sql += ' AND payment_status = ?'; params.push(paymentStatus) }
   if (search) {
-    sql += ' AND (booking_id LIKE ? OR tour_name LIKE ? OR booking_contact_name LIKE ? OR booking_contact_email LIKE ? OR booking_contact_phone LIKE ? OR id IN (SELECT booking_id FROM travelers WHERE full_name LIKE ? OR contact_number LIKE ?))'
-    params.push(`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`)
+    sql += ' AND (booking_id LIKE ? OR tour_name LIKE ? OR booking_contact_name LIKE ? OR booking_contact_email LIKE ? OR booking_contact_phone LIKE ? OR id IN (SELECT booking_id FROM travelers WHERE full_name LIKE ? OR contact_number LIKE ?) OR id IN (SELECT booking_id FROM scanned_document_index WHERE index_status = \'indexed\' AND extracted_text LIKE ?))'
+    params.push(...Array(8).fill(`%${search}%`))
   }
   if (tour) { sql += ' AND tour_name LIKE ?'; params.push(`%${tour}%`) }
   if (travelDate) { sql += ' AND travel_date = ?'; params.push(travelDate) }
@@ -514,8 +551,8 @@ export function getBookingsCount({ status, paymentStatus, search, tour, travelDa
   if (status) { sql += ' AND status = ?'; params.push(status) }
   if (paymentStatus) { sql += ' AND payment_status = ?'; params.push(paymentStatus) }
   if (search) {
-    sql += ' AND (booking_id LIKE ? OR tour_name LIKE ? OR booking_contact_name LIKE ? OR booking_contact_email LIKE ? OR booking_contact_phone LIKE ? OR id IN (SELECT booking_id FROM travelers WHERE full_name LIKE ? OR contact_number LIKE ?))'
-    params.push(`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`)
+    sql += ' AND (booking_id LIKE ? OR tour_name LIKE ? OR booking_contact_name LIKE ? OR booking_contact_email LIKE ? OR booking_contact_phone LIKE ? OR id IN (SELECT booking_id FROM travelers WHERE full_name LIKE ? OR contact_number LIKE ?) OR id IN (SELECT booking_id FROM scanned_document_index WHERE index_status = \'indexed\' AND extracted_text LIKE ?))'
+    params.push(...Array(8).fill(`%${search}%`))
   }
   if (tour) { sql += ' AND tour_name LIKE ?'; params.push(`%${tour}%`) }
   if (travelDate) { sql += ' AND travel_date = ?'; params.push(travelDate) }
@@ -695,17 +732,20 @@ export function getBookingStats() {
   return { totalBookings, totalTravelers, pendingApplications, confirmedBookings }
 }
 
-export function getAllBookingsForExport() {
-  return db.prepare('SELECT * FROM bookings ORDER BY id DESC').all()
+export function getAllBookingsForExport(filters = {}) {
+  return getBookings(filters)
 }
 
-export function getAllTravelersForExport() {
+export function getAllTravelersForExport(bookingIds = null) {
+  if (Array.isArray(bookingIds) && bookingIds.length === 0) return []
+  const where = Array.isArray(bookingIds) ? `WHERE b.id IN (${bookingIds.map(() => '?').join(',')})` : ''
   return db.prepare(`
     SELECT t.*, b.booking_id AS booking_code, b.tour_name, b.travel_date, b.booking_date
     FROM travelers t
     JOIN bookings b ON t.booking_id = b.id
+    ${where}
     ORDER BY b.id DESC, t.traveler_number
-  `).all()
+  `).all(...(bookingIds || []))
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -724,11 +764,26 @@ function parseJsonArray(val) {
 }
 
 export function getItineraryByPackageId(packageId) {
-  const rows = db.prepare('SELECT * FROM tour_itineraries WHERE package_id = ? ORDER BY day ASC').all(packageId)
+  const rows = db.prepare('SELECT * FROM tour_itineraries WHERE package_id = ? AND is_visible = 1 ORDER BY sort_order ASC, day ASC').all(packageId)
   return rows.map((r) => ({
     ...r,
     activities: parseJsonArray(r.activities),
     meals: parseJsonArray(r.meals),
+    places: parseJsonArray(r.places),
+    image_urls: parseJsonArray(r.image_urls),
+    is_visible: Boolean(r.is_visible),
+  }))
+}
+
+export function getAdminItineraryByPackageId(packageId) {
+  const rows = db.prepare('SELECT * FROM tour_itineraries WHERE package_id = ? ORDER BY sort_order ASC, day ASC').all(packageId)
+  return rows.map((r) => ({
+    ...r,
+    activities: parseJsonArray(r.activities),
+    meals: parseJsonArray(r.meals),
+    places: parseJsonArray(r.places),
+    image_urls: parseJsonArray(r.image_urls),
+    is_visible: Boolean(r.is_visible),
   }))
 }
 
@@ -745,7 +800,7 @@ export function getTourPackages(tourType, tourId) {
   const pkgs = db.prepare('SELECT * FROM tour_duration_packages WHERE tour_type = ? AND tour_id = ? ORDER BY days ASC, id ASC').all(tourType, tourId)
   return pkgs.map((p) => ({
     ...p,
-    itinerary: getItineraryByPackageId(p.id),
+    itinerary: getAdminItineraryByPackageId(p.id),
   }))
 }
 
@@ -901,14 +956,27 @@ export function saveItineraryDay(packageId, dayData) {
   const acts = typeof dayData.activities === 'string' ? dayData.activities : JSON.stringify(dayData.activities || [])
   const meals = typeof dayData.meals === 'string' ? dayData.meals : JSON.stringify(dayData.meals || [])
   db.prepare(`
-    INSERT INTO tour_itineraries (package_id, day, title, description, activities, meals, overnight, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+    INSERT INTO tour_itineraries (package_id, day, title, description, activities, meals, overnight, created_at, updated_at,
+      summary, places, start_time, end_time, transportation, image_urls, notes, map_location, latitude, longitude, is_visible, sort_order)
+    VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(package_id, day) DO UPDATE SET
       title = excluded.title,
       description = excluded.description,
       activities = excluded.activities,
       meals = excluded.meals,
       overnight = excluded.overnight,
+      summary = excluded.summary,
+      places = excluded.places,
+      start_time = excluded.start_time,
+      end_time = excluded.end_time,
+      transportation = excluded.transportation,
+      image_urls = excluded.image_urls,
+      notes = excluded.notes,
+      map_location = excluded.map_location,
+      latitude = excluded.latitude,
+      longitude = excluded.longitude,
+      is_visible = excluded.is_visible,
+      sort_order = excluded.sort_order,
       updated_at = datetime('now')
   `).run(
     packageId,
@@ -917,9 +985,63 @@ export function saveItineraryDay(packageId, dayData) {
     dayData.description || '',
     acts,
     meals,
-    dayData.overnight || ''
+    dayData.overnight || '',
+    dayData.summary || '',
+    JSON.stringify(dayData.places || []),
+    dayData.start_time || '',
+    dayData.end_time || '',
+    dayData.transportation || '',
+    JSON.stringify(dayData.image_urls || []),
+    dayData.notes || '',
+    dayData.map_location || '',
+    dayData.latitude === '' || dayData.latitude == null ? null : Number(dayData.latitude),
+    dayData.longitude === '' || dayData.longitude == null ? null : Number(dayData.longitude),
+    dayData.is_visible === false || dayData.is_visible === 0 ? 0 : 1,
+    Number(dayData.sort_order ?? dayData.day)
   )
   return db.prepare('SELECT * FROM tour_itineraries WHERE package_id = ? AND day = ?').get(packageId, dayData.day)
+}
+
+export function saveCompleteItinerary(packageId, days) {
+  db.exec('BEGIN IMMEDIATE')
+  try {
+    // Temporarily move day numbers out of the unique key range to permit safe swaps.
+    db.prepare('UPDATE tour_itineraries SET day = -day WHERE package_id = ?').run(packageId)
+    const keepIds = []
+    const usedDays = new Set()
+    for (let index = 0; index < days.length; index += 1) {
+      const day = { ...days[index], day: index + 1, sort_order: index + 1 }
+      if (!String(day.title || '').trim()) throw new Error(`Day ${index + 1} needs a title.`)
+      if (day.id) {
+        const result = db.prepare(`UPDATE tour_itineraries SET day = ?, title = ?, description = ?, activities = ?, meals = ?, overnight = ?,
+          summary = ?, places = ?, start_time = ?, end_time = ?, transportation = ?, image_urls = ?, notes = ?, map_location = ?,
+          latitude = ?, longitude = ?, is_visible = ?, sort_order = ?, updated_at = datetime('now') WHERE id = ? AND package_id = ?`)
+          .run(day.day, day.title.trim(), day.description || '', JSON.stringify(day.activities || []), JSON.stringify(day.meals || []), day.overnight || '',
+            day.summary || '', JSON.stringify(day.places || []), day.start_time || '', day.end_time || '', day.transportation || '',
+            JSON.stringify(day.image_urls || []), day.notes || '', day.map_location || '',
+            day.latitude === '' || day.latitude == null ? null : Number(day.latitude),
+            day.longitude === '' || day.longitude == null ? null : Number(day.longitude),
+            day.is_visible === false || day.is_visible === 0 ? 0 : 1, day.sort_order, day.id, packageId)
+        if (!result.changes) throw new Error('An itinerary day no longer belongs to this package. Reload and try again.')
+        keepIds.push(Number(day.id))
+      } else {
+        const saved = saveItineraryDay(packageId, day)
+        keepIds.push(Number(saved.id))
+      }
+      usedDays.add(day.day)
+    }
+    if (keepIds.length) {
+      const marks = keepIds.map(() => '?').join(',')
+      db.prepare(`DELETE FROM tour_itineraries WHERE package_id = ? AND id NOT IN (${marks})`).run(packageId, ...keepIds)
+    } else {
+      db.prepare('DELETE FROM tour_itineraries WHERE package_id = ?').run(packageId)
+    }
+    db.exec('COMMIT')
+    return getAdminItineraryByPackageId(packageId)
+  } catch (error) {
+    db.exec('ROLLBACK')
+    throw error
+  }
 }
 
 export function deleteItineraryDay(packageId, day) {

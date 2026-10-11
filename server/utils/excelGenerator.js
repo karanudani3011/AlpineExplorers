@@ -54,12 +54,14 @@ function addSectionHeader(worksheet, rowNum, title, colSpan) {
 
 async function appendSupabaseApplications(workbook, bookingReference = null) {
   if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return
+  if (Array.isArray(bookingReference) && bookingReference.length === 0) return
   let query = supabaseAdmin.from('bookings').select('*').order('created_at', { ascending: false })
-  if (bookingReference) query = query.eq('booking_reference', bookingReference)
+  if (Array.isArray(bookingReference)) query = query.in('booking_reference', bookingReference)
+  else if (bookingReference) query = query.eq('booking_reference', bookingReference)
   const { data: bookings, error } = await query
   if (error) throw error
   const sheet = workbook.addWorksheet('Digital Applications')
-  const headers = ['Booking ID','Traveler #','Customer Name','Customer Email','Tour','Location','Travel Date','Duration','Travelers','Price/Person','Total Amount','Booking Status','Payment Status','Course Name','Applicant Name','DOB','Age','Sex','Blood Group','Address','Contact No.','Education','School/College','School/College Address','School/College Phone','Hobbies','Adventure Experience','Experience Details','Declaration Accepted','Declaration Place','Declaration Date','Applicant Signature Path','Risk Participant','Risk Course','Risk Accepted','Risk Place','Risk Date','Guardian Name','Guardian Contact','Guardian Signature Path','Photograph Path','Uploaded PDF Filename','Uploaded PDF Path','Upload Status','Uploaded At','Payment Method','Payment Reference','Payment Verification','Application Submitted At']
+  const headers = ['Booking ID','Traveler #','Customer Name','Customer Email','Tour','Location','Travel Date','Duration','Travelers','Price/Person','Total Amount','Booking Status','Payment Status','Course Name','Applicant Name','DOB','Age','Sex','Blood Group','Address','Contact No.','Education','School/College','School/College Address','School/College Phone','Hobbies','Adventure Experience','Experience Details','Declaration Accepted','Declaration Place','Declaration Date','Applicant Signature Path','Risk Participant','Risk Course','Risk Accepted','Risk Place','Risk Date','Guardian Name','Guardian Contact','Guardian Signature Path','Photograph Path','Uploaded PDF Filename','Uploaded PDF Path','Upload Status','Uploaded At','Payment Method','Payment Reference','Payment Verification','Application Submitted At','Additional Application Data (JSON)']
   sheet.addRow(headers); sheet.columns = headers.map((header, i) => ({ header, width: i < 14 ? 20 : 24 })); styleHeaderRow(sheet.getRow(1)); sheet.views = [{ state: 'frozen', ySplit: 1 }]
   for (const booking of bookings || []) {
     const [{ data: apps, error: appError }, { data: payments, error: paymentError }] = await Promise.all([
@@ -72,7 +74,7 @@ async function appendSupabaseApplications(workbook, bookingReference = null) {
       const [{ data: doc, error: docError }] = await Promise.all([supabaseAdmin.from('application_documents').select('*').eq('application_id', app.id).maybeSingle()])
       if (docError) throw docError
       const payment = payments?.[0] || {}
-      const row = sheet.addRow([booking.booking_reference,app.traveler_number,booking.customer_name,booking.customer_email,booking.tour_name,booking.tour_location,booking.tour_date,booking.duration,booking.total_travelers,booking.price_per_person,booking.total_amount,booking.status,booking.payment_status,app.course_name,app.full_name,app.date_of_birth,app.age,app.sex,app.blood_group,app.address,app.contact_no,app.education,app.school_college,app.school_college_address,app.school_college_phone,app.hobbies,app.adventure_experience?'Yes':'No',app.adventure_details,app.declaration_accepted?'Yes':'No',app.declaration_place,app.declaration_date,app.applicant_signature_path,app.risk_participant_name,app.risk_course_name,app.risk_accepted?'Yes':'No',app.risk_place,app.risk_date,app.guardian_name,app.guardian_contact,app.parent_guardian_signature_path,app.photograph_path,doc?.original_filename,doc?.storage_path,doc?.upload_status,doc?.uploaded_at,payment.payment_method,payment.gateway_reference_id,payment.verification_status,app.submitted_at])
+      const row = sheet.addRow([booking.booking_reference,app.traveler_number,booking.customer_name,booking.customer_email,booking.tour_name,booking.tour_location,booking.tour_date,booking.duration,booking.total_travelers,booking.price_per_person,booking.total_amount,booking.status,booking.payment_status,app.course_name,app.full_name,app.date_of_birth,app.age,app.sex,app.blood_group,app.address,app.contact_no,app.education,app.school_college,app.school_college_address,app.school_college_phone,app.hobbies,app.adventure_experience?'Yes':'No',app.adventure_details,app.declaration_accepted?'Yes':'No',app.declaration_place,app.declaration_date,app.applicant_signature_path,app.risk_participant_name,app.risk_course_name,app.risk_accepted?'Yes':'No',app.risk_place,app.risk_date,app.guardian_name,app.guardian_contact,app.parent_guardian_signature_path,app.photograph_path,doc?.original_filename,doc?.storage_path,doc?.upload_status,doc?.uploaded_at,payment.payment_method,payment.gateway_reference_id,payment.verification_status,app.submitted_at,JSON.stringify(app.application_data || {})])
       row.eachCell(styleDataCell)
     }
   }
@@ -484,9 +486,9 @@ export async function generateIndividualTravelerExcel(travelerId) {
   return workbook.xlsx.writeBuffer()
 }
 
-export async function generateAllBookingsExcel() {
-  const bookings = getAllBookingsForExport()
-  const travelers = getAllTravelersForExport()
+export async function generateAllBookingsExcel(filters = {}) {
+  const bookings = getAllBookingsForExport(filters)
+  const travelers = getAllTravelersForExport(bookings.map(booking => booking.id))
 
   const workbook = new ExcelJS.Workbook()
   workbook.creator = 'Alpine Explorers'
@@ -638,6 +640,6 @@ export async function generateAllBookingsExcel() {
   styleHeaderRow(sheet4.getRow(1))
   sheet4.views = [{ state: 'frozen', ySplit: 1 }]
 
-  await appendSupabaseApplications(workbook)
+  await appendSupabaseApplications(workbook, bookings.map(booking => booking.booking_id))
   return workbook.xlsx.writeBuffer()
 }

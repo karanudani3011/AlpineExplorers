@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { X, Download, Eye, Camera, PenTool, Shield, Heart, MapPin, Calendar, User, Phone, Mail, GraduationCap, Building2, FileText, AlertCircle, CheckCircle2, ChevronDown, ChevronUp } from 'lucide-react'
 import { NAVY, GOLD, GOLD2, BROWN, font } from '../../components/admin/admin-ui'
 import { Modal } from '../../components/admin/admin-ui'
+import PrivateAssetImage from '../../components/admin/PrivateAssetImage'
 
 export function TravelerDetailModal({ traveler, booking, onClose, onDownloadPdf, onDownloadExcel }) {
   const [activeSection, setActiveSection] = useState('personal')
@@ -77,7 +78,7 @@ export function TravelerDetailModal({ traveler, booking, onClose, onDownloadPdf,
               <div className="flex flex-col items-center">
                 <div className="w-44 h-52 shrink-0 rounded-xl overflow-hidden border-2 flex items-center justify-center shadow-md" style={{ borderColor: `${GOLD}70`, background: '#fff' }}>
                   {traveler.photo_url ? (
-                    <img src={traveler.photo_url} alt={traveler.full_name} className="w-full h-full object-cover" />
+                    <PrivateAssetImage source={traveler.photo_url} alt={traveler.full_name} className="w-full h-full object-cover" />
                   ) : (
                     <div className="text-center p-4" style={{ color: 'rgb(var(--ae-ink-rgb) /0.5)' }}>
                       <Camera size={36} className="mx-auto mb-2 text-gray-300" />
@@ -85,17 +86,6 @@ export function TravelerDetailModal({ traveler, booking, onClose, onDownloadPdf,
                     </div>
                   )}
                 </div>
-                {traveler.photo_url && (
-                  <a
-                    href={traveler.photo_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 mt-2.5 px-4 py-1.5 rounded-lg text-xs font-bold text-white transition"
-                    style={{ background: NAVY }}
-                  >
-                    <Eye size={12} /> View Photo
-                  </a>
-                )}
               </div>
               <div className="flex-1 space-y-2">
                 <h4 className="font-bold text-sm" style={{ color: NAVY }}>Traveler Photograph</h4>
@@ -159,7 +149,7 @@ export function TravelerDetailModal({ traveler, booking, onClose, onDownloadPdf,
                   Applicant Signature
                 </p>
                 <div className="rounded-xl overflow-hidden border max-w-xs" style={{ borderColor: `${GOLD}30` }}>
-                  <img src={traveler.declaration.signature_url} alt="Applicant signature" className="w-full h-20 object-contain bg-white" />
+                  <PrivateAssetImage source={traveler.declaration.signature_url} alt="Applicant signature" className="w-full h-20 object-contain bg-white" />
                 </div>
               </div>
             )}
@@ -196,7 +186,7 @@ export function TravelerDetailModal({ traveler, booking, onClose, onDownloadPdf,
                   Risk Certificate Signature
                 </p>
                 <div className="rounded-xl overflow-hidden border max-w-xs" style={{ borderColor: `${GOLD}30` }}>
-                  <img src={traveler.risk_certificate.signature_url} alt="Risk signature" className="w-full h-20 object-contain bg-white" />
+                  <PrivateAssetImage source={traveler.risk_certificate.signature_url} alt="Risk signature" className="w-full h-20 object-contain bg-white" />
                 </div>
               </div>
             )}
@@ -216,7 +206,7 @@ export function TravelerDetailModal({ traveler, booking, onClose, onDownloadPdf,
                   Guardian Signature
                 </p>
                 <div className="rounded-xl overflow-hidden border max-w-xs" style={{ borderColor: `${GOLD}30` }}>
-                  <img src={traveler.guardian.guardian_signature_url} alt="Guardian signature" className="w-full h-20 object-contain bg-white" />
+                  <PrivateAssetImage source={traveler.guardian.guardian_signature_url} alt="Guardian signature" className="w-full h-20 object-contain bg-white" />
                 </div>
               </div>
             )}
