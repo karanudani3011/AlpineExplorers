@@ -1,0 +1,637 @@
+================================================================================
+                    ALPINE EXPLORERS — PROJECT FLOW DOCUMENT
+================================================================================
+Generated: 2026-10-12
+Tech Stack: React 18 + Vite | Node.js + Express | SQLite | Supabase Auth
+
+================================================================================
+1. HIGH-LEVEL ARCHITECTURE
+================================================================================
+
+  [Browser / Client]
+        |
+        v
+  +---------------------------------------------------------+
+  |              React SPA  (Vite, port 5173 dev)           |
+  |                                                         |
+  |  main.jsx -> App.jsx -> React Router -> Pages/Components|
+  |                                                         |
+  |  Contexts: SupabaseAuthContext  |  AuthContext          |
+  +------------------------+--------------------------------+
+                           |  REST API calls  (fetch / axios)
+                           v
+  +---------------------------------------------------------+
+  |          Express API Server  (Node.js, port 5000)       |
+  |                                                         |
+  |  index.js -> routes/* -> db.js (better-sqlite3)         |
+  |                                                         |
+  |  Database: server/database.sqlite                       |
+  +------------------------+--------------------------------+
+                           |
+                           v
+  +---------------------------------------------------------+
+  |                   Supabase (Cloud)                      |
+  |    Auth (JWT) | Storage | Postgres (optional)           |
+  +---------------------------------------------------------+
+
+
+================================================================================
+2. FRONTEND ENTRY POINT FLOW
+================================================================================
+
+  index.html
+      |
+      +-- src/main.jsx
+              |
+              +-- <App />  (App.jsx)
+                    |
+                    +-- <SupabaseAuthProvider>   <- wraps entire app
+                    |       +-- <AuthProvider>   <- wraps entire app
+                    |               |
+                    |               +-- <Router>
+                    |                     |
+                    |                     +-- <AuthModal />  (global, lazy)
+                    |                     |
+                    |                     +-- <Routes> ---- see Section 3
+
+
+================================================================================
+3. ROUTING MAP
+================================================================================
+
+  PUBLIC ROUTES (no auth required)
+  ---------------------------------
+  /                   -> Landing.jsx          (eagerly loaded)
+  /home               -> Home.jsx             (lazy)
+  /services           -> Services.jsx         (lazy)
+  /services/:slug     -> ServicePage.jsx      (lazy, dynamic service)
+  /services/mountain  -> redirect -> /services/mountain-expedition
+  /services/adventure -> redirect -> /services/adventure-camp-trek
+  /tour/:id           -> TourDetailsPage.jsx  (lazy, dynamic tour)
+  /upcoming-events    -> UpcomingEvents.jsx   (lazy)
+  /blog               -> Blog.jsx             (lazy)
+  /travel-mood        -> TravelMood.jsx       (lazy)
+  /about              -> About.jsx            (lazy)
+  /contact            -> Contact.jsx          (lazy)
+  /privacy-policy     -> PrivacyPolicy.jsx    (lazy)
+  /terms              -> TermsConditions.jsx  (lazy)
+
+  AUTH-PROTECTED ROUTES (RequireAuth guard)
+  ------------------------------------------
+  /booking/:id        -> BookingForm.jsx      (lazy + RequireAuth)
+  /my-bookings        -> MyBookings.jsx       (lazy + RequireAuth)
+
+  ADMIN ROUTES (ProtectedRoute guard, role-based)
+  ------------------------------------------------
+  /admin/login        -> Login.jsx
+  /admin              -> AdminLayout.jsx  (parent shell)
+  +-- /admin/dashboard        -> Dashboard.jsx          (perm: dashboard.view)
+  +-- /admin/international    -> InternationalPage.jsx  (perm: services.view)
+  +-- /admin/domestic         -> DomesticPage.jsx       (perm: services.view)
+  +-- /admin/adventure        -> AdventurePage.jsx      (perm: services.view)
+  +-- /admin/camps            -> CampsPage.jsx          (perm: services.view)
+  +-- /admin/services         -> ServicesPage.jsx       (perm: services.view)
+  +-- /admin/blog             -> BlogPage.jsx           (perm: blog.view)
+  +-- /admin/events           -> EventsPage.jsx         (perm: events.view)
+  +-- /admin/media            -> MediaLibrary.jsx       (perm: services.view)
+  +-- /admin/homepage         -> HomepageAdmin.jsx      (perm: dashboard.view)
+  +-- /admin/about            -> AboutAdmin.jsx         (perm: about.view)
+  +-- /admin/bookings         -> Bookings.jsx           (perm: bookings.view)
+  +-- /admin/bookings/:id     -> BookingDetail.jsx      (perm: bookings.view)
+  +-- /admin/inquiries        -> Inquiries.jsx          (perm: contact.view)
+  +-- /admin/activity         -> ActivityLogs.jsx       (superAdmin only)
+  +-- /admin/users            -> UsersAdmin.jsx         (superAdmin + staff.view)
+  +-- /admin/settings         -> SettingsAdmin.jsx      (superAdmin + settings.view)
+
+
+================================================================================
+4. USER JOURNEY FLOWS
+================================================================================
+
+  -- JOURNEY 1: Browse & Book a Tour ------------------------------------------
+
+  User visits "/"
+      |
+      v
+  Landing Page (vintage scrapbook animation, GSAP + Framer Motion)
+      |  click "Explore Now"
+      v
+  Home Dashboard (/home)
+      +-- Hero Section: Where? / When? / Travel Type? search
+      +-- Popular Destinations  (horizontally scrollable cards)
+      +-- Trending Tours        (grid of 4 featured tours)
+      +-- Explore by Experience (5 circular category cards)
+      +-- Why Choose Us        (animated counters)
+      +-- CTA Section
+      |  click "View" on a TourCard
+      v
+  Tour Details Page (/tour/:id)
+      +-- Hero image (fade + scale)
+      +-- Quick info: Duration, Dates, Difficulty, Group Size
+      +-- Day-wise Itinerary accordion
+      +-- Inclusions / Exclusions
+      +-- Sticky Booking Sidebar
+              +-- "Book Now" -> [Auth check]
+              |       +-- Not logged in -> AuthModal (Login/Signup)
+              |       |       +-- Login/Signup -> back to booking
+              |       +-- Logged in -> /booking/:id
+              +-- "Inquire Now" -> InquiryModal
+      |  user is authenticated, clicks "Book Now"
+      v
+  Booking Form (/booking/:id)   [RequireAuth]
+      Step 1: Registration     (Full Name, Email, Phone)
+      Step 2: Booking Details  (Travel Date, # Travelers, Special Requests)
+      Step 3: Payment          (Card Info -> /api/payments)
+      Step 4: Confirmation     (Success screen, booking summary)
+      |
+      v
+  My Bookings (/my-bookings)    [RequireAuth]
+      +-- View all past / upcoming bookings
+
+
+  -- JOURNEY 2: Travel Mood Selector -------------------------------------------
+
+  /travel-mood
+      Step 1 - Choose Mood:        Relax | Adventure | Romantic | Explore | Solo
+      Step 2 - Destination Type:   Beach | Mountain | Nature | Heritage
+      Step 3 - Budget:             Budget | Mid Range | Luxury
+      |  animated progress bar throughout
+      v
+  Recommended Tours results -> click tour -> /tour/:id -> Book
+
+
+  -- JOURNEY 3: Research & Inquire ---------------------------------------------
+
+  /services -> Browse 5 service categories (Mountain, International, etc.)
+      |
+      v
+  /services/:slug -> ServicePage with tours under that category
+      |
+      v
+  /blog -> Category filter, search, Blog cards, Newsletter
+      |
+      v
+  /about -> Story, Mission, Animated Counters, Team
+      |
+      v
+  /contact -> Contact form -> POST /api/inquiries -> Confirmation
+
+
+  -- JOURNEY 4: Admin Management -----------------------------------------------
+
+  /admin/login -> Credentials -> POST /api/auth/login -> JWT issued
+      |  ProtectedRoute checks role/permissions
+      v
+  /admin/dashboard
+      +-- Stats: total bookings, revenue, inquiries, users
+      +-- Recent bookings table
+      +-- Quick links to other admin sections
+      |
+      +-- Content Management
+      |     /admin/international | /admin/domestic | /admin/adventure
+      |     /admin/camps | /admin/services | /admin/blog | /admin/events
+      |     -> CRUD operations via /api/<section> endpoints
+      |
+      +-- Bookings Management (/admin/bookings)
+      |     -> List, filter, search bookings
+      |     -> /admin/bookings/:id -> BookingDetail (full info, status update)
+      |
+      +-- Media Library (/admin/media)
+      |     -> Upload images -> POST /api/media/upload (multer)
+      |     -> View / delete uploaded assets
+      |
+      +-- Inquiries (/admin/inquiries)
+      |     -> View all contact form submissions
+      |
+      +-- Users (/admin/users)          [superAdmin]
+      |     -> List users, change roles, manage staff
+      |
+      +-- Settings (/admin/settings)    [superAdmin]
+      |     -> Site settings, configuration
+      |
+      +-- Activity Logs (/admin/activity) [superAdmin]
+            -> Full audit trail of admin actions
+
+
+================================================================================
+5. AUTHENTICATION FLOW
+================================================================================
+
+  PUBLIC USER AUTH (Supabase)
+  ---------------------------
+  User clicks Login/Signup (Navbar icon or RequireAuth redirect)
+      |
+      v
+  AuthModal (components/auth/AuthModal.jsx)
+      +-- Sign Up  -> supabase.auth.signUp()  -> email confirmation
+      +-- Sign In  -> supabase.auth.signInWithPassword()
+      +-- OAuth    -> supabase.auth.signInWithOAuth() (Google, etc.)
+      |
+      v
+  SupabaseAuthContext stores session + user
+      +-- AuthContext wraps extra profile/role data
+      |
+  RequireAuth checks:
+      +-- Session present -> allow route
+      +-- No session -> open AuthModal -> redirect after success
+
+
+  ADMIN AUTH (Custom JWT)
+  -----------------------
+  POST /api/auth/login  { username, password }
+      |
+      v
+  server/routes/auth.js
+      +-- Validate credentials against SQLite staff table
+      +-- Issue JWT (signed with JWT_SECRET)
+      +-- Return { token, user, permissions }
+      |
+  Frontend stores token in localStorage
+      |
+  ProtectedRoute reads token -> checks permissions -> renders or redirects
+      |
+  All admin API calls include: Authorization: Bearer <token>
+  server/middleware.js verifies token on protected routes
+
+
+================================================================================
+6. BACKEND API FLOW
+================================================================================
+
+  server/index.js
+      |
+      +-- Middleware
+      |     +-- cors()            - allows localhost, Render, alpineexplore* origins
+      |     +-- express.json()    - 5MB body limit
+      |     +-- express.static()  - /uploads (with private-file guard)
+      |
+      +-- Health  GET /api/health
+      +-- Seed    GET /api/seed   -> server/seed.js populates SQLite
+      |
+      +-- Route Modules
+            |
+            +-- /api/public        -> public.js       (public catalog, no auth)
+            +-- /api/auth          -> auth.js         (login, logout, refresh)
+            +-- /api/international -> content.js      (CRUD, admin auth)
+            +-- /api/domestic      -> content.js      (CRUD, admin auth)
+            +-- /api/adventure     -> content.js      (CRUD, admin auth)
+            +-- /api/camps         -> content.js      (CRUD, admin auth)
+            +-- /api/services      -> content.js      (CRUD, admin auth)
+            +-- /api/events        -> content.js      (CRUD, admin auth)
+            +-- /api/tours         -> tours.js        (tour listing & detail)
+            +-- /api/users         -> users.js        (user management)
+            +-- /api/staff         -> staff.js        (staff / role management)
+            +-- /api/blogs         -> blogs.js        (blog CRUD)
+            +-- /api/media         -> media.js        (file upload via multer)
+            +-- /api/inquiries     -> inquiries.js    (contact form submissions)
+            +-- /api/applications  -> applications.js (tour applications)
+            +-- /api/bookings      -> bookings.js     (booking lifecycle)
+            +-- /api/payments      -> payments.js     (payment processing)
+            +-- /api (site routes) -> site.js         (site settings)
+
+  DATABASE (server/db.js - better-sqlite3 / SQLite)
+      Tables:
+        users          - public registered users (Supabase UID + profile)
+        staff          - admin/staff accounts with roles & permissions
+        tours          - tour catalog (title, price, itinerary, etc.)
+        bookings       - booking records linked to users & tours
+        payments       - payment transactions linked to bookings
+        inquiries      - contact form submissions
+        applications   - tour application forms
+        blogs          - blog posts
+        media          - uploaded media file records
+        international  - international tour content
+        domestic       - domestic tour content
+        adventure      - adventure camp content
+        camping        - camp content
+        services       - service page content
+        events         - upcoming events
+        site_settings  - global site configuration
+        activity_logs  - admin audit trail
+
+
+================================================================================
+7. COMPONENT HIERARCHY
+================================================================================
+
+  App.jsx
+  +-- AuthModal (global, lazy)
+  |
+  +-- Landing.jsx
+  |     +-- (GSAP + Framer Motion animations, parallax)
+  |
+  +-- Home.jsx
+  |     +-- Navbar.jsx
+  |     +-- [Hero search section]
+  |     +-- DestinationCard.jsx  (x6)
+  |     +-- TourCard.jsx         (x4)
+  |     +-- ExperienceCard.jsx   (x5)
+  |     +-- AnimatedCounter.jsx  (x4)
+  |     +-- Footer.jsx
+  |
+  +-- Services.jsx
+  |     +-- Navbar.jsx
+  |     +-- ServicesMegaMenu.jsx
+  |     +-- ServiceTourCard.jsx  (per service)
+  |     +-- Footer.jsx
+  |
+  +-- ServicePage.jsx  (/services/:slug)
+  |     +-- Navbar.jsx
+  |     +-- TourCard.jsx (filtered by service)
+  |     +-- Footer.jsx
+  |
+  +-- TourDetailsPage.jsx  (/tour/:id)
+  |     +-- Navbar.jsx
+  |     +-- TourImageSlider.jsx
+  |     +-- [Itinerary accordion]
+  |     +-- [Sticky booking sidebar]
+  |     |     +-- BookNowButton.jsx  -> /booking/:id
+  |     |     +-- InquireButton.jsx  -> InquiryModal.jsx
+  |     +-- InquiryModal.jsx
+  |     +-- BookingModal.jsx
+  |     +-- Footer.jsx
+  |
+  +-- BookingForm.jsx  (/booking/:id) [RequireAuth]
+  |     +-- Navbar.jsx
+  |     +-- MultiTravelerBooking.jsx  (multi-step wizard)
+  |     |     +-- Step 1: Registration
+  |     |     +-- Step 2: Booking Details
+  |     |     +-- Step 3: Payment
+  |     |     +-- Step 4: Confirmation
+  |     +-- Footer.jsx
+  |
+  +-- MyBookings.jsx  [RequireAuth]
+  |     +-- Navbar.jsx
+  |     +-- [Booking list cards]
+  |     +-- Footer.jsx
+  |
+  +-- Blog.jsx
+  |     +-- Navbar.jsx
+  |     +-- [Category filter tabs]
+  |     +-- [Search bar]
+  |     +-- BlogCard.jsx  (xN)
+  |     +-- [Newsletter section]
+  |     +-- Footer.jsx
+  |
+  +-- TravelMood.jsx
+  |     +-- Navbar.jsx
+  |     +-- [3-step quiz UI with progress bar]
+  |     +-- TourCard.jsx  (recommended results)
+  |     +-- Footer.jsx
+  |
+  +-- About.jsx
+  |     +-- Navbar.jsx
+  |     +-- [Story, Mission, Vision]
+  |     +-- AnimatedCounter.jsx  (x4)
+  |     +-- [Team members grid]
+  |     +-- Footer.jsx
+  |
+  +-- Contact.jsx
+  |     +-- Navbar.jsx
+  |     +-- [Contact method cards]
+  |     +-- [Contact form -> POST /api/inquiries]
+  |     +-- [FAQ accordion]
+  |     +-- Footer.jsx
+  |
+  +-- AdminLayout.jsx  [ProtectedRoute]
+        +-- [Sidebar navigation]
+        +-- Dashboard.jsx
+        +-- ContentPages.jsx (International/Domestic/Adventure/Camps/Services/Blog/Events)
+        +-- MediaLibrary.jsx
+        +-- HomepageAdmin.jsx
+        +-- AboutAdmin.jsx
+        +-- Bookings.jsx -> BookingDetail.jsx
+        +-- Inquiries.jsx
+        +-- UsersAdmin.jsx
+        +-- SettingsAdmin.jsx
+        +-- ActivityLogs.jsx
+
+
+================================================================================
+8. DATA FLOW (State & Services)
+================================================================================
+
+  src/services/
+  +-- api.js            - base axios/fetch client (attaches auth token)
+  +-- catalog.js        - tour/service catalog API calls
+  +-- supabaseClient.js - Supabase JS client instance
+  +-- usePublic.js      - custom hook for public data fetching
+
+  src/contexts/
+  +-- SupabaseAuthContext.jsx
+  |     +-- State: session, user, loading
+  |     +-- Actions: signIn, signUp, signOut, onAuthStateChange listener
+  |     +-- Provides: useSupabaseAuth() hook
+  |
+  +-- AuthContext.jsx
+        +-- State: currentUser, isAdmin, token, permissions
+        +-- Actions: login (custom JWT), logout
+        +-- Provides: useAuth() hook
+
+  src/hooks/       - custom hooks (data fetching, UI state)
+  src/data/        - static seed data (data.js) used as fallback/mock
+  src/animations/  - Framer Motion variants (variants.js)
+  src/config/      - environment / API base URL config
+  src/utils/       - helper utilities
+  src/theme/       - design tokens / theme config
+
+
+================================================================================
+9. BOOKING LIFECYCLE
+================================================================================
+
+  1.  User selects tour -> /tour/:id
+  2.  Clicks "Book Now" -> RequireAuth check
+  3.  If unauthenticated -> AuthModal -> Supabase sign-in
+  4.  Authenticated -> /booking/:id
+  5.  MultiTravelerBooking wizard:
+        Step 1 -> collect traveler info
+        Step 2 -> select date, number of travelers
+        Step 3 -> payment details -> POST /api/payments
+        Step 4 -> booking created -> POST /api/bookings
+  6.  Booking record saved to SQLite (bookings table)
+  7.  Payment record saved (payments table)
+  8.  Confirmation screen shown to user
+  9.  Admin sees booking in /admin/bookings
+  10. Admin can update booking status, view full details in /admin/bookings/:id
+
+
+================================================================================
+10. FILE STRUCTURE SUMMARY
+================================================================================
+
+  AlpineExplorers/
+  +-- index.html                   <- Vite HTML entry
+  +-- vite.config.js               <- Vite config (proxy /api -> :5000)
+  +-- tailwind.config.js           <- Tailwind CSS config
+  +-- postcss.config.js
+  +-- package.json
+  +-- .env / .env.example          <- Environment variables
+  |
+  +-- src/
+  |   +-- main.jsx                 <- React entry, mounts <App />
+  |   +-- App.jsx                  <- Router + Auth providers + all routes
+  |   +-- index.css                <- Global styles
+  |   |
+  |   +-- pages/
+  |   |   +-- Landing.jsx
+  |   |   +-- Home.jsx
+  |   |   +-- Services.jsx
+  |   |   +-- TourDetails.jsx
+  |   |   +-- Blog.jsx
+  |   |   +-- TravelMood.jsx
+  |   |   +-- About.jsx
+  |   |   +-- Contact.jsx
+  |   |   +-- MyBookings.jsx
+  |   |   +-- UpcomingEvents.jsx
+  |   |   +-- PrivacyPolicy.jsx
+  |   |   +-- TermsConditions.jsx
+  |   |   +-- admin/
+  |   |       +-- Login.jsx
+  |   |       +-- Dashboard.jsx
+  |   |       +-- Bookings.jsx
+  |   |       +-- BookingDetail.jsx
+  |   |       +-- BookingDetailModal.jsx
+  |   |       +-- ContentPages.jsx
+  |   |       +-- Media.jsx
+  |   |       +-- HomepageAdmin.jsx
+  |   |       +-- AboutAdmin.jsx
+  |   |       +-- Inquiries.jsx
+  |   |       +-- UsersAdmin.jsx
+  |   |       +-- SettingsAdmin.jsx
+  |   |       +-- ActivityLogs.jsx
+  |   |
+  |   +-- components/
+  |   |   +-- Navbar.jsx
+  |   |   +-- Footer.jsx
+  |   |   +-- TourCard.jsx
+  |   |   +-- TourDetailsPage.jsx
+  |   |   +-- TourImageSlider.jsx
+  |   |   +-- TourGrid.jsx
+  |   |   +-- TourApplicationForm.jsx
+  |   |   +-- TourInquiryForm.jsx
+  |   |   +-- DestinationCard.jsx
+  |   |   +-- BlogCard.jsx
+  |   |   +-- ExperienceCard.jsx
+  |   |   +-- AnimatedCounter.jsx
+  |   |   +-- BookingForm.jsx
+  |   |   +-- BookingModal.jsx
+  |   |   +-- MultiTravelerBooking.jsx
+  |   |   +-- InquiryModal.jsx
+  |   |   +-- InquireButton.jsx
+  |   |   +-- BookNowButton.jsx
+  |   |   +-- ServicePage.jsx
+  |   |   +-- ServiceTourCard.jsx
+  |   |   +-- ServicesMegaMenu.jsx
+  |   |   +-- SearchModal.jsx
+  |   |   +-- ShowcaseModal.jsx
+  |   |   +-- AdventureVideos.jsx
+  |   |   +-- FamilyCustomizationForm.jsx
+  |   |   +-- ApplicationFormModal.jsx
+  |   |   +-- UserProfileModal.jsx
+  |   |   +-- ErrorBoundary.jsx
+  |   |   +-- RequireAuth.jsx
+  |   |   +-- auth/
+  |   |   |   +-- AuthModal.jsx
+  |   |   +-- admin/
+  |   |       +-- AdminLayout.jsx
+  |   |       +-- ProtectedRoute.jsx
+  |   |
+  |   +-- contexts/
+  |   |   +-- AuthContext.jsx          <- Custom JWT admin auth
+  |   |   +-- SupabaseAuthContext.jsx  <- Supabase public user auth
+  |   |
+  |   +-- services/
+  |   |   +-- api.js
+  |   |   +-- catalog.js
+  |   |   +-- supabaseClient.js
+  |   |   +-- usePublic.js
+  |   |
+  |   +-- hooks/        <- Custom React hooks
+  |   +-- data/         <- Static/mock data (data.js)
+  |   +-- animations/   <- Framer Motion variants
+  |   +-- config/       <- App config
+  |   +-- utils/        <- Utility functions
+  |   +-- theme/        <- Design tokens
+  |
+  +-- server/
+  |   +-- index.js              <- Express app entry, all routes mounted
+  |   +-- server.js             <- (secondary entry / process spawn)
+  |   +-- db.js                 <- SQLite schema + all query functions
+  |   +-- seed.js               <- DB seeder (runs on startup if empty)
+  |   +-- middleware.js         <- JWT auth middleware, upload error handler
+  |   +-- database.sqlite       <- SQLite database file
+  |   +-- routes/
+  |   |   +-- public.js         <- Public catalog (tours, services, events)
+  |   |   +-- auth.js           <- Login / logout / JWT refresh
+  |   |   +-- tours.js          <- Tour detail routes
+  |   |   +-- content.js        <- Generic CRUD for content types
+  |   |   +-- bookings.js       <- Booking CRUD + status management
+  |   |   +-- payments.js       <- Payment processing
+  |   |   +-- blogs.js          <- Blog CRUD
+  |   |   +-- media.js          <- File upload (multer)
+  |   |   +-- inquiries.js      <- Contact form submissions
+  |   |   +-- applications.js   <- Tour applications
+  |   |   +-- users.js          <- User management
+  |   |   +-- staff.js          <- Staff / roles management
+  |   |   +-- site.js           <- Site settings
+  |   +-- data/                 <- Server-side seed data files
+  |   +-- scripts/              <- DB maintenance scripts
+  |   +-- utils/                <- Server-side utilities
+  |
+  +-- public/                   <- Static public assets
+  +-- uploads/                  <- User-uploaded media files
+  +-- dist/                     <- Production build output
+  +-- supabase/                 <- Supabase config / migrations
+
+
+================================================================================
+11. ENVIRONMENT VARIABLES
+================================================================================
+
+  FRONTEND (.env)
+  ---------------
+  VITE_API_BASE_URL       - Backend API URL (e.g. http://localhost:5000)
+  VITE_SUPABASE_URL       - Supabase project URL
+  VITE_SUPABASE_ANON_KEY  - Supabase anon/public key
+
+  BACKEND (.env)
+  --------------
+  PORT                     - Express server port (default: 5000)
+  HOST                     - Server host URL
+  FRONTEND_URL             - Allowed CORS origin(s)
+  JWT_SECRET               - Secret for signing admin JWTs
+  SUPABASE_URL             - Supabase URL (for server-side calls)
+  SUPABASE_SERVICE_ROLE_KEY - Supabase service role key
+
+
+================================================================================
+12. BUILD & DEPLOYMENT FLOW
+================================================================================
+
+  DEVELOPMENT
+  -----------
+  Terminal 1: npm run dev          -> Vite dev server on :5173
+  Terminal 2: node server/index.js -> Express API on :5000
+  Vite proxies /api/* -> :5000 (configured in vite.config.js)
+
+  PRODUCTION
+  ----------
+  npm run build                    -> Vite outputs /dist
+  node server/index.js             -> Express serves /dist (SPA fallback)
+                                      + handles all /api/* routes
+  Deployment target: Render.com
+  +-- Web service: node server/index.js
+  +-- Static files: dist/ served by Express
+  +-- Persistent disk: uploads/ directory
+
+  DATABASE INITIALIZATION
+  -----------------------
+  On server startup -> runSeed() checks if DB is empty
+  If empty -> seed.js populates all tables with sample data
+  Manual seed: GET /api/seed
+
+
+================================================================================
+                              END OF FLOW DOCUMENT
+================================================================================
