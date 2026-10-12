@@ -63,7 +63,7 @@ const showcaseDestinations = [
     name: 'Switzerland',
     tag: 'Alpine Wonder',
     image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1400&h=800&fit=crop',
-    to: '/services/mountain',
+    to: '/services/mountain-expedition',
     layout: 'col-span-2 row-span-1',
   },
   {

@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Globe, Map, Mountain, Tent, Users, Backpack } from 'lucide-react'
 import { serviceCategories } from '../data/servicesData'
-import adventureCampImage from '../assets/services/adventure-camp.jpg'
 
 const NAVY = 'var(--ae-navy)'
 const GOLD = 'var(--ae-gold)'
@@ -16,15 +15,6 @@ const iconMap = {
   adventure: Tent,
   family: Users,
   solo: Backpack,
-}
-
-const categoryImages = {
-  international: 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=300&h=200&fit=crop',
-  domestic: 'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=300&h=200&fit=crop',
-  mountain: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=200&fit=crop',
-  adventure: adventureCampImage,
-  family: 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=300&h=200&fit=crop',
-  solo: 'https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=300&h=200&fit=crop',
 }
 
 export default function ServicesMegaMenu({ isOpen, onHoverStart, onHoverEnd, onNavigate }) {
@@ -107,7 +97,7 @@ export default function ServicesMegaMenu({ isOpen, onHoverStart, onHoverEnd, onN
                         {/* Image */}
                         <div className="w-full aspect-[3/2] rounded-lg overflow-hidden mb-2.5 ring-1 ring-black/5">
                           <img
-                            src={categoryImages[cat.id]}
+                            src={cat.cardImage || cat.heroImage}
                             alt={cat.shortName}
                             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                             loading="lazy"

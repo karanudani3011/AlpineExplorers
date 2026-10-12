@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import { SupabaseAuthProvider } from './contexts/SupabaseAuthContext'
 
@@ -106,6 +106,8 @@ function App() {
             <Route path="/services" element={
               <Suspense fallback={<PageLoader />}><Services /></Suspense>
             } />
+            <Route path="/services/mountain" element={<Navigate to="/services/mountain-expedition" replace />} />
+            <Route path="/services/adventure" element={<Navigate to="/services/adventure-camp-trek" replace />} />
             <Route path="/services/:slug" element={
               <Suspense fallback={<PageLoader />}><ServicePage /></Suspense>
             } />

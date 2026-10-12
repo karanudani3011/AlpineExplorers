@@ -18,8 +18,8 @@ const BROWN = 'var(--ae-ink)'
 const serviceSubLinks = [
   { name: 'International', slug: 'international', icon: Globe, tagline: 'Explore the world beyond borders' },
   { name: 'Domestic', slug: 'domestic', icon: Map, tagline: 'Discover incredible India' },
-  { name: 'Mountain', slug: 'mountain', icon: Mountain, tagline: 'Higher peaks, deeper experiences' },
-  { name: 'Adventure Tours & Camps', slug: 'adventure', icon: Tent, tagline: 'Thrill & unforgettable trips' },
+  { name: 'Mountain Expedition', slug: 'mountain-expedition', icon: Mountain, tagline: 'Conquer the Himalayas with expert guides' },
+  { name: 'Adventure Camp & Trek', slug: 'adventure-camp-trek', icon: Tent, tagline: 'Camping, trekking & unforgettable trails' },
   { name: 'Family', slug: 'family', icon: Users, tagline: 'Customize your perfect family journey' },
   { name: 'Go Solo', slug: 'solo', icon: Backpack, tagline: 'Explore the world on your own terms' },
 ]

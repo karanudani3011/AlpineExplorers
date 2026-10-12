@@ -1,4 +1,8 @@
 import { Globe, Map, Mountain, Tent, Users, Backpack } from 'lucide-react'
+import burjKhalifaImage from '../assets/services/burj-khalifa.jpg'
+import mountainExpeditionImage from '../assets/services/mountain-expedition.jpg'
+import adventureCampImage from '../assets/services/adventure-camp.jpg'
+import familyTripImage from '../assets/services/family-trip.jpg'
 
 export const serviceCategories = [
   {
@@ -6,6 +10,7 @@ export const serviceCategories = [
     name: 'International Tours',
     slug: 'international',
     shortName: 'International',
+    cardImage: burjKhalifaImage,
     icon: Globe,
     tagline: 'Explore the world beyond borders',
     description: 'Curated transcontinental journeys across Europe, Asia, the Americas, and the Pacific with VIP concierge support.',
@@ -25,22 +30,24 @@ export const serviceCategories = [
   },
   {
     id: 'mountain',
-    name: 'Mountain Expeditions',
-    slug: 'mountain',
-    shortName: 'Mountain',
+    name: 'Mountain Expedition',
+    slug: 'mountain-expedition',
+    shortName: 'Mountain Expedition',
+    cardImage: mountainExpeditionImage,
     icon: Mountain,
-    tagline: 'Higher peaks, deeper experiences',
+    tagline: 'Conquer the Himalayas with expert guides',
     description: 'High-altitude mountaineering, glacial passes, alpine meadows, and guided summit expeditions across the world\'s greatest ranges.',
     heroImage: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1600&h=700&fit=crop',
     color: 'var(--ae-navy-soft)',
   },
   {
     id: 'adventure',
-    name: 'Adventure Tours & Camps',
-    slug: 'adventure',
+    name: 'Adventure Camp & Trek',
+    slug: 'adventure-camp-trek',
     shortName: 'Adventure Camp & Trek',
+    cardImage: adventureCampImage,
     icon: Tent,
-    tagline: 'Bet Dwarka camping, trekking & unforgettable trails',
+    tagline: 'Camping, trekking & unforgettable trails',
     description: 'Thrilling white water rafting, wilderness glamping camps, canyon rappelling, and off-grid exploration.',
     heroImage: 'https://images.unsplash.com/photo-1501555088652-021faa106b9b?w=1600&h=700&fit=crop',
     color: '#7c2d12',
@@ -50,6 +57,7 @@ export const serviceCategories = [
     name: 'Family Tours',
     slug: 'family',
     shortName: 'Family',
+    cardImage: familyTripImage,
     icon: Users,
     tagline: 'Customize your perfect family journey',
     description: 'Stress-free, unforgettable multigenerational vacations with fairytale castles, interactive science, and family-friendly adventures.',

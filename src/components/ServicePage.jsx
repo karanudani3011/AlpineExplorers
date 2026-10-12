@@ -22,11 +22,13 @@ const font = {
 export default function ServicePage() {
   const { slug } = useParams()
   const category = serviceCategories.find((c) => c.slug === slug)
-  const [tours, setTours] = useState(serviceTours[slug] || [])
+  const [tours, setTours] = useState(serviceTours[category?.id] || [])
 
   useEffect(() => {
     window.scrollTo(0, 0)
     let mounted = true
+
+    setTours(serviceTours[category?.id] || [])
 
     // Load dynamic tours from DB / public API and merge with curated
     getCatalog(true).then((catalog) => {
@@ -36,8 +38,8 @@ export default function ServicePage() {
         const cat = (t.category || t.serviceCategory || '').toLowerCase()
         if (s === 'international') return cat.includes('international')
         if (s === 'domestic') return cat.includes('domestic')
-        if (s === 'mountain') return cat.includes('mountain') || cat.includes('trek')
-        if (s === 'adventure') return cat.includes('adventure')
+        if (s === 'mountain-expedition') return cat.includes('mountain') || cat.includes('trek')
+        if (s === 'adventure-camp-trek') return cat.includes('adventure') || cat.includes('camp') || cat.includes('trek')
         if (s === 'family') return cat.includes('family') || cat.includes('camp')
         if (s === 'solo') return cat.includes('solo') || cat.includes('biking')
         return cat.includes(s)
@@ -48,7 +50,7 @@ export default function ServicePage() {
     }).catch(() => {})
 
     return () => { mounted = false }
-  }, [slug])
+  }, [slug, category?.id])
 
   if (!category) {
     return (
