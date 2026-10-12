@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Facebook, Instagram, Mail, Phone, MapPin, MessageCircle, Youtube, ArrowRight } from 'lucide-react'
+import { Mail, Phone, MapPin, MessageCircle, ArrowRight } from 'lucide-react'
 import { motion } from 'framer-motion'
 
 const NAVY = 'var(--ae-navy)'
@@ -72,12 +72,6 @@ function ColumnTitle({ children }) {
     </div>
   )
 }
-
-const socials = [
-  { name: 'Instagram', icon: Instagram, href: 'https://www.instagram.com/alpine.explorers?utm_source=ig_web_button_share_sheet&stkn=ZDNlZDc0MzIxNw==' },
-  { name: 'Facebook', icon: Facebook, href: 'https://www.facebook.com/p/Alpine-Explorers-Rajkot-100063700699879/' },
-  { name: 'YouTube', icon: Youtube, href: 'https://youtube.com/@alpineexplorers346?si=jETMSBRVcQlzp4W8' },
-]
 
 const quickLinks = [
   { name: 'Home', path: '/home' },
@@ -164,36 +158,6 @@ export default function Footer() {
               </span>
             </div>
 
-            {/* socials — Follow Our Adventures */}
-            <div>
-              <span className="text-lg block mb-2" style={{ ...font.script, color: GOLD2 }}>Follow our adventures</span>
-              <div className="flex gap-3">
-                {socials.map((s) => {
-                  const Icon = s.icon
-                  return (
-                    <motion.a
-                      key={s.name}
-                      href={s.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      whileHover={{ y: -3, scale: 1.08 }}
-                      aria-label={s.name}
-                      className="flex items-center justify-center rounded-full"
-                      style={{
-                        width: 44, height: 44,
-                        backgroundColor: 'rgb(var(--ae-cream-rgb) /0.06)',
-                        border: '1px solid rgb(var(--ae-gold2-rgb) /0.35)',
-                        color: CREAM,
-                      }}
-                      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = GOLD; e.currentTarget.style.color = NAVY }}
-                      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgb(var(--ae-cream-rgb) /0.06)'; e.currentTarget.style.color = CREAM }}
-                    >
-                      <Icon size={18} />
-                    </motion.a>
-                  )
-                })}
-              </div>
-            </div>
           </motion.div>
 
           {/* Quick Links */}

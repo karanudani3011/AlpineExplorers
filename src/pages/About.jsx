@@ -504,6 +504,9 @@ export default function About() {
                   <p className="italic text-sm mb-4" style={{ fontFamily: 'Playfair Display, serif', color: 'var(--ae-gold)' }}>
                     Nehru Institute of Mountaineering
                   </p>
+                  <span className="text-[9px] font-semibold uppercase tracking-[0.16em] mb-3" style={{ color: 'rgb(var(--ae-ink-rgb) /0.55)', fontFamily: 'Inter, sans-serif' }}>
+                    Instructor
+                  </span>
                   <p className="text-[13px] md:text-[14px] leading-relaxed flex-1" style={{ color: 'var(--ae-ink)', fontFamily: 'Inter, sans-serif' }}>
                     Our treks are curated and led by veteran mountaineers certified from India&apos;s{' '}
                     <span className="font-bold" style={{ color: 'var(--ae-navy)' }}>elite mountaineering institution NIM Uttarkashi</span>.
@@ -552,6 +555,9 @@ export default function About() {
                   <p className="italic text-sm mb-4" style={{ fontFamily: 'Playfair Display, serif', color: 'var(--ae-gold)' }}>
                     Swami Vivekanand Mountaineering Institute
                   </p>
+                  <span className="text-[9px] font-semibold uppercase tracking-[0.16em] mb-3" style={{ color: 'rgb(var(--ae-ink-rgb) /0.55)', fontFamily: 'Inter, sans-serif' }}>
+                    Instructor
+                  </span>
                   <p className="text-[13px] md:text-[14px] leading-relaxed flex-1" style={{ color: 'var(--ae-ink)', fontFamily: 'Inter, sans-serif' }}>
                     Our treks are curated and led by veteran mountaineers certified from India&apos;s{' '}
                     <span className="font-bold" style={{ color: 'var(--ae-navy)' }}>elite mountaineering institution SVMI Mount Abu</span>.
