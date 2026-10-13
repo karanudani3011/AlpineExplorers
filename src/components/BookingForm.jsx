@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom'
-import { Mountain, ArrowLeft, ShieldCheck } from 'lucide-react'
+import { Mountain, ArrowLeft, ShieldCheck, Lock, MessageSquare } from 'lucide-react'
 import Navbar from './Navbar'
 import Footer from './Footer'
 import MultiTravelerBooking from './MultiTravelerBooking'
@@ -30,6 +30,19 @@ export default function BookingForm() {
 
   const [tour, setTour] = useState(() => location.state?.tour || findTourById(id))
   const [tourLoading, setTourLoading] = useState(!location.state?.tour && !findTourById(id))
+  const [bookingSettings, setBookingSettings] = useState({
+    qr_payment_enabled: true,
+    closed_message: 'Bookings are currently full. Please contact us for the next available dates.'
+  })
+
+  useEffect(() => {
+    fetch('/api/public/booking-settings')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.settings) setBookingSettings(data.settings)
+      })
+      .catch(() => {})
+  }, [])
 
   // Async load from catalog for DB-sourced tours (dom-*, int-*, adv-*, camp-*)
   useEffect(() => {
@@ -114,6 +127,46 @@ export default function BookingForm() {
           >
             <ArrowLeft size={15} /> Browse Tours
           </Link>
+        </div>
+        <Footer />
+      </div>
+    )
+  }
+
+  const isTourFull = tour?.booking_open === 0 || tour?.booking_open === false || (tour?.seats_total > 0 && (tour?.seats_booked || 0) >= tour?.seats_total)
+  const isBookingClosed = !bookingSettings.qr_payment_enabled || isTourFull
+
+  if (isBookingClosed) {
+    const whatsappMsg = `Hello Alpine Explorers!\n\nI wanted to book the tour: ${tour?.title || 'Tour'}.\nBookings are currently full/closed. Please notify me when dates become available.`
+    return (
+      <div className="min-h-screen flex flex-col" style={{ backgroundColor: '#f8f9fa' }}>
+        <Navbar />
+        <div className="flex-1 flex flex-col items-center justify-center text-center py-24 px-4 max-w-xl mx-auto">
+          <div className="w-16 h-16 rounded-full flex items-center justify-center mb-5 bg-amber-500/10 border border-amber-500/20 text-amber-600">
+            <Lock size={28} />
+          </div>
+          <h1 className="text-2xl font-bold mb-3" style={{ color: NAVY, fontFamily: 'Cinzel, serif' }}>
+            Bookings Currently Full
+          </h1>
+          <p className="text-gray-600 text-sm mb-6 leading-relaxed bg-amber-50 border border-amber-200/80 rounded-xl p-4">
+            {bookingSettings.closed_message || 'Bookings are currently full. Please contact us for the next available dates.'}
+          </p>
+          <div className="flex flex-col sm:flex-row items-center gap-3">
+            <a
+              href={`https://wa.me/919979883339?text=${encodeURIComponent(whatsappMsg)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-white font-bold text-sm bg-emerald-600 hover:bg-emerald-700 shadow-md transition"
+            >
+              <MessageSquare size={16} /> Contact us / WhatsApp
+            </a>
+            <Link
+              to="/services"
+              className="inline-flex items-center gap-2 px-5 py-3 rounded-xl font-semibold text-sm border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
+            >
+              <ArrowLeft size={15} /> Browse Other Tours
+            </Link>
+          </div>
         </div>
         <Footer />
       </div>

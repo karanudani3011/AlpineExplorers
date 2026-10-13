@@ -107,6 +107,9 @@ const fromInternational = (p) => {
     ].filter(Boolean),
     exclusions: p.air_ticket ? [] : ['International flights'],
     itinerary: [],
+    booking_open: p.booking_open !== undefined ? (p.booking_open !== 0 && p.booking_open !== false) : true,
+    seats_total: p.seats_total ?? null,
+    seats_booked: p.seats_booked ?? 0,
   }
 }
 
@@ -143,6 +146,9 @@ const fromDomestic = (p) => {
     ].filter(Boolean),
     exclusions: [],
     itinerary: [],
+    booking_open: p.booking_open !== undefined ? (p.booking_open !== 0 && p.booking_open !== false) : true,
+    seats_total: p.seats_total ?? null,
+    seats_booked: p.seats_booked ?? 0,
   }
 }
 
@@ -176,6 +182,9 @@ const fromAdventure = (p) => {
     inclusions: parseList(p.includes),
     exclusions: [],
     itinerary: [],
+    booking_open: p.booking_open !== undefined ? (p.booking_open !== 0 && p.booking_open !== false) : true,
+    seats_total: p.seats_total ?? null,
+    seats_booked: p.seats_booked ?? 0,
   }
 }
 
@@ -204,6 +213,9 @@ const fromCamping = (p) => {
     budgetTier: meta.budgetTier,
     rating: 4.8,
     reviews: 130 + (p.id * 11) % 90,
+    booking_open: p.booking_open !== undefined ? (p.booking_open !== 0 && p.booking_open !== false) : true,
+    seats_total: p.seats_total ?? null,
+    seats_booked: p.seats_booked ?? 0,
   }
 }
 

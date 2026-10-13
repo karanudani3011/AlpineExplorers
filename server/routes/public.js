@@ -90,4 +90,22 @@ publicRouter.get('/settings', (req, res) => {
   res.json({ settings: db.prepare('SELECT website_name, logo, favicon, seo_title, seo_description, ga_id, maintenance_mode FROM settings WHERE id=1').get() })
 })
 
+publicRouter.get('/booking-settings', (req, res) => {
+  try {
+    let row = db.prepare('SELECT qr_payment_enabled, closed_message FROM booking_settings WHERE id=1').get()
+    if (!row) {
+      db.prepare("INSERT OR IGNORE INTO booking_settings (id, qr_payment_enabled, closed_message) VALUES (1, 1, 'Bookings are currently full. Please contact us for the next available dates.')").run()
+      row = db.prepare('SELECT qr_payment_enabled, closed_message FROM booking_settings WHERE id=1').get()
+    }
+    res.json({
+      settings: {
+        qr_payment_enabled: Boolean(row.qr_payment_enabled),
+        closed_message: row.closed_message || 'Bookings are currently full. Please contact us for the next available dates.',
+      }
+    })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
 export default publicRouter

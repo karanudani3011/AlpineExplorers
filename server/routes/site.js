@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { db, logActivity } from '../db.js'
 import { authRequired } from '../middleware.js'
+import { supabaseAdmin } from '../utils/supabase.js'
 
 const router = Router()
 router.use(authRequired)
@@ -129,4 +130,45 @@ router.get('/dashboard', (req, res) => {
   res.json({ stats, byCategory, monthlyInquiries, topDestinations, recentActivity })
 })
 
-export default router
+/* ── Booking & Payment Settings ── */
+router.get('/booking-settings', (req, res) => {
+  try {
+    let row = db.prepare('SELECT * FROM booking_settings WHERE id = 1').get()
+    if (!row) {
+      db.prepare("INSERT OR IGNORE INTO booking_settings (id, qr_payment_enabled, closed_message) VALUES (1, 1, 'Bookings are currently full. Please contact us for the next available dates.')").run()
+      row = db.prepare('SELECT * FROM booking_settings WHERE id = 1').get()
+    }
+    res.json({ settings: row })
+  } catch (e) {
+    res.status(500).json({ error: e.message })
+  }
+})
+
+router.put('/booking-settings', async (req, res) => {
+  const b = req.body || {}
+  try {
+    db.prepare("INSERT OR IGNORE INTO booking_settings (id, qr_payment_enabled, closed_message) VALUES (1, 1, 'Bookings are currently full. Please contact us for the next available dates.')").run()
+    db.prepare("UPDATE booking_settings SET qr_payment_enabled = ?, closed_message = ?, updated_at = datetime('now') WHERE id = 1")
+      .run(b.qr_payment_enabled ? 1 : 0, b.closed_message ?? 'Bookings are currently full. Please contact us for the next available dates.')
+    
+    if (supabaseAdmin) {
+      try {
+        await supabaseAdmin.from('booking_settings').upsert({
+          id: 1,
+          qr_payment_enabled: Boolean(b.qr_payment_enabled),
+          closed_message: b.closed_message ?? 'Bookings are currently full. Please contact us for the next available dates.',
+          updated_at: new Date().toISOString()
+        })
+      } catch (sbErr) {
+        console.warn('Supabase booking_settings sync warning:', sbErr.message)
+      }
+    }
+
+    logActivity({ user_name: req.user?.username || 'admin', action: 'Settings changed', module: 'Booking Settings', details: `QR payments: ${b.qr_payment_enabled ? 'ON' : 'OFF'}` })
+    res.json({ settings: db.prepare('SELECT * FROM booking_settings WHERE id = 1').get() })
+  } catch (e) {
+    res.status(500).json({ error: e.message })
+  }
+})
+
+export default router

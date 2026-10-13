@@ -159,6 +159,19 @@ export function crudAdminRouter({ table, fields, module, permKey }) {
     res.json({ message: 'Updated', featured })
   })
 
+  router.patch('/:id/booking-open', requirePermission(`${pk}.edit`), async (req, res) => {
+    const existing = db.prepare(`SELECT id FROM ${table} WHERE id = ?`).get(req.params.id)
+    if (!existing) return res.status(404).json({ error: 'Not found' })
+    const booking_open = req.body.booking_open ? 1 : 0
+    db.prepare(`UPDATE ${table} SET booking_open = ?, updated_at = datetime('now') WHERE id = ?`).run(booking_open, req.params.id)
+    logActivity({ user_name: req.user.full_name || req.user.username || req.user.email, action: booking_open ? 'Opened Booking' : 'Closed Booking', module, details: `#${req.params.id}` })
+    
+    const row = db.prepare(`SELECT ${selectable} FROM ${table} WHERE id = ?`).get(req.params.id)
+    syncContentToSupabase(table, row).catch(() => {})
+
+    res.json({ message: 'Booking status updated', booking_open })
+  })
+
   router.delete('/:id', requirePermission(`${pk}.delete`), async (req, res) => {
     const existing = db.prepare(`SELECT id FROM ${table} WHERE id = ?`).get(req.params.id)
     if (!existing) return res.status(404).json({ error: 'Not found' })
@@ -214,27 +227,27 @@ export const CONTENT_CONFIGS = {
     hasFeatured: true,
     fields: ['destination', 'country', 'duration', 'short_description', 'full_description', 'price', 'original_price',
       'air_ticket', 'passport_visa', 'pickup_drop', 'accommodation', 'food', 'sightseeing', 'guidance',
-      'image', 'gallery', 'featured', 'status'],
+      'image', 'gallery', 'featured', 'status', 'booking_open', 'seats_total', 'seats_booked'],
   },
   domestic: {
     table: 'domestic_packages',
     module: 'domestic',
     permKey: 'services',
     fields: ['destination', 'state', 'duration', 'season', 'short_description', 'full_description', 'price',
-      'transportation', 'accommodation', 'food', 'sightseeing', 'activities', 'image', 'gallery', 'status'],
+      'transportation', 'accommodation', 'food', 'sightseeing', 'activities', 'image', 'gallery', 'status', 'booking_open', 'seats_total', 'seats_booked'],
   },
   adventure: {
     table: 'adventure_packages',
     module: 'adventure',
     permKey: 'services',
-    fields: ['title', 'category', 'location', 'duration', 'season', 'ex', 'description', 'activities', 'includes', 'image', 'gallery', 'status'],
+    fields: ['title', 'category', 'location', 'duration', 'season', 'ex', 'description', 'activities', 'includes', 'image', 'gallery', 'status', 'booking_open', 'seats_total', 'seats_booked'],
   },
   camping: {
     table: 'camping_packages',
     module: 'camping',
     permKey: 'services',
     fields: ['title', 'location', 'duration', 'season', 'description', 'activities', 'accommodation', 'food',
-      'charges', 'rules', 'what_to_bring', 'certificates', 'image', 'gallery', 'status'],
+      'charges', 'rules', 'what_to_bring', 'certificates', 'image', 'gallery', 'status', 'booking_open', 'seats_total', 'seats_booked'],
   },
   services: {
     table: 'services',
@@ -247,6 +260,6 @@ export const CONTENT_CONFIGS = {
     module: 'events',
     permKey: 'events',
     hasFeatured: true,
-    fields: ['title', 'date', 'month', 'day', 'time', 'location', 'description', 'badge', 'tag', 'price', 'image', 'gallery', 'featured', 'status'],
+    fields: ['title', 'date', 'month', 'day', 'time', 'location', 'description', 'badge', 'tag', 'price', 'image', 'gallery', 'featured', 'status', 'booking_open', 'seats_total', 'seats_booked'],
   },
 }

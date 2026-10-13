@@ -64,6 +64,77 @@ function saveBase64Image(dataUrl, prefix = 'img') {
 
 const router = Router()
 
+/**
+ * Fetch global booking settings from Supabase or SQLite.
+ * Returns { qrEnabled, closedMessage }.
+ */
+async function getBookingSettings() {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('booking_settings')
+      .select('qr_payment_enabled, closed_message')
+      .eq('id', 1)
+      .maybeSingle()
+    if (!error && data) {
+      return {
+        qrEnabled: Boolean(data.qr_payment_enabled),
+        closedMessage: data.closed_message || 'Bookings are currently full. Please contact us for the next available dates.',
+      }
+    }
+  } catch {}
+
+  try {
+    const row = db.prepare('SELECT qr_payment_enabled, closed_message FROM booking_settings WHERE id = 1').get()
+    if (row) {
+      return {
+        qrEnabled: Boolean(row.qr_payment_enabled),
+        closedMessage: row.closed_message || 'Bookings are currently full. Please contact us for the next available dates.',
+      }
+    }
+  } catch {}
+
+  return { qrEnabled: true, closedMessage: 'Bookings are currently full. Please contact us for the next available dates.' }
+}
+
+/**
+ * Check per-tour booking availability and seat limits.
+ */
+function checkTourBookingAvailability(tourId, tourName) {
+  const tables = ['international_packages', 'domestic_packages', 'adventure_packages', 'camping_packages', 'events']
+  for (const table of tables) {
+    let row = null
+    if (tourId) {
+      const cleanId = String(tourId).replace(/^(int|dom|adv|camp)-/, '')
+      try {
+        row = db.prepare(`SELECT booking_open, seats_total, seats_booked FROM ${table} WHERE id = ?`).get(cleanId)
+      } catch {}
+    }
+    if (!row && tourName) {
+      try {
+        if (table === 'international_packages' || table === 'domestic_packages') {
+          row = db.prepare(`SELECT booking_open, seats_total, seats_booked FROM ${table} WHERE destination LIKE ?`).get(`%${tourName}%`)
+        } else {
+          row = db.prepare(`SELECT booking_open, seats_total, seats_booked FROM ${table} WHERE title LIKE ?`).get(`%${tourName}%`)
+        }
+      } catch {}
+    }
+    if (row) {
+      const isManualClosed = row.booking_open === 0 || row.booking_open === false
+      const isAutoFull = row.seats_total > 0 && (row.seats_booked || 0) >= row.seats_total
+      if (isManualClosed || isAutoFull) {
+        return {
+          available: false,
+          reason: isAutoFull
+            ? 'This tour is fully booked (capacity reached). Please contact us for next available dates.'
+            : 'Bookings for this tour are currently closed. Please contact us.'
+        }
+      }
+      return { available: true }
+    }
+  }
+  return { available: true }
+}
+
 router.get('/local-files/:filename', authRequired, requirePermission('bookings.view'), (req, res) => {
   const filename = path.basename(req.params.filename || '')
   const filePath = path.resolve(uploadsDir, filename)
@@ -113,6 +184,11 @@ async function downloadStorageObject(storagePath) {
 /* ── Public endpoint for uploading scanned application forms ── */
 router.post('/upload-forms', scannedFormUpload.any(), async (req, res) => {
   try {
+    const { qrEnabled, closedMessage } = await getBookingSettings()
+    if (!qrEnabled) {
+      return res.status(503).json({ error: closedMessage || 'Bookings are currently unavailable. Form uploads are disabled.' })
+    }
+
     const bookingId = req.body.booking_id || req.body.bookingId
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ error: 'No files uploaded' })
@@ -185,7 +261,21 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ error: 'A booking requires booking_id, tour_name, and at least one traveler' })
   }
 
-  const existing = db.prepare('SELECT id FROM bookings WHERE booking_id = ?').get(booking_id)
+  // Server-side booking gate: check global QR payment switch
+  // (Only enforce when this is a new booking creation, not a payment update)
+  const existingForGateCheck = db.prepare('SELECT id FROM bookings WHERE booking_id = ?').get(booking_id)
+  if (!existingForGateCheck) {
+    const { qrEnabled, closedMessage } = await getBookingSettings()
+    if (!qrEnabled) {
+      return res.status(503).json({ error: closedMessage || 'Bookings are currently unavailable. Please contact us.' })
+    }
+    const avail = checkTourBookingAvailability(tour_id, tour_name)
+    if (!avail.available) {
+      return res.status(403).json({ error: avail.reason })
+    }
+  }
+
+  const existing = existingForGateCheck
   if (existing) {
     // If booking already exists, update payment details if provided instead of throwing duplicate error
     if (payment_status || payment_method || payment_id || order_id || scanned_forms) {

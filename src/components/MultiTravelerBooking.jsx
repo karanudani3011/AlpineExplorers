@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   Users, CheckCircle2, ArrowRight, ArrowLeft,
-  Mountain, MapPin, Clock, Calendar, CreditCard, Download,
+  Mountain, MapPin, Clock, Calendar, Download,
   Home, AlertCircle, Loader2, Ticket, MessageSquare, ExternalLink
 } from 'lucide-react'
 import { supabase } from '../services/supabaseClient'
@@ -876,7 +876,7 @@ export default function MultiTravelerBooking({ tour, user, profile }) {
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3 }}
           >
-            {/* Tour summary card */}
+            {/* Tour summary box */}
             <div
               className="rounded-2xl p-5 mb-6 flex items-center gap-4"
               style={{

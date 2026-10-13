@@ -12,7 +12,7 @@ import { useStartBooking } from '../hooks/useStartBooking'
 import {
   Star, MapPin, Calendar, Clock, Users, CheckCircle, X,
   ChevronDown, ChevronUp, ChevronRight, Share2, Heart, MessageSquare,
-  Shield, ArrowRight, CheckCircle2
+  Shield, ArrowRight, CheckCircle2, Lock, AlertCircle
 } from 'lucide-react'
 
 const NAVY = 'var(--ae-navy)'
@@ -95,6 +95,19 @@ export default function TourDetailsPage() {
   const [travelersCount, setTravelersCount] = useState(2)
   const startBooking = useStartBooking()
   const [copiedToast, setCopiedToast] = useState(false)
+  const [bookingSettings, setBookingSettings] = useState({
+    qr_payment_enabled: true,
+    closed_message: 'Bookings are currently full. Please contact us for the next available dates.'
+  })
+
+  useEffect(() => {
+    fetch('/api/public/booking-settings')
+      .then(res => res.json())
+      .then(data => {
+        if (data?.settings) setBookingSettings(data.settings)
+      })
+      .catch(() => {})
+  }, [])
 
   // Duration packages from DB
   const [dbPackages, setDbPackages] = useState([])
@@ -159,9 +172,12 @@ export default function TourDetailsPage() {
     return () => { active = false }
   }, [id])
 
+  const isTourFull = tour?.booking_open === 0 || tour?.booking_open === false || (tour?.seats_total > 0 && (tour?.seats_booked || 0) >= tour?.seats_total)
+  const isBookingClosed = !bookingSettings.qr_payment_enabled || isTourFull
+
   const handleBookNow = (e) => {
     e.preventDefault()
-    if (!tour) return
+    if (!tour || isBookingClosed) return
     startBooking({
       ...tour,
       id: tour.id,
@@ -609,15 +625,31 @@ export default function TourDetailsPage() {
 
               {/* Action Buttons */}
               <div className="space-y-2.5">
-                <button
-                  type="button"
-                  onClick={handleBookNow}
-                  className="w-full py-3.5 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition flex items-center justify-center gap-2 text-sm cursor-pointer"
-                  style={{ background: `linear-gradient(135deg, ${NAVY}, ${NAVY_MID})` }}
-                >
-                  <span>Book Now</span>
-                  <ArrowRight size={15} />
-                </button>
+                {isBookingClosed ? (
+                  <div className="space-y-2.5">
+                    <button
+                      type="button"
+                      disabled
+                      className="w-full py-3.5 bg-stone-200 text-stone-500 font-bold rounded-xl flex items-center justify-center gap-2 text-sm cursor-not-allowed opacity-90 border border-stone-300"
+                    >
+                      <Lock size={15} />
+                      <span>Fully booked</span>
+                    </button>
+                    <div className="p-3 rounded-xl bg-amber-50 border border-amber-200/80 text-amber-900 text-xs leading-relaxed text-center">
+                      {bookingSettings.closed_message || 'Bookings are currently full. Please contact us for the next available dates.'}
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleBookNow}
+                    className="w-full py-3.5 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition flex items-center justify-center gap-2 text-sm cursor-pointer"
+                    style={{ background: `linear-gradient(135deg, ${NAVY}, ${NAVY_MID})` }}
+                  >
+                    <span>Book Now</span>
+                    <ArrowRight size={15} />
+                  </button>
+                )}
 
                 <a
                   href={`https://wa.me/919979883339?text=${encodeURIComponent(whatsappMessage)}`}
@@ -626,7 +658,7 @@ export default function TourDetailsPage() {
                   className="w-full py-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold rounded-xl transition flex items-center justify-center gap-2 text-sm"
                 >
                   <MessageSquare size={15} className="text-emerald-600" />
-                  <span>Inquire via WhatsApp</span>
+                  <span>Contact us / WhatsApp</span>
                 </a>
               </div>
 

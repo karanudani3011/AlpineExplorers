@@ -431,7 +431,24 @@ CREATE TABLE IF NOT EXISTS admin_audit_logs (
   details TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+CREATE TABLE IF NOT EXISTS booking_settings (
+  id INTEGER PRIMARY KEY CHECK(id = 1),
+  qr_payment_enabled INTEGER NOT NULL DEFAULT 1,
+  closed_message TEXT NOT NULL DEFAULT 'Bookings are currently full. Please contact us for the next available dates.',
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
 `)
+
+try {
+  db.exec(`INSERT OR IGNORE INTO booking_settings (id, qr_payment_enabled, closed_message) VALUES (1, 1, 'Bookings are currently full. Please contact us for the next available dates.')`)
+} catch {}
+
+const tourCapacityTables = ['international_packages', 'domestic_packages', 'adventure_packages', 'camping_packages', 'events']
+for (const tbl of tourCapacityTables) {
+  try { db.exec(`ALTER TABLE ${tbl} ADD COLUMN booking_open INTEGER NOT NULL DEFAULT 1`) } catch {}
+  try { db.exec(`ALTER TABLE ${tbl} ADD COLUMN seats_total INTEGER DEFAULT NULL`) } catch {}
+  try { db.exec(`ALTER TABLE ${tbl} ADD COLUMN seats_booked INTEGER DEFAULT 0`) } catch {}
+}
 
 // Backward-compatible itinerary extensions for existing SQLite installations.
 // The server owns tour administration today; these columns preserve the current

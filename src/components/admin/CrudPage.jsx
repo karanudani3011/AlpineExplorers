@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Plus, Search } from 'lucide-react'
 import { api } from '../../services/api'
 import { useToasts } from './useToasts'
-import { PageHeader, Btn, Card, Spinner, Modal, cls } from './admin-ui'
+import { PageHeader, Btn, Card, Spinner, Modal, Badge, cls } from './admin-ui'
 import { Field, TextInput, Select, Toggle, ImageUpload, GalleryUpload, TagPicker, ListEditor } from './FormFields'
 import { DataTable } from './DataTable'
 
@@ -19,9 +19,32 @@ export default function CrudPage({ config }) {
   const [saving, setSaving] = useState(false)
   const [confirmDel, setConfirmDel] = useState(null)
   const [deleting, setDeleting] = useState(false)
+  const [globalQrEnabled, setGlobalQrEnabled] = useState(true)
+
+  const isTourEndpoint = config.hasBooking !== false && ['/international', '/domestic', '/adventure', '/camps', '/events'].includes(config.endpoint)
+
+  const computedFields = isTourEndpoint
+    ? [
+        ...config.fields,
+        ...(config.fields.some((f) => f.name === 'booking_open') ? [] : [
+          { name: 'booking_open', label: 'Booking Availability', type: 'switch', toggleLabel: 'Booking Open (Accepting bookings)', default: true },
+          { name: 'seats_total', label: 'Total Seats (Optional limit)', type: 'number' },
+          { name: 'seats_booked', label: 'Seats Booked', type: 'number', default: 0 },
+        ])
+      ]
+    : config.fields
+
+  const loadBookingSettings = () => {
+    api.get('/booking-settings')
+      .then((d) => {
+        if (d?.settings) setGlobalQrEnabled(Boolean(d.settings.qr_payment_enabled))
+      })
+      .catch(() => {})
+  }
 
   const load = () => {
     setLoading(true)
+    loadBookingSettings()
     api.get(config.endpoint).then((d) => {
       setRows(d[config.resourceKey] || [])
     }).catch((e) => addToast(e.message, 'error')).finally(() => setLoading(false))
@@ -31,7 +54,7 @@ export default function CrudPage({ config }) {
 
   const openCreate = () => {
     const o = {}
-    for (const f of config.fields) {
+    for (const f of computedFields) {
       if (f.type === 'switch') o[f.name] = f.default ?? true
       else if (f.type === 'tags' || f.type === 'list') o[f.name] = []
       else if (f.type === 'number') o[f.name] = ''
@@ -45,9 +68,9 @@ export default function CrudPage({ config }) {
 
   const openEdit = (row) => {
     const o = {}
-    for (const f of config.fields) {
+    for (const f of computedFields) {
       let v = row[f.name]
-      if (f.type === 'switch') v = !!v
+      if (f.type === 'switch') v = v !== 0 && v !== false
       if (f.type === 'number') v = v ?? ''
       if (v === null || v === undefined) v = f.type === 'tags' || f.type === 'list' ? [] : (f.type === 'switch' ? false : '')
       o[f.name] = v
@@ -56,6 +79,18 @@ export default function CrudPage({ config }) {
     setEditing(row)
     setForm(o)
     setOpen(true)
+  }
+
+  const toggleBookingOpen = async (row) => {
+    const isCurrentlyOpen = row.booking_open !== 0 && row.booking_open !== false
+    const nextVal = isCurrentlyOpen ? 0 : 1
+    try {
+      await api.patch(`${config.endpoint}/${row.id}/booking-open`, { booking_open: nextVal })
+      addToast(nextVal ? 'Tour bookings opened' : 'Tour marked as full / closed')
+      load()
+    } catch (e) {
+      addToast(e.message, 'error')
+    }
   }
 
   const save = async () => {
@@ -107,7 +142,49 @@ export default function CrudPage({ config }) {
     setForm((f) => ({ ...f, [name]: val }))
   }
 
-  const formSections = config.formSections || [{ fields: config.fields }]
+  const formSections = config.formSections || [{ fields: computedFields }]
+
+  const tableColumns = isTourEndpoint
+    ? [
+        ...config.columns,
+        {
+          key: 'booking_status',
+          label: 'Booking',
+          render: (row) => {
+            const isManualClosed = row.booking_open === 0 || row.booking_open === false
+            const isAutoFull = row.seats_total > 0 && (row.seats_booked || 0) >= row.seats_total
+            const isFull = isManualClosed || isAutoFull
+            let tone = 'green'
+            let label = 'Open'
+            if (!globalQrEnabled) {
+              tone = 'amber'
+              label = 'QR off'
+            } else if (isFull) {
+              tone = 'red'
+              label = 'Full'
+            }
+
+            return (
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <Badge tone={tone}>{label}</Badge>
+                <button
+                  onClick={() => toggleBookingOpen(row)}
+                  className="px-2 py-0.5 rounded text-[10px] font-semibold border transition-all hover:bg-black/5"
+                  style={{
+                    borderColor: isManualClosed ? 'rgba(34,197,94,0.4)' : 'rgba(239,68,68,0.4)',
+                    color: isManualClosed ? '#15803d' : '#b91c1c',
+                    background: isManualClosed ? 'rgba(34,197,94,0.06)' : 'rgba(239,68,68,0.06)'
+                  }}
+                  title={isManualClosed ? 'Click to open booking' : 'Click to mark booking full'}
+                >
+                  {isManualClosed ? 'Open' : 'Full'}
+                </button>
+              </div>
+            )
+          }
+        }
+      ]
+    : config.columns
 
   return (
     <div>
@@ -127,7 +204,7 @@ export default function CrudPage({ config }) {
         </div>
 
         {loading ? <Spinner /> : (
-          <DataTable columns={config.columns} data={filtered}
+          <DataTable columns={tableColumns} data={filtered}
             onEdit={(row) => openEdit(row)}
             onDelete={(row) => setConfirmDel(row)}
             emptyHint={config.emptyHint}
