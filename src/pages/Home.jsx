@@ -1,5 +1,5 @@
-import { useEffect } from 'react'
-import { motion, useScroll, useTransform } from 'framer-motion'
+import { motion } from '../animations/revealMotion'
+import { useScroll, useTransform } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
@@ -140,10 +140,6 @@ export default function Home() {
   const heroOpacity = useTransform(scrollY, [0, 620], [1, 0.12])
   const ctaY = useTransform(scrollY, [0, 1200], [0, 90])
 
-  useEffect(() => {
-    window.scrollTo(0, 0)
-  }, [])
-
   return (
     <div className="min-h-screen bg-[#f7f2ea] text-slate-900 overflow-x-hidden">
       <Navbar />
@@ -165,7 +161,7 @@ export default function Home() {
             sizes="100vw"
             alt="A scenic road winding through red-orange desert canyons beneath a clear blue sky"
             className="w-full h-full object-cover"
-            fetchPriority="high"
+            fetchpriority="high"
             decoding="async"
           />
           {/* Subtle dark navy gradient from left behind hero text fading smoothly into the natural landscape */}
@@ -652,7 +648,7 @@ export default function Home() {
             src="https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=2000&h=1200&fit=crop"
             alt="A canoe gliding across a calm mountain lake at sunrise"
             className="w-full h-full object-cover"
-          />
+          loading="lazy" decoding="async" />
           <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgb(var(--ae-navy-rgb) /0.88) 0%, rgb(var(--ae-navy-rgb) /0.55) 60%, rgb(var(--ae-navy-rgb) /0.7) 100%)' }} />
         </motion.div>
 

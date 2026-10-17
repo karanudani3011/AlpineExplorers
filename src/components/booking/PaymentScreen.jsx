@@ -219,7 +219,7 @@ export default function PaymentScreen({
                 <div className="text-3xl sm:text-4xl font-black mt-1" style={{ color: NAVY }}>{formatINR(totalAmount)}</div>
               </div>
               <div className="inline-block p-3.5 bg-white rounded-2xl shadow-md border" style={{ borderColor: 'rgba(180,160,130,0.35)' }}>
-                <img src={QR_IMAGE} alt={`UPI QR code for Rs.${totalAmount}`} className="w-56 h-56 sm:w-64 sm:h-64 object-contain mx-auto" />
+                <img src={QR_IMAGE} alt={`UPI QR code for Rs.${totalAmount}`} className="w-56 h-56 sm:w-64 sm:h-64 object-contain mx-auto" loading="lazy" decoding="async" />
               </div>
               <p className="text-xs font-semibold text-gray-700 mt-4 max-w-sm mx-auto">
                 Scan this QR using Google Pay, PhonePe, Paytm or any UPI app.

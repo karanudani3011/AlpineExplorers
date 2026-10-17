@@ -109,7 +109,7 @@ export default function MediaLibrary() {
               <div key={m.id} className="group rounded-xl overflow-hidden border relative"
                 style={{ borderColor: 'rgba(180,160,130,0.25)', background: '#fff' }}>
                 <div className="relative h-28 overflow-hidden">
-                  <img src={fullUrl(m.url)} alt={m.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                  <img src={fullUrl(m.url)} alt={m.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" loading="lazy" decoding="async" />
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
                     <button onClick={() => setEditing(m)} className="p-1.5 rounded-lg bg-white/90" title="Edit / Replace"><RefreshCw size={14} /></button>
                     <button onClick={() => onDelete(m)} className="p-1.5 rounded-lg bg-white/90" title="Delete"><Trash2 size={14} color="#8b2518" /></button>
@@ -132,7 +132,7 @@ export default function MediaLibrary() {
       <Modal open={!!editing} onClose={() => setEditing(null)} title="Edit / Replace Image" width={520}>
         {editing && (
           <div>
-            <img src={fullUrl(editing.url)} alt={editing.title} className="w-full h-44 object-cover rounded-xl mb-4" />
+            <img src={fullUrl(editing.url)} alt={editing.title} className="w-full h-44 object-cover rounded-xl mb-4" loading="lazy" decoding="async" />
             <div className="mb-4">
               <FieldLabel>Title</FieldLabel>
               <input value={editForm.title ?? editing.title} onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}

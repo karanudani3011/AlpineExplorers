@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
-import { motion, useInView } from 'framer-motion'
+import { motion } from '../animations/revealMotion'
+import { useInView } from 'framer-motion'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { usePublicContent } from '../services/usePublic'
@@ -65,7 +66,6 @@ const pillars = [
 ]
 
 export default function About() {
-  useEffect(() => { window.scrollTo(0, 0) }, [])
 
   const { content: about } = usePublicContent('about')
 
@@ -228,7 +228,7 @@ export default function About() {
                         alt="Alpine mountain expedition"
                         className="w-full h-52 sm:h-64 object-cover"
                         style={{ borderRadius: '2px' }}
-                      />
+                      loading="lazy" decoding="async" />
                       <div className="absolute bottom-3 left-0 right-0 text-center">
                         <span className="text-base tracking-wide" style={{ fontFamily: 'Caveat, cursive', color: 'var(--ae-ink)' }}>
                           Into the mountains we go
@@ -772,7 +772,7 @@ export default function About() {
                       logoStyle: {},
                     },
                     {
-                      logo: '/logos/tosg.png',
+                      logo: '/logos/tosg.webp',
                       alt: 'TOSG – Tour Operators Sustainable Group logo',
                       short: 'TOSG',
                       full: 'Tour Operators Sustainable Group',
@@ -1009,7 +1009,7 @@ export default function About() {
                       alt={s.label}
                       className="w-full h-44 sm:h-52 object-cover"
                       style={{ borderRadius: '2px' }}
-                    />
+                    loading="lazy" decoding="async" />
                     <div className="absolute bottom-3 left-0 right-0 text-center">
                       <span className="text-sm" style={{ fontFamily: 'Caveat, cursive', color: 'var(--ae-ink)' }}>
                         {s.detail}

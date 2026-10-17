@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
+import { motion } from '../animations/revealMotion'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { usePublicContent } from '../services/usePublic'
@@ -7,8 +7,15 @@ import { api } from '../services/api'
 import {
   Compass, ArrowRight, MapPin, Phone, Mail, MessageCircle, Send, User,
   Trees, Tent, Mountain, Users, Calendar, CheckCircle2, Navigation, Globe,
-  Route, Backpack, Award, Quote,
+  Route, Backpack, Award, Quote, Instagram, Facebook, Twitter, Youtube,
+  Linkedin, Star,
 } from 'lucide-react'
+import instaQr from '../assets/qr/insta-qr.png'
+import facebookQr from '../assets/qr/fb-qr.png'
+import xQr from '../assets/qr/x-qr.png'
+import youtubeQr from '../assets/qr/youtube-qr.png'
+import linkedinQr from '../assets/qr/linkedin-qr.png'
+import googleReviewQr from '../assets/qr/google-review-qr.png'
 
 /* ────────────────────────── Design tokens ────────────────────────── */
 
@@ -19,6 +26,23 @@ const GOLD2 = 'var(--ae-gold2)'
 const CREAM = 'var(--ae-cream)'
 const BROWN = 'var(--ae-ink)'
 const RED = '#8b2518'
+
+// Replace these destinations with the Alpine Explorers profile/review URLs.
+const INSTAGRAM_URL = 'https://www.instagram.com/'
+const FACEBOOK_URL = 'https://www.facebook.com/'
+const X_URL = 'https://x.com/'
+const YOUTUBE_URL = 'https://www.youtube.com/'
+const LINKEDIN_URL = 'https://www.linkedin.com/'
+const GOOGLE_REVIEW_URL = 'https://www.google.com/search?q=Alpine+Explorers+Rajkot+reviews'
+
+const socialLinks = [
+  { name: 'Instagram', icon: Instagram, qr: instaQr, caption: '@alpineexplorers', button: 'Follow', url: INSTAGRAM_URL, alt: 'QR code to follow Alpine Explorers on Instagram' },
+  { name: 'Facebook', icon: Facebook, qr: facebookQr, caption: 'Find us on Facebook', button: 'Follow', url: FACEBOOK_URL, alt: 'QR code to follow Alpine Explorers on Facebook' },
+  { name: 'X / Twitter', icon: Twitter, qr: xQr, caption: '@alpineexplorers', button: 'Follow', url: X_URL, alt: 'QR code to follow Alpine Explorers on X' },
+  { name: 'YouTube', icon: Youtube, qr: youtubeQr, caption: 'Watch our adventures', button: 'Follow', url: YOUTUBE_URL, alt: 'QR code to follow Alpine Explorers on YouTube' },
+  { name: 'LinkedIn', icon: Linkedin, qr: linkedinQr, caption: 'Connect with our team', button: 'Connect', url: LINKEDIN_URL, alt: 'QR code to connect with Alpine Explorers on LinkedIn' },
+  { name: 'Google Review', icon: Star, qr: googleReviewQr, caption: 'Rate us on Google', button: 'Review Us', url: GOOGLE_REVIEW_URL, alt: 'QR code to leave an Alpine Explorers Google review' },
+]
 
 const font = {
   vintage: { fontFamily: 'Cinzel, serif' },
@@ -70,7 +94,7 @@ function Polaroid({ src, caption, rot = -2, className = '', aspect = 'h-40 sm:h-
         className="absolute -top-3 left-1/2 w-14 h-5 rounded-sm opacity-55"
         style={{ backgroundColor: 'rgba(245,230,196,0.85)', transform: 'translateX(-50%) rotate(1deg)' }}
       />
-      <img src={src} alt={caption} className={`w-full ${aspect} object-cover`} style={{ borderRadius: '2px' }} />
+      <img src={src} alt={caption} className={`w-full ${aspect} object-cover`} style={{ borderRadius: '2px' }} loading="lazy" decoding="async" />
       <div className="absolute bottom-3 left-0 right-0 text-center">
         <span className="text-sm tracking-wide" style={{ ...font.script, color: BROWN }}>{caption}</span>
       </div>
@@ -356,7 +380,6 @@ export default function Contact() {
   const [submitError, setSubmitError] = useState('')
 
   useEffect(() => {
-    window.scrollTo(0, 0)
     const style = document.createElement('style')
     style.textContent = `@keyframes goldGlow { 0%,100% { box-shadow: 0 8px 26px rgb(var(--ae-gold-rgb) /0.38); } 50% { box-shadow: 0 10px 34px rgb(var(--ae-gold2-rgb) /0.62); } }`
     document.head.appendChild(style)
@@ -474,6 +497,8 @@ export default function Contact() {
                   src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1400&h=800&fit=crop"
                   alt="Himalayan adventure"
                   className="w-full h-full object-cover transition-transform duration-[1.4s] group-hover:scale-105"
+                  fetchpriority="high"
+                  decoding="async"
                 />
                 <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgb(var(--ae-navy-rgb) /0.5) 0%, transparent 45%)' }} />
 
@@ -821,6 +846,8 @@ export default function Contact() {
                   src="https://images.unsplash.com/photo-1501555088652-021faa106b9b?w=1400&h=800&fit=crop"
                   alt="Mountain adventure"
                   className="absolute inset-0 w-full h-full object-cover"
+                  loading="lazy"
+                  decoding="async"
                 />
                 <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgb(var(--ae-navy-rgb) /0.72) 0%, rgb(var(--ae-navy-rgb) /0.35) 55%, rgb(var(--ae-navy-rgb) /0.5) 100%)' }} />
 
@@ -855,6 +882,53 @@ export default function Contact() {
                 </div>
               </div>
             </PaperCard>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ═══════════════════ 07 · FOLLOW US ═══════════════════ */}
+      <section className="py-16 md:py-20 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-5xl mx-auto">
+          <SectionHeading eyebrow="Stay Connected" title="Follow Us" tagline="Scan the QR code to follow us or leave a review" rotate={-1} />
+
+          <motion.div
+            variants={container}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-60px' }}
+            className="grid grid-cols-1 min-[400px]:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
+            {socialLinks.map(({ name, icon: Icon, qr, caption, button, url, alt }) => (
+              <motion.div key={name} variants={item} className="h-full">
+                <PaperCard className="p-6 text-center h-full flex flex-col items-center">
+                  <div
+                    className="w-12 h-12 rounded-full flex items-center justify-center mb-3"
+                    style={{ backgroundColor: NAVY, boxShadow: '0 6px 16px rgb(var(--ae-navy-rgb) /0.25)' }}
+                  >
+                    <Icon size={21} style={{ color: GOLD2 }} aria-hidden="true" />
+                  </div>
+                  <h3 className="text-lg font-bold mb-3" style={{ ...font.vintage, color: NAVY }}>{name}</h3>
+                  <img
+                    src={qr}
+                    alt={alt}
+                    className="w-[150px] h-[150px] object-contain rounded-xl border p-2 bg-white"
+                    style={{ borderColor: 'rgb(var(--ae-gold-rgb) /0.55)' }}
+                  loading="lazy" decoding="async" />
+                  <p className="mt-3 mb-4 text-sm" style={{ color: BROWN, ...font.script }}>{caption}</p>
+                  <motion.a
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    whileHover={{ y: -2 }}
+                    whileTap={{ scale: 0.97 }}
+                    className="mt-auto inline-flex items-center justify-center px-5 py-2 rounded-full text-[11px] uppercase tracking-widest font-bold"
+                    style={{ backgroundColor: GOLD, color: NAVY, ...font.vintage, boxShadow: '0 5px 14px rgb(var(--ae-gold-rgb) /0.25)' }}
+                  >
+                    {button}
+                  </motion.a>
+                </PaperCard>
+              </motion.div>
+            ))}
           </motion.div>
         </div>
       </section>

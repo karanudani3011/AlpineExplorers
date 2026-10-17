@@ -25,7 +25,6 @@ export default function ServicePage() {
   const [tours, setTours] = useState(serviceTours[category?.id] || [])
 
   useEffect(() => {
-    window.scrollTo(0, 0)
     let mounted = true
 
     setTours(serviceTours[category?.id] || [])
@@ -87,6 +86,8 @@ export default function ServicePage() {
           src={category.heroImage}
           alt={category.name}
           className="absolute inset-0 w-full h-full object-cover"
+          fetchpriority="high"
+          decoding="async"
           initial={{ scale: 1.1 }}
           animate={{ scale: 1 }}
           transition={{ duration: 1.2 }}

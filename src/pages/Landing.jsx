@@ -16,7 +16,6 @@ export default function Landing() {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
 
   useEffect(() => {
-    window.scrollTo(0, 0)
 
     // GSAP Master Timeline for cinematic choreographed entrance
     const tl = gsap.timeline({ defaults: { ease: 'power3.out' } })

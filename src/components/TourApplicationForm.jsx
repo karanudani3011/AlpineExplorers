@@ -319,7 +319,7 @@ export default function TourApplicationForm({ courseName = '', traveler = null, 
           {/* ─── Header + Photograph box ─── */}
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1 text-center sm:text-left">
-              <img src="/alpine_logo.png" alt="Alpine Explorers" className="h-14 w-14 object-contain mb-1 mx-auto sm:mx-0" />
+              <img src="/alpine_logo.webp" alt="Alpine Explorers" className="h-14 w-14 object-contain mb-1 mx-auto sm:mx-0" />
               <h1 className="text-2xl sm:text-3xl font-bold tracking-wide" style={{ color: RED }}>
                 ALPINE EXPLORERS
               </h1>
@@ -337,7 +337,7 @@ export default function TourApplicationForm({ courseName = '', traveler = null, 
             <div className="shrink-0 self-center sm:self-start">
               <div className="relative w-28 h-32 border-2 border-dashed border-gray-500 rounded-sm flex flex-col items-center justify-center overflow-hidden">
                 {photo ? (
-                  <img src={photo} alt="Applicant photograph" className="absolute inset-0 w-full h-full object-cover" />
+                  <img src={photo} alt="Applicant photograph" className="absolute inset-0 w-full h-full object-cover" loading="lazy" decoding="async" />
                 ) : (
                   <>
                     <Upload size={22} className="text-gray-400 mb-1" />

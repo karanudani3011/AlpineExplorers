@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { motion } from 'framer-motion'
+import { motion } from '../animations/revealMotion'
 import { Maximize, Play, X } from 'lucide-react'
 import './adventure-videos.css'
 

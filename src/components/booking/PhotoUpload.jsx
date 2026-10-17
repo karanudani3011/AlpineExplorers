@@ -56,7 +56,7 @@ export default function PhotoUpload({ id, value, onChange, error }) {
               src={value}
               alt="Applicant photograph"
               className="absolute inset-0 w-full h-full object-cover"
-            />
+            loading="lazy" decoding="async" />
             {/* Actions overlay */}
             <div className="absolute inset-0 flex flex-col justify-between opacity-0 hover:opacity-100 transition-opacity"
               style={{ backgroundColor: 'rgba(0,0,0,0.45)' }}>

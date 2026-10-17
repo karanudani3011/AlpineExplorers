@@ -1,5 +1,4 @@
-import { useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { motion } from '../animations/revealMotion'
 import { Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
@@ -78,7 +77,6 @@ const LI = ({ children }) => (
 )
 
 export default function TermsConditions() {
-  useEffect(() => { window.scrollTo(0, 0) }, [])
 
   return (
     <div className="min-h-screen relative"

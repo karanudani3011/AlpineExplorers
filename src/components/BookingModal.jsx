@@ -614,7 +614,7 @@ export default function BookingModal({ item, isOpen, onClose }) {
                             <div className="flex gap-4 mt-4">
                               <div className="w-16 h-20 shrink-0 rounded-lg overflow-hidden" style={{ border: '1px solid rgba(180,160,130,0.5)', backgroundColor: 'rgb(var(--ae-cream-rgb) /0.6)' }}>
                                 {t.photo ? (
-                                  <img src={t.photo.dataUrl} alt={`${t.fullName || `Traveler ${i + 1}`} photograph`} className="w-full h-full object-cover" />
+                                  <img src={t.photo.dataUrl} alt={`${t.fullName || `Traveler ${i + 1}`} photograph`} className="w-full h-full object-cover" loading="lazy" decoding="async" />
                                 ) : (
                                   <div className="w-full h-full flex items-center justify-center text-[9px] text-[#b8996b]" style={font.body}>No photo</div>
                                 )}

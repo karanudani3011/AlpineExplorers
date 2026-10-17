@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from '../animations/revealMotion'
+import { AnimatePresence } from 'framer-motion'
 import { Calendar, User, ArrowRight, X, Clock, Quote } from 'lucide-react'
 
 const NAVY = 'var(--ae-navy)'
@@ -37,6 +38,7 @@ export default function BlogCard({ blog, index }) {
               alt={blog.title}
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
               loading="lazy"
+              decoding="async"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[#0d2137]/75 via-transparent to-transparent" />
 
@@ -113,7 +115,7 @@ export default function BlogCard({ blog, index }) {
                   src={blog.image}
                   alt={blog.title}
                   className="w-full h-full object-cover"
-                />
+                loading="lazy" decoding="async" />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0d2137] via-[#0d2137]/35 to-transparent" />
                 <button
                   onClick={() => setModalOpen(false)}

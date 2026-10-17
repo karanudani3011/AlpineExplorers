@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { motion } from '../animations/revealMotion'
 import { Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
@@ -31,7 +31,6 @@ export default function UpcomingEvents() {
   const { events } = usePublicEvents(defaultEvents)
 
   useEffect(() => {
-    window.scrollTo(0, 0)
   }, [])
 
   const openBooking = (item) => {
@@ -62,6 +61,8 @@ export default function UpcomingEvents() {
                 src="https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1400&h=700&fit=crop"
                 alt="Upcoming travel events under mountain skies"
                 className="w-full h-full object-cover"
+                fetchpriority="high"
+                decoding="async"
               />
               <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgb(var(--ae-navy-rgb) /0.78) 0%, rgb(var(--ae-navy-rgb) /0.25) 55%, rgba(3,9,20,0.35) 100%)' }} />
 

@@ -23,7 +23,6 @@ export default function TourDetails() {
   const [copiedToast, setCopiedToast] = useState(false)
 
   useEffect(() => {
-    window.scrollTo(0, 0)
     let mounted = true
     getTour(id).then((t) => {
       if (!mounted) return
@@ -372,7 +371,7 @@ export default function TourDetails() {
                           src={rev.avatar}
                           alt={rev.name}
                           className="w-10 h-10 rounded-full object-cover border border-blue-400"
-                        />
+                        loading="lazy" decoding="async" />
                         <div>
                           <h4 className="font-bold text-sm text-slate-900">{rev.name}</h4>
                           <span className="text-[11px] text-gray-500">Verified Explorer</span>

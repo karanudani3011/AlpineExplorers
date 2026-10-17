@@ -115,7 +115,7 @@ export default function ReviewCard({ index, traveler, data, onEdit }) {
               className="shrink-0 w-20 h-24 rounded-xl overflow-hidden border-2"
               style={{ borderColor: `${GOLD}50` }}
             >
-              <img src={photoUrl} alt={`Traveler ${index + 1}`} className="w-full h-full object-cover" />
+              <img src={photoUrl} alt={`Traveler ${index + 1}`} className="w-full h-full object-cover" loading="lazy" decoding="async" />
             </div>
           ) : (
             <div
@@ -160,7 +160,7 @@ export default function ReviewCard({ index, traveler, data, onEdit }) {
                   Applicant Signature
                 </p>
                 <div className="rounded-xl overflow-hidden border bg-white p-1" style={{ borderColor: `${GOLD}30` }}>
-                  <img src={applicantSig} alt="Applicant signature" className="w-full h-16 object-contain" />
+                  <img src={applicantSig} alt="Applicant signature" className="w-full h-16 object-contain" loading="lazy" decoding="async" />
                 </div>
               </div>
             )}
@@ -170,7 +170,7 @@ export default function ReviewCard({ index, traveler, data, onEdit }) {
                   Risk Certificate Signature
                 </p>
                 <div className="rounded-xl overflow-hidden border bg-white p-1" style={{ borderColor: `${GOLD}30` }}>
-                  <img src={riskSig} alt="Risk signature" className="w-full h-16 object-contain" />
+                  <img src={riskSig} alt="Risk signature" className="w-full h-16 object-contain" loading="lazy" decoding="async" />
                 </div>
               </div>
             )}

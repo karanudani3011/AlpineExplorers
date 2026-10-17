@@ -85,7 +85,6 @@ export default function BookingForm() {
     }
   }, [user, id, tourLoading]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => { window.scrollTo(0, 0) }, [id])
 
   if (tourLoading) {
     return (

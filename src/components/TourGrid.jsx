@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+import { motion } from '../animations/revealMotion'
 import ServiceTourCard from './ServiceTourCard'
 
 const container = {

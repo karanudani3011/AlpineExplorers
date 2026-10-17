@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+import { motion } from '../animations/revealMotion'
 import * as LucideIcons from 'lucide-react'
 
 export default function ExperienceCard({ experience, index }) {
@@ -19,6 +19,8 @@ export default function ExperienceCard({ experience, index }) {
           src={experience.image}
           alt={experience.name}
           className="w-full h-full object-cover"
+          loading="lazy"
+          decoding="async"
           whileHover={{ scale: 1.1 }}
           transition={{ duration: 0.4 }}
         />

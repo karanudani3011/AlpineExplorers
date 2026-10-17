@@ -218,7 +218,7 @@ export default function SearchModal({ isOpen, onClose }) {
       onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgb(var(--ae-gold2-rgb) /0.14)' }}
       onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}
     >
-      <img src={item.image} alt={item.title} className="w-14 h-14 object-cover rounded-lg flex-shrink-0" />
+      <img src={item.image} alt={item.title} className="w-14 h-14 object-cover rounded-lg flex-shrink-0" loading="lazy" decoding="async" />
       <div className="flex-1 min-w-0">
         <p className="text-[10px] font-bold uppercase tracking-wider mb-0.5" style={{ color: 'var(--ae-gold)' }}>{item.category}</p>
         <h4 className="font-bold text-sm truncate text-[color:var(--ae-navy)] group-hover:text-[color:var(--ae-gold)] transition">
@@ -352,7 +352,7 @@ export default function SearchModal({ isOpen, onClose }) {
                               src={dest.image}
                               alt={dest.title}
                               className="w-10 h-10 object-cover rounded-lg"
-                            />
+                            loading="lazy" decoding="async" />
                             <div className="min-w-0">
                               <p className="font-bold text-xs text-[color:var(--ae-navy)] truncate">{dest.title}</p>
                               <p className="text-[11px] truncate" style={{ color: 'rgb(var(--ae-ink-rgb) /0.7)' }}>{dest.location}</p>

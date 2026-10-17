@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
+import { motion } from '../animations/revealMotion'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import BlogCard from '../components/BlogCard'
@@ -62,10 +62,6 @@ const DEFAULT_BLOGS = [
 ]
 
 export default function Blog() {
-  useEffect(() => {
-    window.scrollTo(0, 0)
-  }, [])
-
   const { blogs, loading } = usePublicBlogs(DEFAULT_BLOGS)
 
   const [selectedCategory, setSelectedCategory] = useState('All')
@@ -119,6 +115,8 @@ export default function Blog() {
                 src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1400&h=700&fit=crop"
                 alt="Travel blog journal"
                 className="w-full h-full object-cover"
+                fetchpriority="high"
+                decoding="async"
               />
               <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgb(var(--ae-navy-rgb) /0.78) 0%, rgb(var(--ae-navy-rgb) /0.25) 55%, rgba(3,9,20,0.35) 100%)' }} />
 

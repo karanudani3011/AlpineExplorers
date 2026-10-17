@@ -47,7 +47,7 @@ export default function ShowcaseModal({ isOpen, onClose }) {
                 src="/alpine_explorers_ui_concept.jpg"
                 alt="Alpine Explorers 3D Travel UI Concept Mockup"
                 className="w-full h-auto object-cover transition duration-500 group-hover:scale-[1.01]"
-              />
+              loading="lazy" decoding="async" />
               <div className="absolute top-4 right-4 bg-slate-900/85 backdrop-blur-md text-amber-200 px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 shadow-lg">
                 <Sparkles size={14} className="text-amber-400" />
                 <span>Rendered 3D Concept</span>

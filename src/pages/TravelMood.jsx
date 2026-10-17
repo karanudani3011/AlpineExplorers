@@ -29,7 +29,6 @@ export default function TravelMood() {
   const [tours, setTours] = useState([])
 
   useEffect(() => {
-    window.scrollTo(0, 0)
     getCatalog().then(setTours).catch(() => setTours([]))
   }, [])
 
@@ -120,6 +119,8 @@ export default function TravelMood() {
             src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1600&h=800&fit=crop"
             alt="Travel Mood"
             className="w-full h-full object-cover"
+            fetchpriority="high"
+            decoding="async"
           />
         </div>
         <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(3,9,20,0.85) 0%, rgb(var(--ae-navy-rgb) /0.45) 60%, rgb(var(--ae-navy-rgb) /0.4) 100%)' }} />

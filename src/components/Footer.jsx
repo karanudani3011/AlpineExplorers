@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Mail, Phone, MapPin, MessageCircle, ArrowRight } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { motion } from '../animations/revealMotion'
 
 const NAVY = 'var(--ae-navy)'
 const NAVY_DEEP = 'var(--ae-navy-black)'
@@ -131,7 +131,7 @@ export default function Footer() {
           <motion.div variants={item} className="space-y-5">
             <div className="flex items-center gap-3">
               <img
-                src="/alpine_logo.png"
+                src="/alpine_logo.webp"
                 alt="Alpine Explorers Rajkot Logo"
                 className="w-16 h-16 sm:w-20 sm:h-20 object-contain flex-shrink-0"
                 style={{ filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.25))' }}

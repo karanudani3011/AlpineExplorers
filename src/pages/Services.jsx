@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback, useLayoutEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { motion, useInView } from 'framer-motion'
+import { motion } from '../animations/revealMotion'
+import { useInView } from 'framer-motion'
 import { ArrowRight, Compass, ChevronLeft, ChevronRight } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
@@ -30,7 +31,6 @@ const carouselItems = [
 ]
 
 export default function Services() {
-  useEffect(() => { window.scrollTo(0, 0) }, [])
 
   const sectionRef = useRef(null)
   const viewportRef = useRef(null)
@@ -139,6 +139,8 @@ export default function Services() {
           src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1600&h=800&fit=crop"
           alt="Alpine Explorers Services"
           className="absolute inset-0 w-full h-full object-cover"
+          fetchpriority="high"
+          decoding="async"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/10" />
 

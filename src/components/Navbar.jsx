@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { Menu, X, Search, User, Compass, MessageSquare, ChevronDown, Globe, Map, Mountain, Tent, Users, Backpack, Ticket } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { FaWhatsapp } from 'react-icons/fa'
 import SearchModal from './SearchModal'
 import UserProfileModal from './UserProfileModal'
 import InquiryModal from './InquiryModal'
@@ -74,27 +75,27 @@ export default function Navbar() {
         style={{ backgroundColor: 'rgb(var(--ae-cream-rgb) /0.95)', borderColor: 'rgba(180,160,130,0.3)' }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20">
+          <div className="header-inner">
             {/* Header Logo & Brand */}
-            <Link to="/home" className="flex items-center space-x-3 group">
+            <Link to="/home" className="header-brand group">
               <img
-                src="/alpine_logo.png"
+                src="/alpine_logo.webp"
                 alt="Alpine Explorers Rajkot Logo"
-                className="w-14 h-14 sm:w-16 sm:h-16 object-contain flex-shrink-0 transition-transform duration-300 group-hover:scale-105"
+                className="header-brand-logo object-contain flex-shrink-0 transition-transform duration-300 group-hover:scale-105"
                 style={{ filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.12))' }}
               />
               <div>
-                <span className="font-vintage font-bold text-xl sm:text-2xl tracking-wider block leading-tight uppercase" style={{ color: '#C8102E', fontFamily: 'Cinzel, serif' }}>
-                  Alpine Explorers
+                <span className="header-brand-title font-vintage font-bold block leading-tight uppercase" style={{ color: '#C8102E', fontFamily: 'Cinzel, serif' }}>
+                  ALPINE EXPLORERS
                 </span>
-                <span className="text-[9px] sm:text-[10px] uppercase tracking-[0.18em] font-semibold block" style={{ color: NAVY, fontFamily: 'Inter, sans-serif' }}>
-                  Pioneer In Adventure Tourism
+                <span className="header-brand-tagline uppercase tracking-[0.18em] font-semibold block" style={{ color: NAVY, fontFamily: 'Inter, sans-serif' }}>
+                  PIONEER IN ADVENTURE TOURISM
                 </span>
               </div>
             </Link>
 
             {/* Desktop Navigation Menu */}
-            <div className="hidden lg:flex items-center space-x-7">
+            <div className="desktop-nav hidden lg:flex items-center">
               {navLinks.map((link) => {
                 const active = link.hasMega ? isServicesActive : isActive(link.path)
 
@@ -167,7 +168,7 @@ export default function Navbar() {
             </div>
 
             {/* Right Action Icons & Badges */}
-            <div className="hidden md:flex items-center space-x-3">
+            <div className="header-actions hidden lg:flex items-center">
               {/* <button
                 onClick={() => setInquiryOpen(true)}
                 className="px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition"
@@ -212,10 +213,20 @@ export default function Navbar() {
                   />
                 )}
               </button>
+
+              <a
+                href="https://wa.me/919979883339?text=Hello%20Alpine%20Explorers%2C%20I%20want%20to%20know%20more%20about%20your%20tours."
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Chat on WhatsApp"
+                className="whatsapp-header whatsapp-header-desktop"
+              >
+                <FaWhatsapp size={20} aria-hidden="true" />
+              </a>
             </div>
 
             {/* Mobile Menu & Action Buttons */}
-            <div className="flex md:hidden items-center space-x-2">
+            <div className="header-mobile-actions flex lg:hidden items-center">
               <button
                 onClick={() => setSearchOpen(true)}
                 className="p-2"
@@ -225,6 +236,15 @@ export default function Navbar() {
                 <Search size={20} />
               </button>
               <ThemeSwitcher />
+              <a
+                href="https://wa.me/919979883339?text=Hello%20Alpine%20Explorers%2C%20I%20want%20to%20know%20more%20about%20your%20tours."
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Chat on WhatsApp"
+                className="whatsapp-header whatsapp-header-mobile"
+              >
+                <FaWhatsapp size={20} aria-hidden="true" />
+              </a>
               <button
                 className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center focus:outline-none"
                 onClick={() => setIsOpen(!isOpen)}
@@ -337,6 +357,15 @@ export default function Navbar() {
                 })}
 
                 <div className="pt-3 flex flex-col gap-2 px-2">
+                  <a
+                    href="https://wa.me/919979883339?text=Hello%20Alpine%20Explorers%2C%20I%20want%20to%20know%20more%20about%20your%20tours."
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Chat on WhatsApp"
+                    className="whatsapp-header whatsapp-header-menu"
+                  >
+                    <FaWhatsapp size={20} aria-hidden="true" />
+                  </a>
                   {user && (
                     <Link
                       to="/my-bookings"

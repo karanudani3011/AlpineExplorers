@@ -12,7 +12,7 @@ import { useStartBooking } from '../hooks/useStartBooking'
 import {
   Star, MapPin, Calendar, Clock, Users, CheckCircle, X,
   ChevronDown, ChevronUp, ChevronRight, Share2, Heart, MessageSquare,
-  Shield, ArrowRight, CheckCircle2, Lock, AlertCircle
+  Shield, ArrowRight, CheckCircle2, Lock, AlertCircle, Download
 } from 'lucide-react'
 
 const NAVY = 'var(--ae-navy)'
@@ -95,6 +95,8 @@ export default function TourDetailsPage() {
   const [travelersCount, setTravelersCount] = useState(2)
   const startBooking = useStartBooking()
   const [copiedToast, setCopiedToast] = useState(false)
+  const [pdfGenerating, setPdfGenerating] = useState(false)
+  const [pdfError, setPdfError] = useState('')
   const [bookingSettings, setBookingSettings] = useState({
     qr_payment_enabled: true,
     closed_message: 'Bookings are currently full. Please contact us for the next available dates.'
@@ -188,7 +190,6 @@ export default function TourDetailsPage() {
     })
   }
 
-  useEffect(() => { window.scrollTo(0, 0) }, [id])
 
   if (catalogLoading) {
     return (
@@ -262,6 +263,26 @@ export default function TourDetailsPage() {
       navigator.clipboard.writeText(window.location.href)
       setCopiedToast(true)
       setTimeout(() => setCopiedToast(false), 3000)
+    }
+  }
+
+  const handleDownloadItinerary = async () => {
+    if (pdfGenerating) return
+    setPdfGenerating(true)
+    setPdfError('')
+    try {
+      const { generateItineraryPdf } = await import('../utils/generateItineraryPdf')
+      await generateItineraryPdf(
+        { ...tour, date: activePkg?.date ?? tour.date, category: category?.shortName ?? tour.category },
+        activeDuration,
+        activeItinerary,
+        activePrice,
+      )
+    } catch (error) {
+      console.error('Unable to generate itinerary PDF:', error)
+      setPdfError('Sorry, we couldn’t prepare the itinerary PDF. Please try again.')
+    } finally {
+      setPdfGenerating(false)
     }
   }
 
@@ -407,7 +428,7 @@ export default function TourDetailsPage() {
 
             {/* Day Wise Itinerary */}
             <div className="bg-white p-5 sm:p-7 rounded-2xl border border-gray-200 shadow-sm space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-3">
                 <div>
                   <h2 className="text-xl sm:text-2xl font-bold" style={{ ...font.vintage, color: NAVY }}>
                     Day Wise Itinerary
@@ -417,14 +438,27 @@ export default function TourDetailsPage() {
                   </p>
                   {itineraryIsSuggested && !pkgError && <p className="text-xs text-amber-800 mt-2 max-w-xl">Suggested outline only. Route, activities, transport, and timings are indicative and must be confirmed before booking.</p>}
                 </div>
-                <button
-                  onClick={() => setExpandedDays(expandedDays.length === activeItinerary.length ? [] : activeItinerary.map((_, index) => index))}
-                  className="text-[11px] font-bold hover:underline"
-                  style={{ color: GOLD }}
-                >
-                  {expandedDays.length === activeItinerary.length ? 'Collapse All' : 'Expand All'}
-                </button>
+                <div className="flex flex-shrink-0 items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={handleDownloadItinerary}
+                    disabled={pdfGenerating || pkgLoading}
+                    className="inline-flex items-center gap-1 text-[11px] font-bold hover:underline disabled:cursor-wait disabled:opacity-60"
+                    style={{ color: GOLD }}
+                  >
+                    <Download size={13} />
+                    {pdfGenerating ? 'Preparing PDF…' : 'Download PDF'}
+                  </button>
+                  <button
+                    onClick={() => setExpandedDays(expandedDays.length === activeItinerary.length ? [] : activeItinerary.map((_, index) => index))}
+                    className="text-[11px] font-bold hover:underline"
+                    style={{ color: GOLD }}
+                  >
+                    {expandedDays.length === activeItinerary.length ? 'Collapse All' : 'Expand All'}
+                  </button>
+                </div>
               </div>
+              {pdfError && <p role="alert" className="text-xs text-rose-700">{pdfError}</p>}
 
               {pkgLoading && <p className="text-sm text-slate-500">Loading itinerary…</p>}
               {pkgError && <p role="status" className="text-sm text-rose-700">The itinerary could not be loaded. Please try again later.</p>}
@@ -663,7 +697,7 @@ export default function TourDetailsPage() {
               </div>
 
               {/* Wishlist & Share */}
-              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-gray-100">
+              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-gray-100">
                 <button
                   onClick={() => setLiked(!liked)}
                   className="py-2 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition"
@@ -682,6 +716,16 @@ export default function TourDetailsPage() {
                 >
                   <Share2 size={13} />
                   <span>{copiedToast ? 'Copied!' : 'Share'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDownloadItinerary}
+                  disabled={pdfGenerating || pkgLoading}
+                  className="py-2 px-2 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1 transition disabled:cursor-wait disabled:opacity-60"
+                  style={{ borderColor: 'rgb(var(--ae-gold-rgb) /0.5)', color: NAVY }}
+                >
+                  <Download size={15} />
+                  <span>{pdfGenerating ? 'Preparing…' : 'Download PDF'}</span>
                 </button>
               </div>
 

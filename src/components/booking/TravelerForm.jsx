@@ -199,7 +199,7 @@ export default function TravelerForm({ index, count, trip, traveler, errors, onC
               style={{ border: `1.5px dashed ${errors.photo ? ERR : 'rgba(180,160,130,0.6)'}`, backgroundColor: '#ffffff' }}
             >
               {traveler.photo ? (
-                <img src={traveler.photo.dataUrl} alt="Traveler photograph" className="w-full h-full object-cover" />
+                <img src={traveler.photo.dataUrl} alt="Traveler photograph" className="w-full h-full object-cover" loading="lazy" decoding="async" />
               ) : (
                 <Camera size={22} style={{ color: 'rgba(180,160,130,0.7)' }} aria-hidden="true" />
               )}

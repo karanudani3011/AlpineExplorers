@@ -1,5 +1,5 @@
-import { lazy, Suspense } from 'react'
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { lazy, Suspense, useEffect, useLayoutEffect, useRef } from 'react'
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigationType } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import { SupabaseAuthProvider } from './contexts/SupabaseAuthContext'
 
@@ -86,11 +86,102 @@ function PageLoader() {
   )
 }
 
+function ScrollRestoration() {
+  const location = useLocation()
+  const navigationType = useNavigationType()
+  const positions = useRef(new Map())
+  const activeKey = useRef(location.key)
+  const isFirstLocation = useRef(true)
+
+  useEffect(() => {
+    const savePosition = () => {
+      const y = window.scrollY
+      positions.current.set(activeKey.current, y)
+      try {
+        sessionStorage.setItem(`ae-scroll:${location.pathname}`, String(y))
+      } catch {}
+      try {
+        window.history.replaceState({ ...(window.history.state || {}), aeScrollY: y }, '', window.location.href)
+      } catch {}
+    }
+
+    const onScroll = () => savePosition()
+    window.history.scrollRestoration = 'auto'
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('beforeunload', savePosition)
+
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('beforeunload', savePosition)
+    }
+  }, [location.pathname])
+
+  useLayoutEffect(() => {
+    const key = location.key
+    const path = location.pathname
+    const previousKey = activeKey.current
+    const previousY = window.scrollY
+    positions.current.set(previousKey, previousY)
+    activeKey.current = key
+
+    const firstLocation = isFirstLocation.current
+    const savedPathPosition = (() => {
+      try {
+        return Number(window.history.state?.aeScrollY)
+          || Number(sessionStorage.getItem(`ae-scroll:${path}`))
+          || 0
+      } catch {
+        return 0
+      }
+    })()
+    let requestedY = 0
+    let shouldRestore = navigationType === 'POP' && !firstLocation
+    if (firstLocation) {
+      requestedY = savedPathPosition || window.scrollY
+      shouldRestore = savedPathPosition > 0
+    } else if (navigationType === 'POP') {
+      requestedY = positions.current.get(key) ?? savedPathPosition
+    }
+    isFirstLocation.current = false
+
+    let frame = 0
+    let attempts = 0
+    const restore = () => {
+      const maxY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight)
+      if (requestedY <= maxY || attempts >= 180) {
+        window.scrollTo({ top: Math.min(requestedY, maxY), left: 0, behavior: 'instant' })
+        positions.current.set(key, Math.min(requestedY, maxY))
+        try {
+          window.history.replaceState({ ...(window.history.state || {}), aeScrollY: Math.min(requestedY, maxY) }, '', window.location.href)
+        } catch {}
+        return
+      }
+      attempts += 1
+      frame = window.requestAnimationFrame(restore)
+    }
+
+    if (shouldRestore) {
+      frame = window.requestAnimationFrame(restore)
+    } else if (!firstLocation) {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+      positions.current.set(key, 0)
+      try {
+        window.history.replaceState({ ...(window.history.state || {}), aeScrollY: 0 }, '', window.location.href)
+      } catch {}
+    }
+
+    return () => window.cancelAnimationFrame(frame)
+  }, [location.key, location.pathname, navigationType])
+
+  return null
+}
+
 function App() {
   return (
     <SupabaseAuthProvider>
       <AuthProvider>
         <Router>
+          <ScrollRestoration />
           {/* AuthModal is global but only rendered when open (lazy to avoid upfront cost) */}
           <Suspense fallback={null}>
             <AuthModal />

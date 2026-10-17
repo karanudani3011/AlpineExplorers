@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+import { motion } from '../animations/revealMotion'
 import { Star, MapPin, ArrowRight } from 'lucide-react'
 import TourImageSlider from './TourImageSlider'
 import { getTourImageRecords } from '../data/tourImageManifest'

@@ -19,5 +19,5 @@ export default function PrivateAssetImage({ source, alt = 'Private attachment', 
   }, [source])
   if (failed) return <span className="text-xs text-gray-500">Private file unavailable</span>
   if (!resolved) return <span className="text-xs text-gray-500">Loading securely…</span>
-  return <a href={resolved} target="_blank" rel="noreferrer" title={alt}><img src={resolved} alt={alt} className={className} /></a>
+  return <a href={resolved} target="_blank" rel="noreferrer" title={alt}><img src={resolved} alt={alt} className={className} loading="lazy" decoding="async" /></a>
 }

@@ -214,7 +214,7 @@ export default function Board3DSection({ onCategorySelect, onContactClick }) {
                     src="https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?w=1600&h=900&fit=crop"
                     alt="Santorini Mediterranean Coast"
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  />
+                  loading="lazy" decoding="async" />
 
                   {/* Gradient Overlay for Text Readability */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-black/35" />
@@ -330,7 +330,7 @@ export default function Board3DSection({ onCategorySelect, onContactClick }) {
                               src={guide.avatar}
                               alt={guide.name}
                               className="w-9 h-9 rounded-full object-cover border border-[#e2d5c3]"
-                            />
+                            loading="lazy" decoding="async" />
                             <div>
                               <span className="font-bold text-xs text-[#0f213d] block">{guide.name}</span>
                               <div className="flex text-[#f59e0b] gap-0.5">
@@ -354,7 +354,7 @@ export default function Board3DSection({ onCategorySelect, onContactClick }) {
                               src={guide.image}
                               alt={guide.title}
                               className="w-full h-full object-cover"
-                            />
+                            loading="lazy" decoding="async" />
                             <div className="absolute top-1.5 left-2 flex text-amber-300 gap-0.5">
                               {[...Array(guide.rating)].map((_, i) => (
                                 <Star key={i} size={11} className="fill-amber-300" />
