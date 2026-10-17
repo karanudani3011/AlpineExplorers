@@ -3,12 +3,12 @@ import { motion } from '../animations/revealMotion'
 import './OurMemberships.css'
 
 const memberships = [
-  { logo: '/logos/bni-rajkot.png', alt: 'BNI Rajkot logo', short: 'BNI', full: 'Business Network International' },
-  { logo: '/logos/lvb.png', alt: 'Local Vocal Business logo', short: 'LVB', full: 'Local Vocal Business' },
-  { logo: '/logos/tosg.webp', alt: 'Tour Operators Sustainable Group logo', short: 'TOSG', full: 'Tour Operators Sustainable Group' },
-  { logo: '/logos/uten.png', alt: 'United Travels Events & Networking LLP logo', short: 'UTEN', full: 'United Travels Events & Networking LLP' },
-  { logo: null, alt: null, short: 'GPCCS', full: null, extra: 'Board of Director' },
-  { logo: null, alt: null, short: 'JTA', full: 'Jain Tourism Association' },
+  { logo: '/logos/bni-rajkot.png', alt: 'BNI Rajkot logo', short: 'BNI', description: 'Business Network International' },
+  { logo: '/logos/lvb.png', alt: 'Local Vocal Business logo', short: 'LVB', description: 'Local Vocal Business' },
+  { logo: '/logos/tosg.webp', alt: 'Tour Operators Sustainable Group logo', short: 'TOSG', description: 'Tour Operators Sustainable Group' },
+  { logo: '/logos/uten.png', alt: 'United Travels Events & Networking LLP logo', short: 'UTEN', description: 'United Travels Events & Networking LLP' },
+  { logo: null, alt: null, short: 'GPCCS', description: 'Gujarat Peoples Credit Co-operative Society Ltd.', note: 'Board of Director' },
+  { logo: null, alt: null, short: 'JTA', description: 'Jain Tourism Association' },
 ]
 
 export default function OurMemberships() {
@@ -50,8 +50,12 @@ export default function OurMemberships() {
                   </div>
                   <div className="our-membership-divider" />
                   {membership.logo && <span className="our-membership-title">{membership.short}</span>}
-                  {membership.full && <span className="our-membership-full">{membership.full}</span>}
-                  {membership.extra && <span className="our-membership-extra">{membership.extra}</span>}
+                  {membership.description && (
+                    <span className={`our-membership-full${membership.short === 'GPCCS' ? ' our-membership-gpccs-description' : ''}`}>
+                      {membership.description}
+                    </span>
+                  )}
+                  {membership.note && <span className="our-membership-extra">{membership.note}</span>}
                 </div>
               ))}
             </div>

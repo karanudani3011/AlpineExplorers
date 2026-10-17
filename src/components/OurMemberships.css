@@ -125,6 +125,12 @@
   font: 0.65rem/1.4 Inter, sans-serif;
 }
 
+.our-membership-gpccs-description {
+  width: 100%;
+  max-width: 130px;
+  overflow-wrap: anywhere;
+}
+
 .our-membership-extra {
   width: 80%;
   margin-top: 2px;
