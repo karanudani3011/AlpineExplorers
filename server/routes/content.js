@@ -3,7 +3,7 @@ import { db, logActivity, getTourPackages, saveTourPackage } from '../db.js'
 import { authRequired, requirePermission } from '../middleware.js'
 import { syncContentToSupabase, deleteContentFromSupabase } from '../utils/supabase.js'
 
-const JSON_ARRAY = ['gallery', 'activities', 'includes', 'rules', 'what_to_bring', 'tags', 'values', 'recognition', 'statistics']
+const JSON_ARRAY = ['gallery', 'activities', 'highlights', 'includes', 'rules', 'what_to_bring', 'tags', 'values', 'recognition', 'statistics']
 const NUM = ['price', 'original_price']
 const FLAG = ['air_ticket', 'passport_visa', 'pickup_drop', 'accommodation', 'food', 'sightseeing', 'guidance', 'transportation', 'featured', 'maintenance_mode', 'status_active']
 
@@ -187,10 +187,11 @@ export function crudAdminRouter({ table, fields, module, permKey }) {
   return router
 }
 
-export function publicTableRouter({ table, fields, hasFeatured }) {
+export function publicTableRouter({ table, fields, publicFields = [], hasFeatured }) {
   const router = Router()
   const orderBy = hasFeatured ? 'featured DESC, ' : ''
-  const selectable = `id, ${fields.join(', ')}, created_at`
+  const publicColumns = [...new Set([...fields, ...publicFields])]
+  const selectable = `id, ${publicColumns.join(', ')}, created_at`
   const isTour = table === 'international_packages' || table === 'domestic_packages'
   const tourType = table === 'international_packages' ? 'international' : 'domestic'
 
@@ -240,12 +241,14 @@ export const CONTENT_CONFIGS = {
     table: 'adventure_packages',
     module: 'adventure',
     permKey: 'services',
+    publicFields: ['highlights'],
     fields: ['title', 'category', 'location', 'duration', 'season', 'ex', 'description', 'activities', 'includes', 'image', 'gallery', 'status', 'booking_open', 'seats_total', 'seats_booked'],
   },
   camping: {
     table: 'camping_packages',
     module: 'camping',
     permKey: 'services',
+    publicFields: ['highlights'],
     fields: ['title', 'location', 'duration', 'season', 'description', 'activities', 'accommodation', 'food',
       'charges', 'rules', 'what_to_bring', 'certificates', 'image', 'gallery', 'status', 'booking_open', 'seats_total', 'seats_booked'],
   },

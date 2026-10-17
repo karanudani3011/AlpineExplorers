@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Users, MapPin, Calendar, Clock, Banknote, MessageSquare, Send, CheckCircle2 } from 'lucide-react'
+import { api } from '../services/api'
 
 const NAVY = 'var(--ae-navy)'
 const GOLD = 'var(--ae-gold)'
@@ -44,10 +45,7 @@ export default function FamilyCustomizationForm() {
   const handleSubmit = (e) => {
     e.preventDefault()
     // Save to local database and Supabase via /api/inquiries
-    fetch('/api/inquiries', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+    api.post('/api/inquiries', {
         name: formData.fullName,
         email: formData.email,
         phone: formData.phone,
@@ -56,8 +54,7 @@ export default function FamilyCustomizationForm() {
         travel_date: formData.travelDate || null,
         travelers: (Number(formData.adults) || 2) + (Number(formData.children) || 0),
         message: `Family Tour Request | Destination: ${formData.destination || 'Flexible'} | Duration: ${formData.duration || 'Flexible'} | Budget: ${formData.budget || 'Flexible'} | Adults: ${formData.adults}, Children: ${formData.children} | Special Requirements: ${formData.specialRequirements || 'None'}`,
-      })
-    }).catch(err => console.error('Error saving family customization:', err))
+      }).catch(err => console.error('Error saving family customization:', err))
 
     const message = `*Alpine Explorers — Family Tour Customization* 👨‍👩‍👧‍👦\n\n` +
       `*Name:* ${formData.fullName}\n` +

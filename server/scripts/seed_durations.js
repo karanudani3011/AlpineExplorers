@@ -1,4 +1,10 @@
 import { db, saveTourPackage } from '../db.js'
+import fs from 'node:fs'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const seedDataPath = path.join(path.dirname(fileURLToPath(import.meta.url)), '../seed-data/tour_seed_data.json')
+const curatedTours = JSON.parse(fs.readFileSync(seedDataPath, 'utf8'))
 
 export const SEED_TOUR_PACKAGES = [
   // ─────────────────────────────────────────────────────────────
@@ -2188,7 +2194,7 @@ export const SEED_TOUR_PACKAGES = [
   }
 ]
 
-export function seedDurationsAndItineraries() {
+export function seedDurationsAndItineraries({ preserveExisting = false } = {}) {
   console.log('--- SEEDING DURATION PACKAGES AND ITINERARIES ---')
   let packagesCreatedOrUpdated = 0
   let itineraryDaysCreated = 0
@@ -2220,14 +2226,61 @@ export function seedDurationsAndItineraries() {
       itinerary: item.itinerary
     }
 
-    const saved = saveTourPackage(payload)
+    const saved = saveTourPackage(payload, { preserveExisting })
     if (saved) {
       packagesCreatedOrUpdated++
       itineraryDaysCreated += (saved.itinerary ? saved.itinerary.length : 0)
     }
   }
 
-  console.log(`[Seed Result] Success! Processed ${packagesCreatedOrUpdated} duration packages with ${itineraryDaysCreated} total itinerary days across 15 tours.`)
+  // Adventure and camping itinerary data is maintained alongside the site's
+  // curated servicesData.js records. Fill only empty highlight fields and
+  // missing package/day rows so admin-authored content remains untouched.
+  if (preserveExisting) {
+    for (const item of curatedTours.filter((tour) => tour.category === 'adventure' && tour.itinerary.length)) {
+      const adventure = db.prepare('SELECT id, title, duration FROM adventure_packages WHERE LOWER(title) = LOWER(?)').get(item.title)
+      const camping = adventure ? null : db.prepare('SELECT id, title, duration FROM camping_packages WHERE LOWER(title) = LOWER(?)').get(item.title)
+      const baseTour = adventure || camping
+      if (!baseTour) continue
+
+      const tourType = adventure ? 'adventure' : 'camping'
+      const duration = baseTour.duration || item.duration || ''
+      const dayCount = Math.min(30, Math.max(1, Number(duration.match(/(\d+)\s*D/i)?.[1]) || item.itinerary.length))
+      const nightMatch = duration.match(/(\d+)\s*N/i)
+      const nights = nightMatch ? Number(nightMatch[1]) : Math.max(0, dayCount - 1)
+      const table = adventure ? 'adventure_packages' : 'camping_packages'
+      const existingHighlights = db.prepare(`SELECT highlights FROM ${table} WHERE id = ?`).get(baseTour.id)?.highlights
+      if (!existingHighlights || existingHighlights === '[]') {
+        db.prepare(`UPDATE ${table} SET highlights = ? WHERE id = ? AND (highlights IS NULL OR highlights = '' OR highlights = '[]')`)
+          .run(JSON.stringify(item.highlights || []), baseTour.id)
+      }
+
+      const itinerary = item.itinerary.slice(0, dayCount).map((day, index) => ({
+        day: Number(day.day) || index + 1,
+        title: day.title || `Day ${index + 1}`,
+        description: day.description || '',
+        activities: day.activities || [],
+        meals: day.meals || [],
+        overnight: day.overnight || day.accommodation || '',
+      }))
+      const saved = saveTourPackage({
+        tour_type: tourType,
+        tour_id: baseTour.id,
+        tour_slug: String(item.title).trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
+        duration,
+        days: dayCount,
+        nights,
+        is_default: true,
+        itinerary,
+      }, { preserveExisting: true })
+      if (saved) {
+        packagesCreatedOrUpdated++
+        itineraryDaysCreated += saved.itinerary?.length || 0
+      }
+    }
+  }
+
+  console.log(`[Seed Result] Processed ${packagesCreatedOrUpdated} duration packages with ${itineraryDaysCreated} itinerary days across curated tours.`)
   return { packagesCreatedOrUpdated, itineraryDaysCreated }
 }
 

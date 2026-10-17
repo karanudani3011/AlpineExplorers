@@ -8,6 +8,7 @@ import { serviceTours, serviceCategories } from '../data/servicesData'
 import { tours as fallbackTours } from '../data/data'
 import { getTourImageRecords } from '../data/tourImageManifest'
 import { getCatalog } from '../services/catalog'
+import { api, apiUrl } from '../services/api'
 import { useStartBooking } from '../hooks/useStartBooking'
 import {
   Star, MapPin, Calendar, Clock, Users, CheckCircle, X,
@@ -88,6 +89,18 @@ function findTourById(id) {
   return { tour: null, category: null }
 }
 
+function findLocalTour(id, title) {
+  const exact = findTourById(id).tour
+  if (exact) return exact
+  const normalizedTitle = String(title || '').trim().toLowerCase()
+  if (!normalizedTitle) return null
+  for (const categoryTours of Object.values(serviceTours)) {
+    const match = categoryTours.find((candidate) => String(candidate.title || '').trim().toLowerCase() === normalizedTitle)
+    if (match) return match
+  }
+  return fallbackTours.find((candidate) => String(candidate.title || '').trim().toLowerCase() === normalizedTitle) || null
+}
+
 export default function TourDetailsPage() {
   const { id } = useParams()
   const [expandedDays, setExpandedDays] = useState([0])
@@ -103,8 +116,7 @@ export default function TourDetailsPage() {
   })
 
   useEffect(() => {
-    fetch('/api/public/booking-settings')
-      .then(res => res.json())
+    api.get('/api/public/booking-settings')
       .then(data => {
         if (data?.settings) setBookingSettings(data.settings)
       })
@@ -140,9 +152,16 @@ export default function TourDetailsPage() {
       if (!mounted) return
       const found = catalog.find((t) => t.id === id || String(t.id) === String(id) || `int-${t.id}` === id || `dom-${t.id}` === id || `adv-${t.id}` === id || `camp-${t.id}` === id)
       if (found) {
+        const localTour = findLocalTour(id, found.title)
+        const mergedTour = {
+          ...localTour,
+          ...found,
+          highlights: Array.isArray(found.highlights) && found.highlights.length ? found.highlights : (localTour?.highlights || []),
+          itinerary: Array.isArray(found.itinerary) && found.itinerary.length ? found.itinerary : (localTour?.itinerary || []),
+        }
         const catSlug = (found.serviceCategory || found.category || 'international').toLowerCase()
         const cat = serviceCategories.find((c) => catSlug.includes(c.slug) || c.slug.includes(catSlug)) || serviceCategories[0]
-        setTourState({ tour: found, category: cat })
+        setTourState({ tour: mergedTour, category: cat })
       }
     }).catch(() => {}).finally(() => {
       if (mounted) setCatalogLoading(false)
@@ -156,11 +175,7 @@ export default function TourDetailsPage() {
     let active = true
     setPkgLoading(true)
     setPkgError(false)
-    fetch(`/api/public/tours/${id}/packages`)
-      .then((response) => {
-        if (!response.ok) throw new Error('Unable to load this tour itinerary.')
-        return response.json()
-      })
+    api.get(`/api/public/tours/${id}/packages`)
       .then(data => {
         if (!active) return
         const pkgs = data.packages || []
@@ -243,9 +258,18 @@ export default function TourDetailsPage() {
   const activeDuration = activePkg?.duration ?? tour.duration
   const suppliedItinerary = activePkg
     ? [...(activePkg.itinerary || [])].sort((a, b) => a.day - b.day)
-    : (pkgError ? [] : (tour.itinerary || []))
+    : (tour.itinerary || [])
   const itineraryIsSuggested = !activePkg && suppliedItinerary.length === 0
-  const activeItinerary = pkgError ? [] : activePkg ? suppliedItinerary : itineraryIsSuggested ? buildSuggestedItinerary(tour, activeDuration) : suppliedItinerary
+  const localItinerary = Array.isArray(tour.itinerary) ? tour.itinerary : []
+  const packageDayCount = Number(activePkg?.days) || 0
+  const localFallbackItinerary = packageDayCount && localItinerary.length > packageDayCount
+    ? localItinerary.slice(0, packageDayCount)
+    : localItinerary
+  const activeItinerary = suppliedItinerary.length
+    ? suppliedItinerary
+    : localFallbackItinerary.length
+      ? localFallbackItinerary
+      : buildSuggestedItinerary(tour, activeDuration)
 
   const hasPrice = false
   const formattedPrice = null
@@ -461,7 +485,7 @@ export default function TourDetailsPage() {
               {pdfError && <p role="alert" className="text-xs text-rose-700">{pdfError}</p>}
 
               {pkgLoading && <p className="text-sm text-slate-500">Loading itinerary…</p>}
-              {pkgError && <p role="status" className="text-sm text-rose-700">The itinerary could not be loaded. Please try again later.</p>}
+              {pkgError && <p role="status" className="text-sm text-amber-800">Showing the locally available tour plan while the server is unavailable.</p>}
               {!pkgLoading && !pkgError && activeItinerary.length === 0 && <p className="text-sm text-slate-500">No itinerary days have been published for this tour yet.</p>}
               <div className="space-y-2.5">
                 {activeItinerary.map((day, i) => {
@@ -526,7 +550,7 @@ export default function TourDetailsPage() {
                               {day.transportation && <p><strong>Transportation:</strong> {day.transportation}</p>}
                               {day.map_location && <p><strong>Map location:</strong> {day.map_location}</p>}
                               {day.notes && <p><strong>Notes:</strong> {day.notes}</p>}
-                              {Array.isArray(day.image_urls) && day.image_urls.length > 0 && <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-2">{day.image_urls.map((url, imageIndex) => <img key={`${url}-${imageIndex}`} src={url} alt={`${day.title} ${imageIndex + 1}`} loading="lazy" className="w-full aspect-[4/3] object-cover rounded-lg border border-gray-200" />)}</div>}
+                              {Array.isArray(day.image_urls) && day.image_urls.length > 0 && <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-2">{day.image_urls.map((url, imageIndex) => <img key={`${url}-${imageIndex}`} src={apiUrl(url)} alt={`${day.title} ${imageIndex + 1}`} loading="lazy" decoding="async" className="w-full aspect-[4/3] object-cover rounded-lg border border-gray-200" />)}</div>}
                             </div>
                           </motion.div>
                         )}

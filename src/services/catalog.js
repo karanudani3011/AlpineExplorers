@@ -1,8 +1,9 @@
-import { api } from './api'
+import { api, apiUrl } from './api'
 import { serviceTours } from '../data/servicesData'
 
 const lbl = (flag, label) => (flag ? label : null)
 const parseList = (v) => {
+  if (Array.isArray(v)) return v
   try {
     const arr = JSON.parse(v || '[]')
     return Array.isArray(arr) ? arr : []
@@ -71,7 +72,7 @@ const extractImages = (p, destinationName) => {
     const photoId = String(url).match(/images\.unsplash\.com\/(photo-[^/?]+)/)?.[1] || url
     if (!uniqueByPhoto.has(photoId)) uniqueByPhoto.set(photoId, url)
   }
-  return [...uniqueByPhoto.values()].slice(0, 4)
+  return [...uniqueByPhoto.values()].slice(0, 4).map((url) => apiUrl(url))
 }
 
 const fromInternational = (p) => {
@@ -178,7 +179,7 @@ const fromAdventure = (p) => {
     rating: 5.0,
     reviews: 210 + (p.id * 19) % 100,
     badge: 'Adventure',
-    highlights: parseList(p.includes).length ? parseList(p.includes).slice(0, 6) : parseList(p.activities).slice(0, 6),
+    highlights: parseList(p.highlights).length ? parseList(p.highlights).slice(0, 6) : (parseList(p.activities).length ? parseList(p.activities).slice(0, 6) : parseList(p.includes).slice(0, 6)),
     inclusions: parseList(p.includes),
     exclusions: [],
     itinerary: [],
@@ -208,6 +209,7 @@ const fromCamping = (p) => {
     location: p.location,
     category: 'Weekend Camps',
     serviceCategory: 'Weekend Camps',
+    highlights: parseList(p.highlights).length ? parseList(p.highlights).slice(0, 6) : parseList(p.activities).slice(0, 6),
     mood: meta.mood,
     destinationType: meta.destinationType,
     budgetTier: meta.budgetTier,

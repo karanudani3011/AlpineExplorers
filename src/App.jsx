@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useLayoutEffect, useRef } from 'react'
+import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigationType } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import { SupabaseAuthProvider } from './contexts/SupabaseAuthContext'
@@ -176,12 +176,31 @@ function ScrollRestoration() {
   return null
 }
 
+function ApiWakeNotice() {
+  const [message, setMessage] = useState('')
+  useEffect(() => {
+    const show = (event) => {
+      setMessage(event.detail || 'Waking up the server, please wait a few seconds...')
+      window.clearTimeout(show.timer)
+      show.timer = window.setTimeout(() => setMessage(''), 8000)
+    }
+    window.addEventListener('ae:api-retrying', show)
+    return () => {
+      window.removeEventListener('ae:api-retrying', show)
+      window.clearTimeout(show.timer)
+    }
+  }, [])
+  if (!message) return null
+  return <div role="status" aria-live="polite" style={{ position: 'fixed', zIndex: 100, bottom: 20, left: '50%', transform: 'translateX(-50%)', padding: '10px 16px', borderRadius: 999, background: '#0B1F5C', color: '#fff', boxShadow: '0 4px 18px #0b1f5c33', fontSize: 13, whiteSpace: 'nowrap' }}>{message}</div>
+}
+
 function App() {
   return (
     <SupabaseAuthProvider>
       <AuthProvider>
         <Router>
           <ScrollRestoration />
+          <ApiWakeNotice />
           {/* AuthModal is global but only rendered when open (lazy to avoid upfront cost) */}
           <Suspense fallback={null}>
             <AuthModal />

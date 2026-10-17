@@ -124,6 +124,7 @@ CREATE TABLE IF NOT EXISTS adventure_packages (
   ex TEXT,
   description TEXT,
   activities TEXT DEFAULT '[]',
+  highlights TEXT DEFAULT '[]',
   includes TEXT DEFAULT '[]',
   image TEXT,
   gallery TEXT DEFAULT '[]',
@@ -140,6 +141,7 @@ CREATE TABLE IF NOT EXISTS camping_packages (
   season TEXT,
   description TEXT,
   activities TEXT DEFAULT '[]',
+  highlights TEXT DEFAULT '[]',
   accommodation TEXT,
   food TEXT,
   charges TEXT,
@@ -448,6 +450,11 @@ for (const tbl of tourCapacityTables) {
   try { db.exec(`ALTER TABLE ${tbl} ADD COLUMN booking_open INTEGER NOT NULL DEFAULT 1`) } catch {}
   try { db.exec(`ALTER TABLE ${tbl} ADD COLUMN seats_total INTEGER DEFAULT NULL`) } catch {}
   try { db.exec(`ALTER TABLE ${tbl} ADD COLUMN seats_booked INTEGER DEFAULT 0`) } catch {}
+}
+
+for (const table of ['adventure_packages', 'camping_packages']) {
+  const columns = new Set(db.prepare(`PRAGMA table_info(${table})`).all().map((column) => column.name))
+  if (!columns.has('highlights')) db.exec(`ALTER TABLE ${table} ADD COLUMN highlights TEXT DEFAULT '[]'`)
 }
 
 // Backward-compatible itinerary extensions for existing SQLite installations.
@@ -879,13 +886,13 @@ export function getTourPackagesByIdentifier(identifier) {
   return []
 }
 
-export function saveTourPackage(data) {
+export function saveTourPackage(data, { preserveExisting = false } = {}) {
   const existing = data.id
     ? db.prepare('SELECT * FROM tour_duration_packages WHERE id = ?').get(data.id)
     : db.prepare('SELECT * FROM tour_duration_packages WHERE tour_type = ? AND tour_id = ? AND duration = ?').get(data.tour_type, data.tour_id, data.duration)
 
-  let packageId
-  if (existing) {
+  let packageId = existing?.id
+  if (existing && !preserveExisting) {
     packageId = existing.id
     db.prepare(`
       UPDATE tour_duration_packages
@@ -906,7 +913,7 @@ export function saveTourPackage(data) {
       data.is_default ? 1 : 0,
       packageId
     )
-  } else {
+  } else if (!existing) {
     const res = db.prepare(`
       INSERT INTO tour_duration_packages
         (tour_type, tour_id, tour_slug, duration, days, nights, price, original_price, is_default, created_at, updated_at)
@@ -926,7 +933,10 @@ export function saveTourPackage(data) {
   }
 
   if (Array.isArray(data.itinerary)) {
-    const insertOrUpdateDay = db.prepare(`
+    const insertOrUpdateDay = db.prepare(preserveExisting ? `
+      INSERT OR IGNORE INTO tour_itineraries (package_id, day, title, description, activities, meals, overnight, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+    ` : `
       INSERT INTO tour_itineraries (package_id, day, title, description, activities, meals, overnight, created_at, updated_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
       ON CONFLICT(package_id, day) DO UPDATE SET
@@ -939,7 +949,7 @@ export function saveTourPackage(data) {
     `)
 
     const dayNumbers = data.itinerary.map((d, idx) => Number(d.day || idx + 1))
-    if (dayNumbers.length > 0) {
+    if (!preserveExisting && dayNumbers.length > 0) {
       const placeholders = dayNumbers.map(() => '?').join(',')
       db.prepare(`DELETE FROM tour_itineraries WHERE package_id = ? AND day NOT IN (${placeholders})`).run(packageId, ...dayNumbers)
     }

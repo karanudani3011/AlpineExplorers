@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Image as ImageIcon, Upload, Search, Trash2, Download, RefreshCw } from 'lucide-react'
-import { api } from '../../services/api'
+import { api, apiUrl } from '../../services/api'
 import { useToasts } from '../../components/admin/useToasts'
 import { PageHeader, Btn, Card, Modal, Spinner, EmptyState, FieldLabel, NAVY, GOLD } from '../../components/admin/admin-ui'
 import { api as apiBase } from '../../services/api'
@@ -18,7 +18,7 @@ export default function MediaLibrary() {
   const [editing, setEditing] = useState(null)
   const [editForm, setEditForm] = useState({})
 
-  const fullUrl = (u) => (u.startsWith('http') ? u : `${window.location.origin}${u}`)
+  const fullUrl = (u) => (u.startsWith('http') ? u : apiUrl(u))
 
   const load = (extra = {}) => {
     setLoading(true)

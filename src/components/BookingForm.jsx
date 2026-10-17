@@ -8,6 +8,7 @@ import { serviceTours } from '../data/servicesData'
 import { tours as dataTours } from '../data/data'
 import { getCatalog } from '../services/catalog'
 import { useSupabaseAuth } from '../hooks/useSupabaseAuth'
+import { api } from '../services/api'
 
 const NAVY = 'var(--ae-navy)'
 const GOLD = 'var(--ae-gold)'
@@ -36,8 +37,7 @@ export default function BookingForm() {
   })
 
   useEffect(() => {
-    fetch('/api/public/booking-settings')
-      .then((res) => res.json())
+    api.get('/api/public/booking-settings')
       .then((data) => {
         if (data?.settings) setBookingSettings(data.settings)
       })

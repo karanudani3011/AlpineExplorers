@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import { supabase } from '../../services/supabaseClient'
 import { PAYMENT_CONFIG } from '../../config/paymentConfig'
+import { api } from '../../services/api'
 
 const NAVY = 'var(--ae-navy)'
 const NAVY_MID = 'var(--ae-navy-mid)'
@@ -57,13 +58,10 @@ export default function PaymentScreen({
     } catch {}
 
     try {
-      const res = await fetch('/api/public/booking-settings')
-      if (res.ok) {
-        const json = await res.json()
-        if (json.settings) {
-          setQrEnabled(Boolean(json.settings.qr_payment_enabled))
-          if (json.settings.closed_message) setClosedMessage(json.settings.closed_message)
-        }
+      const json = await api.get('/api/public/booking-settings')
+      if (json.settings) {
+        setQrEnabled(Boolean(json.settings.qr_payment_enabled))
+        if (json.settings.closed_message) setClosedMessage(json.settings.closed_message)
       }
     } catch {}
 
@@ -97,13 +95,10 @@ export default function PaymentScreen({
           throw new Error('Supabase check fallback')
         }
       } catch {
-        const res = await fetch('/api/public/booking-settings')
-        if (res.ok) {
-          const json = await res.json()
-          if (json.settings) {
-            isEnabled = Boolean(json.settings.qr_payment_enabled)
-            activeMsg = json.settings.closed_message
-          }
+        const json = await api.get('/api/public/booking-settings')
+        if (json.settings) {
+          isEnabled = Boolean(json.settings.qr_payment_enabled)
+          activeMsg = json.settings.closed_message
         }
       }
 

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, MessageSquare, Send, CheckCircle2, Phone, Calendar, Users, ShieldAlert, Sparkles, User, FileText } from 'lucide-react'
+import { api } from '../services/api'
 
 const NAVY = 'var(--ae-navy)'
 const NAVY_MID = 'var(--ae-navy-mid)'
@@ -72,10 +73,7 @@ export default function InquiryModal({ isOpen, onClose, tour = null }) {
 
   const handleSendWhatsApp = () => {
     // Save to admin & Supabase via /api/inquiries
-    fetch('/api/inquiries', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+    api.post('/api/inquiries', {
         name: formData.fullName || 'Valued Guest',
         phone: formData.phone || '',
         email: formData.phone ? `${formData.phone.replace(/\D/g, '')}@whatsapp.guest` : 'whatsapp.guest@alpineexplorers.com',
@@ -83,8 +81,7 @@ export default function InquiryModal({ isOpen, onClose, tour = null }) {
         travel_date: formData.travelDate,
         travelers: formData.travelers,
         message: formData.inquiryMessage,
-      })
-    }).catch(err => console.error('Error syncing WhatsApp inquiry:', err))
+      }).catch(err => console.error('Error syncing WhatsApp inquiry:', err))
 
     const newInquiry = {
       id: `INQ-${Math.floor(1000 + Math.random() * 9000)}`,
@@ -104,10 +101,7 @@ export default function InquiryModal({ isOpen, onClose, tour = null }) {
   const handleLocalSubmit = (e) => {
     e.preventDefault()
     // Save to admin & Supabase via /api/inquiries
-    fetch('/api/inquiries', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+    api.post('/api/inquiries', {
         name: formData.fullName || 'Valued Guest',
         phone: formData.phone || '',
         email: formData.phone ? `${formData.phone.replace(/\D/g, '')}@desk.guest` : 'desk.guest@alpineexplorers.com',
@@ -115,8 +109,7 @@ export default function InquiryModal({ isOpen, onClose, tour = null }) {
         travel_date: formData.travelDate,
         travelers: formData.travelers,
         message: formData.inquiryMessage,
-      })
-    }).catch(err => console.error('Error syncing desk inquiry:', err))
+      }).catch(err => console.error('Error syncing desk inquiry:', err))
 
     const newInquiry = {
       id: `INQ-${Math.floor(1000 + Math.random() * 9000)}`,

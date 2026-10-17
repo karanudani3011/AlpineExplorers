@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Upload, X } from 'lucide-react'
+import { api } from '../services/api'
 
 const RED = '#b3211f'
 const INK = '#111111'
@@ -230,10 +231,7 @@ export default function TourApplicationForm({ courseName = '', traveler = null, 
     // Save to backend and Supabase
     try {
       const bookingId = `APP-${Date.now()}`
-      await fetch('/api/bookings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      await api.post('/api/bookings', {
           booking_id: bookingId,
           tour_name: f.course || courseName || 'Tour Application',
           number_of_travelers: 1,
@@ -268,7 +266,6 @@ export default function TourApplicationForm({ courseName = '', traveler = null, 
             riskAccepted: true,
             declarationAccepted: true,
           }]
-        })
       })
     } catch (err) {
       console.error('Error submitting application form:', err)

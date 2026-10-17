@@ -20,6 +20,7 @@ import { crudAdminRouter, CONTENT_CONFIGS } from './routes/content.js'
 import toursRouter from './routes/tours.js'
 import { uploadError } from './middleware.js'
 import { runSeed } from './seed.js'
+import { seedDurationsAndItineraries } from './scripts/seed_durations.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -28,43 +29,20 @@ const PORT = process.env.PORT || 5000
 const uploadsDir = path.join(__dirname, '..', 'uploads')
 const distDir = path.join(__dirname, '..', 'dist')
 
+const allowedOrigins = new Set([
+  'https://alpineexplores.com',
+  'https://www.alpineexplores.com',
+  'http://localhost:5173',
+])
 const corsOptions = {
-  origin: (origin, callback) => {
-    // Allow non-browser requests (tools, curl, server-to-server)
-    if (!origin) return callback(null, true)
-
-    try {
-      const parsed = new URL(origin)
-      const host = parsed.hostname.toLowerCase()
-      // Allow localhost, local IPs, Render services, and any alpineexplores/alpineexplorers variant
-      if (
-        host === 'localhost' ||
-        host === '127.0.0.1' ||
-        host.endsWith('.onrender.com') ||
-        host.includes('alpineexplore')
-      ) {
-        return callback(null, true)
-      }
-    } catch {}
-
-    // Allow configured origins from FRONTEND_URL
-    if (process.env.FRONTEND_URL) {
-      const allowed = process.env.FRONTEND_URL
-        .split(',')
-        .map((u) => u.trim().replace(/\/+$/, '').toLowerCase())
-      const cleanOrigin = origin.replace(/\/+$/, '').toLowerCase()
-      if (allowed.includes(cleanOrigin) || allowed.includes('*')) {
-        return callback(null, true)
-      }
-    }
-
-    // Default fallback: allow origin
-    return callback(null, true)
-  },
+  origin: (origin, callback) => callback(null, !origin || allowedOrigins.has(origin)),
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
 }
 
 app.use(cors(corsOptions))
+app.options(/.*/, cors(corsOptions))
 app.use(express.json({ limit: '5mb' }))
 
 /* Uploads */
@@ -80,10 +58,12 @@ const HOST = process.env.HOST || 'http://localhost'
 const API = `${HOST}:${PORT}`
 
 app.get('/api/health', (req, res) => res.json({ ok: true, message: 'Alpine Explorers API is running' }))
+app.get('/health', (req, res) => res.type('text/plain').send('ok'))
 app.get('/api/seed', (req, res) => {
   try {
     const seededNow = runSeed()
-    res.json({ ok: true, seeded: seededNow, message: seededNow ? 'Database seeded successfully' : 'Database already seeded' })
+    const durationSeed = seedDurationsAndItineraries({ preserveExisting: true })
+    res.json({ ok: true, seeded: seededNow, durationSeed, message: seededNow ? 'Database seeded successfully' : 'Database already seeded; missing duration data checked safely' })
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message })
   }
@@ -126,6 +106,7 @@ if (fs.existsSync(distDir)) {
 app.listen(PORT, () => {
   try {
     runSeed()
+    seedDurationsAndItineraries({ preserveExisting: true })
   } catch (e) {
     console.error('Auto seed error:', e.message)
   }

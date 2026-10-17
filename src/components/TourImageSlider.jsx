@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { apiUrl } from '../services/api'
 
 const DEFAULT_INTERVAL = 4500
 const SWIPE_THRESHOLD = 40
@@ -140,7 +141,7 @@ export default function TourImageSlider({
     return (
       <div className={`relative w-full h-full overflow-hidden bg-slate-900 ${aspectRatio}`}>
         <img
-          src={failedImages[0] ? undefined : photo.url}
+          src={failedImages[0] ? undefined : apiUrl(photo.url)}
           alt={photo.alt || alt}
           className="w-full h-full object-cover block transition-transform duration-700 ease-out group-hover:scale-105"
           onError={() => handleImageError(0)}

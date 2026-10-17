@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { Plus, Upload, X } from 'lucide-react'
-import { api } from '../../services/api'
+import { api, apiUrl } from '../../services/api'
 import { FieldLabel, inputStyle, Btn, cls, NAVY, GOLD } from './admin-ui'
 
 const fonts = { fontFamily: "'Inter', sans-serif" }
@@ -163,7 +163,7 @@ export function ImageUpload({ value = '', onChange, label = 'Image', preset }) {
                 <button key={p.url} type="button" onClick={() => onChange(p.url)} title={p.label}
                   className={cls('w-10 h-8 rounded border overflow-hidden', value === p.url && 'ring-2')}
                   style={{ borderColor: 'rgb(var(--ae-navy-rgb) /0.15)', ['--tw-ring-color']: GOLD }}>
-                  <img src={p.url} alt={p.label} className="w-full h-full object-cover" loading="lazy" decoding="async" />
+                  <img src={apiUrl(p.url)} alt={p.label} className="w-full h-full object-cover" loading="lazy" decoding="async" />
                 </button>
               ))}
             </div>
@@ -269,9 +269,9 @@ export function GalleryUpload({ value = [], onChange }) {
           {list.map((url, i) => (
             <div key={`${url}-${i}`} className="group relative aspect-video rounded-lg overflow-hidden border border-gray-200 bg-slate-100 shadow-sm">
               {isVideo(url) ? (
-                <video src={url} className="w-full h-full object-cover" muted playsInline />
+                <video src={apiUrl(url)} className="w-full h-full object-cover" muted playsInline />
               ) : (
-                <img src={url} alt={`Gallery item ${i + 1}`} className="w-full h-full object-cover" loading="lazy" decoding="async" />
+                <img src={apiUrl(url)} alt={`Gallery item ${i + 1}`} className="w-full h-full object-cover" loading="lazy" decoding="async" />
               )}
               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                 <button

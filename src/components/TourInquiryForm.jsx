@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import { X, CheckCircle2 } from 'lucide-react'
+import { api } from '../services/api'
 
 export default function TourInquiryForm({ tour, isOpen, onClose, travelers = 1 }) {
   const [values, setValues] = useState({ startDate: '', returnDate: '', adults: Math.max(1, travelers), children: 0, name: '', email: '', phone: '', contact: 'Email', requests: '', consent: false })
@@ -29,9 +30,7 @@ export default function TourInquiryForm({ tour, isOpen, onClose, travelers = 1 }
     try {
       const total = Number(values.adults) + Number(values.children)
       const details = { tourId: tour.id, adults: Number(values.adults), children: Number(values.children), returnDate: values.returnDate || null, preferredContact: values.contact, price: 'On Request', requests: values.requests }
-      const response = await fetch('/api/inquiries', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tour_id: tour.id, name: values.name.trim(), email: values.email.trim(), phone: values.phone.trim(), destination, package_name: tour.title, travel_date: values.startDate, travelers: total, message: `Booking inquiry (not a reservation). ${JSON.stringify(details)}` }) })
-      const result = await response.json().catch(() => ({}))
-      if (!response.ok) throw new Error(result.error || 'The inquiry could not be submitted. Please try again.')
+      await api.post('/api/inquiries', { tour_id: tour.id, name: values.name.trim(), email: values.email.trim(), phone: values.phone.trim(), destination, package_name: tour.title, travel_date: values.startDate, travelers: total, message: `Booking inquiry (not a reservation). ${JSON.stringify(details)}` })
       setSuccess(true)
     } catch (err) { submittedRef.current = false; setError(err.message || 'The inquiry could not be submitted. Please try again.') }
     finally { setSubmitting(false) }
