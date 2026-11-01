@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { motion } from '../animations/revealMotion'
 import { useScroll, useTransform } from 'framer-motion'
 import { Link } from 'react-router-dom'
@@ -9,8 +10,10 @@ import TourImageSlider from '../components/TourImageSlider'
 import AdventureVideos from '../components/AdventureVideos'
 import OurMemberships from '../components/OurMemberships'
 import { getTourImageRecords } from '../data/tourImageManifest'
-import { ArrowRight, ArrowUpRight, MapPin, Calendar, Clock, Compass, Award, Heart, Sparkles, Quote } from 'lucide-react'
-import { usePublicEvents } from '../services/usePublic'
+import { ArrowRight, ArrowUpRight, MapPin, Calendar, Clock, Compass, Award, Heart, Sparkles, Quote, Camera } from 'lucide-react'
+import { usePublicEvents, usePublicContent } from '../services/usePublic'
+import { getFeaturedImages } from '../services/galleryService'
+import { cloudinaryUrl, getVideoPosterUrl } from '../utils/cloudinary'
 
 const NAVY = 'var(--ae-navy)'
 const NAVY_MID = 'var(--ae-navy-mid)'
@@ -134,6 +137,18 @@ const whyBenefits = [
 export default function Home() {
   const { events } = usePublicEvents(defaultUpcomingEvents)
   const upcomingList = (events && events.length > 0 ? events : defaultUpcomingEvents).slice(0, 3)
+  const { content: homepageData } = usePublicContent('homepage')
+  const [galleryImages, setGalleryImages] = useState([])
+
+  useEffect(() => {
+    let mounted = true
+    getFeaturedImages(6).then((res) => {
+      if (mounted && res.data) setGalleryImages(res.data)
+    })
+    return () => { mounted = false }
+  }, [])
+
+  const showGallerySection = homepageData?.sections ? homepageData.sections.gallery !== false : true
 
   const { scrollY } = useScroll()
   const heroY = useTransform(scrollY, [0, 900], [0, 250])
@@ -151,7 +166,10 @@ export default function Home() {
       {/* ===================================================================== */}
       {/* SECTION 1 — IMMERSIVE HERO                                           */}
       {/* ===================================================================== */}
-      <section className="relative h-[92vh] min-h-[660px] overflow-hidden">
+      <section
+        className="relative min-h-[100svh] min-h-[100vh] w-full max-w-full overflow-hidden flex flex-col justify-between"
+        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)' }}
+      >
         <motion.div style={{ y: heroY }} className="absolute inset-0 -bottom-24">
           <img
             src="https://images.unsplash.com/photo-1509316785289-025f5b846b35?auto=format&fit=crop&w=1920&q=80"
@@ -169,25 +187,29 @@ export default function Home() {
           <div className="absolute inset-0" style={{ background: 'linear-gradient(to right, rgba(11,42,91,0.65) 0%, rgba(11,42,91,0.4) 28%, rgba(11,42,91,0.15) 55%, transparent 80%)' }} />
         </motion.div>
 
-        <motion.div style={{ y: heroTextY, opacity: heroOpacity }} className="relative z-10 h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col justify-center pt-8 pb-20">
+        <motion.div style={{ y: heroTextY, opacity: heroOpacity }} className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col justify-center pt-8 pb-10 sm:pb-28">
           {/* 1. Gold script subtitle */}
           <motion.span
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.7 }}
-            className="text-xl sm:text-2xl mb-2 font-medium"
+            className="text-lg sm:text-2xl mb-2 font-medium"
             style={{ ...font.script, color: GOLD2, textShadow: '0 2px 8px rgb(var(--ae-navy-rgb) /0.5)' }}
           >
             Alpine Explorers · Journeys beyond the postcard
           </motion.span>
 
-          {/* 2. Main white serif headline */}
+          {/* 2. Main white serif headline with clamp() font size */}
           <motion.h1
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.35, duration: 0.8 }}
-            className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-white uppercase leading-[1.05] tracking-wide mb-3"
-            style={{ ...font.vintage, textShadow: '0 4px 20px rgba(11,42,91,0.6)' }}
+            className="font-extrabold text-white uppercase leading-[1.05] tracking-wide mb-3"
+            style={{
+              ...font.vintage,
+              fontSize: 'clamp(2rem, 7vw, 4.5rem)',
+              textShadow: '0 4px 20px rgba(11,42,91,0.6)',
+            }}
           >
             Lifetime Memories
           </motion.h1>
@@ -197,13 +219,13 @@ export default function Home() {
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.45, duration: 0.8 }}
-            className="text-base sm:text-xl text-white/95 font-medium leading-relaxed mb-6 drop-shadow-md"
+            className="text-base sm:text-xl text-white/95 font-medium leading-relaxed mb-6 drop-shadow-md max-w-xl"
             style={{ ...font.body }}
           >
             Journeys designed for curious travelers.
           </motion.p>
 
-          {/* 4. Ultra high-contrast Dark Navy italic serif tagline */}
+          {/* 4. Ultra high-contrast Dark Navy italic serif tagline with clamp() font size */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -211,9 +233,10 @@ export default function Home() {
             className="mb-8"
           >
             <p
-              className="text-4xl sm:text-5xl lg:text-6xl font-extrabold italic leading-[1.1] tracking-tight mb-1"
+              className="font-extrabold italic leading-[1.1] tracking-tight mb-1"
               style={{
                 fontFamily: 'Playfair Display, serif',
+                fontSize: 'clamp(1.75rem, 6vw, 3.75rem)',
                 color: '#082B63',
                 textShadow: '0 0 24px #FFFFFF, 0 0 12px #FFFFFF, 0 0 4px #FFFFFF, 0 2px 6px rgba(255,255,255,0.9)',
                 filter: 'drop-shadow(0px 2px 8px rgba(255, 255, 255, 0.85))',
@@ -222,9 +245,10 @@ export default function Home() {
               Only With
             </p>
             <p
-              className="text-4xl sm:text-5xl lg:text-6xl font-extrabold italic leading-[1.1] tracking-tight"
+              className="font-extrabold italic leading-[1.1] tracking-tight"
               style={{
                 fontFamily: 'Playfair Display, serif',
+                fontSize: 'clamp(1.75rem, 6vw, 3.75rem)',
                 color: '#082B63',
                 textShadow: '0 0 24px #FFFFFF, 0 0 12px #FFFFFF, 0 0 4px #FFFFFF, 0 2px 6px rgba(255,255,255,0.9)',
                 filter: 'drop-shadow(0px 2px 8px rgba(255, 255, 255, 0.85))',
@@ -234,23 +258,23 @@ export default function Home() {
             </p>
           </motion.div>
 
-          {/* 5. Buttons */}
+          {/* 5. Buttons width 100% with max-width on larger screens */}
           <motion.div
             initial={{ opacity: 0, y: 22 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.65, duration: 0.8 }}
-            className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center"
+            className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center w-full max-w-lg"
           >
             <Link
               to="/services"
-              className="group inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-widest text-[color:var(--ae-navy)] transition duration-300 hover:-translate-y-0.5 hover:shadow-xl"
+              className="group inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-widest text-[color:var(--ae-navy)] transition duration-300 hover:-translate-y-0.5 hover:shadow-xl w-full sm:w-auto sm:max-w-xs text-center"
               style={{ backgroundColor: GOLD, fontFamily: 'Cinzel, serif', boxShadow: '0 8px 24px rgb(var(--ae-gold-rgb) /0.4)' }}
             >
               Explore Tours →
             </Link>
             <Link
               to="/contact"
-              className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-widest text-white transition duration-300 hover:-translate-y-0.5 hover:shadow-xl"
+              className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-widest text-white transition duration-300 hover:-translate-y-0.5 hover:shadow-xl w-full sm:w-auto sm:max-w-xs text-center"
               style={{ backgroundColor: 'rgba(11,42,91,0.85)', border: '1.5px solid rgba(255,255,255,0.3)', backdropFilter: 'blur(8px)', fontFamily: 'Cinzel, serif', boxShadow: '0 8px 24px rgba(11,42,91,0.3)' }}
             >
               Plan My Trip
@@ -258,25 +282,31 @@ export default function Home() {
           </motion.div>
         </motion.div>
 
-        {/* 6. Floating brand stats card */}
+        {/* 6. Floating brand stats card protected from bottom bar overlap */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.85, duration: 0.8 }}
-          className="absolute bottom-6 left-0 right-0 z-10"
+          className="relative sm:absolute bottom-0 sm:bottom-6 left-0 right-0 z-10 w-full mt-4 sm:mt-0"
         >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="inline-flex flex-wrap items-center gap-4 sm:gap-8 rounded-2xl px-6 py-3.5 sm:px-8"
-              style={{ backgroundColor: '#FAF5EA', border: '1px solid rgb(var(--ae-gold2-rgb) /0.4)', boxShadow: '0 12px 36px rgba(11,42,91,0.25)' }}>
+            <div
+              className="inline-flex flex-wrap items-center gap-3 sm:gap-8 rounded-2xl px-4 py-3 sm:px-8 sm:py-3.5 max-w-full"
+              style={{
+                backgroundColor: '#FAF5EA',
+                border: '1px solid rgb(var(--ae-gold2-rgb) /0.4)',
+                boxShadow: '0 12px 36px rgba(11,42,91,0.25)',
+              }}
+            >
               {[
                 { value: '120+', label: 'DESTINATIONS' },
                 { value: '20000+', label: 'HAPPY TRAVELERS' },
                 { value: '1998', label: 'SINCE' },
               ].map((stat, i) => (
-                <div key={stat.label + stat.value} className="flex items-center gap-4 sm:gap-8">
+                <div key={stat.label + stat.value} className="flex items-center gap-3 sm:gap-8">
                   <div>
-                    <div className="text-xl sm:text-2xl font-extrabold leading-none" style={{ color: NAVY, fontFamily: 'Cinzel, serif' }}>{stat.value}</div>
-                    <div className="text-[10px] sm:text-xs uppercase tracking-wider font-bold mt-1" style={{ color: GOLD }}>{stat.label}</div>
+                    <div className="text-lg sm:text-2xl font-extrabold leading-none" style={{ color: NAVY, fontFamily: 'Cinzel, serif' }}>{stat.value}</div>
+                    <div className="text-[9px] sm:text-xs uppercase tracking-wider font-bold mt-1" style={{ color: GOLD }}>{stat.label}</div>
                   </div>
                   {i < 2 && (
                     <div className="hidden sm:block w-px h-7" style={{ backgroundColor: 'rgb(var(--ae-gold-rgb) /0.35)' }} />
@@ -625,13 +655,13 @@ export default function Home() {
                   <img
                     src={t.avatar}
                     alt={t.name}
-                    className="w-11 h-11 rounded-full object-cover"
+                    className="w-11 h-11 rounded-full object-cover flex-shrink-0"
                     style={{ border: `2px solid ${GOLD}` }}
                     loading="lazy"
                   />
-                  <div>
-                    <div className="text-sm font-extrabold text-[color:var(--ae-navy)]" style={font.vintage}>{t.name}</div>
-                    <div className="text-[11px] text-gray-500">{t.role.split('•').slice(-1)[0].trim()}</div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-extrabold text-[color:var(--ae-navy)] truncate" style={font.vintage}>{t.name}</div>
+                    <div className="text-[11px] text-gray-500 truncate">{t.role.split('•').slice(-1)[0].trim()}</div>
                   </div>
                 </figcaption>
               </motion.figure>
@@ -641,6 +671,64 @@ export default function Home() {
       </section>
 
       <OurMemberships />
+
+      {/* ===================================================================== */}
+      {/* SECTION 7.5 — GALLERY TEASER                                          */}
+      {/* ===================================================================== */}
+      {showGallerySection && galleryImages.length > 0 && (
+        <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+          <div className="text-center max-w-3xl mx-auto mb-12">
+            <span className="text-2xl block mb-2" style={{ ...font.script, color: GOLD }}>Captured in the wild</span>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[color:var(--ae-navy)] mb-3" style={font.vintage}>
+              Moments Beyond the Postcard
+            </h2>
+            <p className="text-gray-600 text-sm sm:text-base" style={font.body}>
+              Unscripted expeditions, summit sunrises, and fireside camps shared by our travelers.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 mb-8">
+            {galleryImages.slice(0, 6).map((img, idx) => (
+              <Link
+                key={img.id || idx}
+                to="/gallery"
+                className="group relative aspect-[3/4] rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-[rgba(180,160,130,0.3)] bg-stone-100"
+              >
+                <img
+                  src={
+                    img.media_type === 'video' || img.resource_type === 'video'
+                      ? img.thumbnail_url || getVideoPosterUrl(img.image_url, { w: 500 })
+                      : cloudinaryUrl(img.image_url, { w: 500, q: 'auto', f: 'auto' })
+                  }
+                  alt={img.title}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-108"
+                  loading="lazy"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-90 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity p-2.5 flex flex-col justify-end">
+                  <span className="text-white text-xs font-bold line-clamp-1" style={{ fontFamily: 'Playfair Display, serif' }}>
+                    {img.title}
+                  </span>
+                  {img.location && (
+                    <span className="text-[10px] text-white/80 truncate mt-0.5 flex items-center gap-0.5">
+                      <MapPin size={9} style={{ color: GOLD }} /> {img.location}
+                    </span>
+                  )}
+                </div>
+              </Link>
+            ))}
+          </div>
+
+          <div className="text-center">
+            <Link
+              to="/gallery"
+              className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-widest text-[color:var(--ae-navy)] shadow-md hover:shadow-xl transition duration-300 hover:-translate-y-0.5"
+              style={{ backgroundColor: GOLD, fontFamily: 'Cinzel, serif' }}
+            >
+              <Camera size={15} /> View Full Gallery →
+            </Link>
+          </div>
+        </section>
+      )}
 
       {/* ===================================================================== */}
       {/* SECTION 8 — FINAL VISUAL CTA                                         */}

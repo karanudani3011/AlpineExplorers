@@ -17,6 +17,7 @@ const ServicePage = lazy(() => import('./components/ServicePage'))
 const TourDetailsPage = lazy(() => import('./components/TourDetailsPage'))
 const Blog = lazy(() => import('./pages/Blog'))
 const UpcomingEvents = lazy(() => import('./pages/UpcomingEvents'))
+const Gallery = lazy(() => import('./pages/Gallery'))
 const TravelMood = lazy(() => import('./pages/TravelMood'))
 const About = lazy(() => import('./pages/About'))
 const Contact = lazy(() => import('./pages/Contact'))
@@ -31,6 +32,7 @@ const ProtectedRoute = lazy(() => import('./components/admin/ProtectedRoute'))
 const Login = lazy(() => import('./pages/admin/Login'))
 const Dashboard = lazy(() => import('./pages/admin/Dashboard'))
 const MediaLibrary = lazy(() => import('./pages/admin/Media'))
+const GalleryAdmin = lazy(() => import('./pages/admin/GalleryManagement'))
 const HomepageAdmin = lazy(() => import('./pages/admin/HomepageAdmin'))
 const AboutAdmin = lazy(() => import('./pages/admin/AboutAdmin'))
 const Inquiries = lazy(() => import('./pages/admin/Inquiries'))
@@ -230,6 +232,9 @@ function App() {
             <Route path="/blog" element={
               <Suspense fallback={<PageLoader />}><Blog /></Suspense>
             } />
+            <Route path="/gallery" element={
+              <Suspense fallback={<PageLoader />}><Gallery /></Suspense>
+            } />
             <Route path="/travel-mood" element={
               <Suspense fallback={<PageLoader />}><TravelMood /></Suspense>
             } />
@@ -313,6 +318,11 @@ function App() {
               <Route path="media" element={
                 <Suspense fallback={<PageLoader />}>
                   <ProtectedRoute permission="services.view"><MediaLibrary /></ProtectedRoute>
+                </Suspense>
+              } />
+              <Route path="gallery" element={
+                <Suspense fallback={<PageLoader />}>
+                  <ProtectedRoute permission="media.view"><GalleryAdmin /></ProtectedRoute>
                 </Suspense>
               } />
               <Route path="homepage" element={

@@ -28,17 +28,63 @@ function loadEnv() {
 loadEnv()
 
 export const SUPABASE_URL = process.env.SUPABASE_URL || 'https://qhbsilnramjkagdjitlp.supabase.co'
-export const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || ''
+export const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY || ''
+export const SUPABASE_KEY = SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || ''
+
+export function getSupabaseServiceRoleKey() {
+  return process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY || ''
+}
+
+if (SUPABASE_SERVICE_ROLE_KEY) {
+  const isNew = SUPABASE_SERVICE_ROLE_KEY.startsWith('sb_secret_')
+  console.log(`[Supabase] Supabase admin client ready (${isNew ? 'new-format sb_secret_' : 'legacy-format'}, length: ${SUPABASE_SERVICE_ROLE_KEY.length})`)
+} else {
+  console.warn('[Supabase] Missing SUPABASE_SERVICE_ROLE_KEY (or SUPABASE_SECRET_KEY) in environment variables')
+}
+
+export function getSafeEnvDiagnostics() {
+  const serviceKey = getSupabaseServiceRoleKey()
+  return {
+    SUPABASE_URL: Boolean(process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL),
+    SUPABASE_SERVICE_ROLE_KEY: Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY),
+    SUPABASE_SECRET_KEY: Boolean(process.env.SUPABASE_SECRET_KEY),
+    service_role_key_active: Boolean(serviceKey),
+    service_role_key_format: serviceKey
+      ? (serviceKey.startsWith('sb_secret_') ? 'new-format (sb_secret_...)' : 'legacy-jwt')
+      : 'missing',
+    service_role_key_length: serviceKey ? serviceKey.length : 0,
+    CLOUDINARY_CLOUD_NAME: Boolean(process.env.CLOUDINARY_CLOUD_NAME),
+    CLOUDINARY_API_KEY: Boolean(process.env.CLOUDINARY_API_KEY),
+    CLOUDINARY_API_SECRET: Boolean(process.env.CLOUDINARY_API_SECRET),
+    PORT: process.env.PORT || 5000,
+  }
+}
 
 const fallbackKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoanNpbG5yYW1qa2FnZGppdGxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE2Nzc3MjE2MDAsImV4cCI6MTk5MzI5NzYwMH0.placeholder'
 
 /**
  * Supabase Admin Client using service role key (Privileged Backend Operations Only)
  */
-export const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_KEY || fallbackKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false,
+let _supabaseAdminInstance = null
+
+export function getSupabaseAdmin() {
+  if (_supabaseAdminInstance) return _supabaseAdminInstance
+  const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://qhbsilnramjkagdjitlp.supabase.co'
+  const key = getSupabaseServiceRoleKey() || process.env.SUPABASE_ANON_KEY || fallbackKey
+  _supabaseAdminInstance = createClient(url, key, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  })
+  return _supabaseAdminInstance
+}
+
+export const supabaseAdmin = new Proxy({}, {
+  get(target, prop) {
+    const client = getSupabaseAdmin()
+    const val = client[prop]
+    return typeof val === 'function' ? val.bind(client) : val
   },
 })
 

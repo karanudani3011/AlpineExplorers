@@ -144,8 +144,9 @@ export function runSeed() {
       popularDestinations: ['Bali', 'Dubai', 'Maldives', 'Swiss Alps', 'Paris'],
       experienceCategories: ['International Tours', 'Domestic Tours', 'Adventure Trekking', 'Family Camping', 'Nature & Wildlife', 'Marine Camps', 'Special Services'],
       testimonials: [
-        { name: 'Rohit Mehta', location: 'Ahmedabad', text: 'Alpine Explorers crafted the most memorable family camping trip. Safety and comfort were perfect.' },
-        { name: 'Priya Shah', location: 'Surat', text: 'The Kedarkantha trek was flawlessly organised — from train travel to snow camps.' },
+        { name: 'Jaydeep Patel', location: 'Swiss Alps Tour', text: 'The Haute Route trek with Alpine Explorers was the absolute journey of a lifetime. Our guide was extraordinarily skilled, the glacier crossing felt completely secure, and reaching our alpine hut with hot raclette was pure magic!' },
+        { name: 'Harsh Mehta', location: 'Austria & Germany', text: 'Traveling with two teenagers and elderly grandparents seemed daunting until Alpine Explorers designed our private rail itinerary. Everything ran like clockwork, and the Bavarian castles blew the kids away!' },
+        { name: 'Krunal Shah', location: 'Bali Luxury Retreat', text: 'From the clifftop ocean villa in Uluwatu to the private sunrise catamaran, every second was perfection. The WhatsApp concierge responded within 3 minutes whenever we wanted to adjust dinner times!' },
       ],
       whyChooseUs: ['Since 1998', '25K+ Happy Explorers', 'Presidential Recognition', 'Certified Instructors'],
     })

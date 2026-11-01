@@ -11,6 +11,7 @@ import usersRouter from './routes/users.js'
 import staffRouter from './routes/staff.js'
 import blogsRouter from './routes/blogs.js'
 import mediaRouter from './routes/media.js'
+import galleryRouter from './routes/gallery.js'
 import inquiriesRouter from './routes/inquiries.js'
 import applicationsRouter from './routes/applications.js'
 import bookingsRouter from './routes/bookings.js'
@@ -18,9 +19,10 @@ import paymentsRouter from './routes/payments.js'
 import siteRouter from './routes/site.js'
 import { crudAdminRouter, CONTENT_CONFIGS } from './routes/content.js'
 import toursRouter from './routes/tours.js'
-import { uploadError } from './middleware.js'
+import { authRequired, uploadError } from './middleware.js'
 import { runSeed } from './seed.js'
 import { seedDurationsAndItineraries } from './scripts/seed_durations.js'
+import { getSafeEnvDiagnostics } from './utils/supabase.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -58,6 +60,7 @@ const HOST = process.env.HOST || 'http://localhost'
 const API = `${HOST}:${PORT}`
 
 app.get('/api/health', (req, res) => res.json({ ok: true, message: 'Alpine Explorers API is running' }))
+app.get('/api/health/env', (req, res) => res.json({ ok: true, env: getSafeEnvDiagnostics() }))
 app.get('/health', (req, res) => res.type('text/plain').send('ok'))
 app.get('/api/seed', (req, res) => {
   try {
@@ -86,6 +89,7 @@ app.use('/api/users', usersRouter)
 app.use('/api/staff', staffRouter)
 app.use('/api/blogs', blogsRouter)
 app.use('/api/media', mediaRouter)
+app.use('/api/admin/gallery', authRequired, galleryRouter)
 app.use('/api/inquiries', inquiriesRouter)
 app.use('/api/applications', applicationsRouter)
 app.use('/api/bookings', bookingsRouter)
@@ -94,6 +98,11 @@ app.use('/api', toursRouter)
 app.use('/api', siteRouter)
 
 app.use('/api', uploadError)
+
+/* Unknown /api routes return JSON 404, never index.html */
+app.use('/api', (req, res) => {
+  res.status(404).json({ error: `API endpoint not found: ${req.method} ${req.originalUrl}` })
+})
 
 /* Serve built frontend in production */
 if (fs.existsSync(distDir)) {

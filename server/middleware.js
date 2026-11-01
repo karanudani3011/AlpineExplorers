@@ -101,8 +101,8 @@ export function requireRole(...roles) {
 const storage = multer.memoryStorage()
 
 const allowedImageTypes = ['image/png', 'image/jpeg', 'image/webp', 'image/jpg', 'image/gif', 'image/svg+xml']
-const allowedVideoTypes = ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-matroska', 'video/mpeg']
-const limits = { fileSize: 50 * 1024 * 1024 } // 50MB for video/image
+const allowedVideoTypes = ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-matroska', 'video/mpeg', 'video/x-m4v', 'video/m4v']
+const limits = { fileSize: 100 * 1024 * 1024 } // 100MB for video/image
 
 export const upload = multer({
   storage,

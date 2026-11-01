@@ -22,9 +22,11 @@ router.post('/', upload.single('file'), async (req, res) => {
     const category = req.body.category || 'general'
     const title = req.body.title || req.file.originalname
 
+    const folder = req.body.folder || 'alpine_explorers'
+
     const isVideo = req.file.mimetype.startsWith('video/')
     const cloudRes = await uploadBufferToCloudinary(req.file.buffer, {
-      folder: 'alpine_explorers',
+      folder,
       resource_type: isVideo ? 'video' : 'image',
     })
 
@@ -45,7 +47,15 @@ router.post('/', upload.single('file'), async (req, res) => {
     })
 
     const item = db.prepare('SELECT * FROM media WHERE id = ?').get(info.lastInsertRowid)
-    res.status(201).json({ media: item })
+    res.status(201).json({
+      media: item,
+      secure_url: cloudRes.secure_url,
+      public_id: cloudRes.public_id,
+      width: cloudRes.width,
+      height: cloudRes.height,
+      duration: cloudRes.duration || null,
+      resource_type: cloudRes.resource_type || (isVideo ? 'video' : 'image'),
+    })
   } catch (err) {
     console.error('Cloudinary upload error:', err)
     res.status(500).json({ error: 'Cloudinary upload failed: ' + (err.message || 'Unknown error') })
@@ -61,8 +71,9 @@ router.post('/multiple', upload.array('files', 15), async (req, res) => {
 
     for (const file of req.files) {
       const isVideo = file.mimetype.startsWith('video/')
+      const folder = req.body.folder || 'alpine_explorers'
       const cloudRes = await uploadBufferToCloudinary(file.buffer, {
-        folder: 'alpine_explorers',
+        folder,
         resource_type: isVideo ? 'video' : 'image',
       })
 
@@ -156,6 +167,49 @@ router.delete('/:id', async (req, res) => {
     details: existing.title,
   })
   res.json({ message: 'Deleted' })
+})
+
+// Secure Cloudinary deletion for photos and videos
+router.post('/delete-cloudinary-asset', async (req, res) => {
+  try {
+    const { public_id, resource_type = 'image' } = req.body
+    if (!public_id) return res.status(400).json({ error: 'public_id is required' })
+
+    const resType = resource_type === 'video' ? 'video' : 'image'
+    const result = await cloudinary.uploader.destroy(public_id, {
+      resource_type: resType,
+      invalidate: true,
+    })
+
+    logActivity({
+      user_name: req.user?.username || req.user?.email || 'admin',
+      action: `Cloudinary asset deleted (${resType})`,
+      module: 'Media',
+      details: public_id,
+    })
+
+    res.json({ success: true, result })
+  } catch (err) {
+    console.warn('Could not delete from Cloudinary:', err.message)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// Direct deletion from Cloudinary by public_id (legacy GET/DELETE compatibility)
+router.delete('/cloudinary/*public_id', async (req, res) => {
+  try {
+    const rawPublicId = req.params.public_id
+    const publicId = decodeURIComponent(
+      Array.isArray(rawPublicId) ? rawPublicId.join('/') : (rawPublicId || '')
+    )
+    if (!publicId) return res.status(400).json({ error: 'Missing public_id' })
+    const resourceType = req.query.resource_type === 'video' ? 'video' : 'image'
+    const result = await cloudinary.uploader.destroy(publicId, { resource_type: resourceType, invalidate: true })
+    res.json({ success: true, result })
+  } catch (err) {
+    console.warn('Could not delete from Cloudinary:', err.message)
+    res.status(500).json({ error: err.message })
+  }
 })
 
 export const mediaConfig = { router, upload, uploadError }

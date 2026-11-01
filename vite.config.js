@@ -14,8 +14,8 @@ export default defineConfig({
     // like /services/family, /tour/:id, /booking/:id, etc.
     historyApiFallback: true,
     proxy: {
-      '/api': { target: 'http://127.0.0.1:5000', changeOrigin: true },
-      '/uploads': { target: 'http://127.0.0.1:5000', changeOrigin: true },
+      '/api': { target: 'http://localhost:5000', changeOrigin: true },
+      '/uploads': { target: 'http://localhost:5000', changeOrigin: true },
     },
   },
   // Pre-bundle heavy dependencies so Vite doesn't re-transform them on each

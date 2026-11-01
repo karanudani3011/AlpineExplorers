@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
   Compass, Globe2, Map as MapIcon, Mountain, Tent, Plane, PenLine,
-  Home, Info, Mail, Users, Settings, LogOut, Menu, X, CalendarDays, MapPinned, ChevronDown, FileText,
+  Home, Info, Mail, Users, Settings, LogOut, Menu, X, CalendarDays, MapPinned, ChevronDown, FileText, Image as ImageIcon,
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { BG, NAVY, GOLD, NAVY_DARK } from './admin-ui'
@@ -22,6 +22,7 @@ const NAV = [
   { to: '/admin/bookings', label: 'Bookings / Applications', icon: FileText, permission: 'bookings.view' },
   { to: '/admin/events', label: 'Upcoming Events', icon: CalendarDays, permission: 'events.view' },
   { to: '/admin/blog', label: 'Blog', icon: PenLine, permission: 'blog.view' },
+  { to: '/admin/gallery', label: 'Gallery', icon: ImageIcon, permission: 'media.view' },
   { to: '/admin/about', label: 'About Us', icon: Info, permission: 'about.view' },
   { to: '/admin/inquiries', label: 'Contact Us', icon: Mail, permission: 'contact.view' },
 ]

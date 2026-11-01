@@ -1,20 +1,47 @@
-export const API_BASE = import.meta.env.VITE_API_URL || ''
+// Base API URL from environment: in dev '/api' (or proxy), in prod e.g. 'https://alpineexplorers.onrender.com'
+const envBase = (import.meta.env.VITE_API_URL || '').trim().replace(/\/+$/, '')
+
+// In dev with proxy, defaults to '/api'. In production, ensures /api is present.
+export const API_BASE = envBase
+  ? (envBase.endsWith('/api') ? envBase : `${envBase}/api`)
+  : '/api'
 
 const REQUEST_TIMEOUT_MS = 60_000
 const MAX_RETRIES = 2
-const trimBase = API_BASE.replace(/\/+$/, '')
 
-export function apiUrl(path) {
+/**
+ * Resolves any path to the full API URL.
+ * Handles:
+ * - Full URLs: 'https://...' -> untouched
+ * - Absolute paths: '/admin/gallery' -> '${API_BASE}/admin/gallery'
+ * - Already prefixed paths: '/api/admin/gallery' -> '${API_BASE}/admin/gallery' (no double /api)
+ * - Uploads: '/uploads/file.jpg' -> relative or origin-prefixed
+ */
+export function apiUrl(path = '') {
+  if (!path) return API_BASE
   if (/^https?:\/\//i.test(path)) return path
+
   const cleanPath = path.startsWith('/') ? path : `/${path}`
-  if (!cleanPath.startsWith('/api/') && !cleanPath.startsWith('/uploads/')) return cleanPath
-  if (!trimBase) return cleanPath
-  return `${trimBase}${cleanPath}`
+
+  // Static uploads handling
+  if (/^\/uploads(\/|$)/i.test(cleanPath)) {
+    const origin = API_BASE.replace(/\/api$/i, '')
+    return origin ? `${origin}${cleanPath}` : cleanPath
+  }
+
+  // If path already starts with /api (e.g. '/api/admin/gallery')
+  if (/^\/api(\/|$)/i.test(cleanPath)) {
+    if (API_BASE === '/api') return cleanPath
+    const subPath = cleanPath.replace(/^\/api/i, '')
+    return `${API_BASE}${subPath}`
+  }
+
+  // Standard route (e.g. '/admin/gallery', '/homepage', '/blogs')
+  return `${API_BASE}${cleanPath}`
 }
 
 function buildUrl(path) {
-  const cleanPath = path.startsWith('/') ? path : `/${path}`
-  return apiUrl(cleanPath.startsWith('/api') ? cleanPath : `/api${cleanPath}`)
+  return apiUrl(path)
 }
 
 export const API = {
@@ -82,10 +109,13 @@ async function request(path, { method = 'GET', body, form } = {}) {
     headers['Content-Type'] = 'application/json'
     payload = JSON.stringify(body)
   }
-  const res = await fetchWithRetry(buildUrl(path), { method, headers, body: payload })
+  const targetUrl = buildUrl(path)
+  const res = await fetchWithRetry(targetUrl, { method, headers, body: payload })
   const contentType = res.headers.get('content-type') || ''
   if (!contentType.toLowerCase().includes('application/json')) {
-    throw new Error(`Expected JSON from ${path}, but received ${contentType || 'an unknown content type'}. Check the API URL and server response.`)
+    throw new Error(
+      `Expected JSON from ${targetUrl} (called as "${path}"), but received ${contentType || 'an unknown content type'} (HTTP ${res.status}). Check the API URL and server response.`
+    )
   }
   const data = await res.json().catch(() => ({}))
   if (!res.ok) {
@@ -119,6 +149,7 @@ export const api = {
   putForm: (path, form) => request(path, { method: 'PUT', form }),
   patch: (path, body) => request(path, { method: 'PATCH', body }),
   del: (path) => request(path, { method: 'DELETE' }),
+  delete: (path, body) => request(path, { method: 'DELETE', body }),
   getToken: () => API.getToken(),
-  BASE: trimBase ? `${trimBase}/api` : '/api',
+  BASE: API_BASE,
 }

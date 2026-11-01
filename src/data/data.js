@@ -390,15 +390,15 @@ export const blogs = [
 export const testimonials = [
   {
     id: 1,
-    name: 'Joen & Clara Miller',
-    role: 'Alpine Explorers Guests • Swiss Alps Tour',
+    name: 'Jaydeep Patel',
+    role: 'Alpine Explorer • Swiss Alps Tour',
     rating: 5,
     text: 'The Haute Route trek with Alpine Explorers was the absolute journey of a lifetime. Our guide was extraordinarily skilled, the glacier crossing felt completely secure, and reaching our alpine hut with hot raclette was pure magic!',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop',
+    avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&h=150&fit=crop',
   },
   {
     id: 2,
-    name: 'Capt. David Chen',
+    name: 'Harsh Mehta',
     role: 'Family Adventure Traveler • Austria & Germany',
     rating: 5,
     text: 'Traveling with two teenagers and elderly grandparents seemed daunting until Alpine Explorers designed our private rail itinerary. Everything ran like clockwork, and the Bavarian castles blew the kids away!',
@@ -406,10 +406,10 @@ export const testimonials = [
   },
   {
     id: 3,
-    name: 'Sophia & Liam Dubois',
-    role: 'Honeymooners • Bali Luxury Retreat',
+    name: 'Krunal Shah',
+    role: 'Luxury Traveler • Bali Luxury Retreat',
     rating: 5,
     text: 'From the clifftop ocean villa in Uluwatu to the private sunrise catamaran, every second was perfection. The WhatsApp concierge responded within 3 minutes whenever we wanted to adjust dinner times!',
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop',
   },
 ]

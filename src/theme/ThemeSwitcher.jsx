@@ -11,7 +11,7 @@ const THEME_OPTIONS = [
   { id: 'yellow', label: 'Yellow + White', primary: '#d97706', accent: '#facc15' },
 ]
 
-export default function ThemeSwitcher() {
+export default function ThemeSwitcher({ compact = false, className = '' }) {
   const { theme, setTheme } = useTheme()
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
@@ -33,10 +33,10 @@ export default function ThemeSwitcher() {
   }, [open])
 
   return (
-    <div ref={ref} className="relative">
+    <div ref={ref} className={`relative ${className}`}>
       <button
         onClick={() => setOpen((v) => !v)}
-        className="p-2.5 rounded-xl transition flex items-center justify-center relative"
+        className={`rounded-xl transition flex items-center justify-center relative flex-shrink-0 ${compact ? 'w-9 h-9 min-w-[36px] min-h-[36px] p-0' : 'p-2.5'}`}
         style={{
           color: open ? 'var(--ae-navy)' : 'var(--ae-ink)',
           backgroundColor: open ? 'rgb(var(--ae-gold-rgb) /0.12)' : 'transparent',
@@ -45,10 +45,10 @@ export default function ThemeSwitcher() {
         title="Switch color theme"
         aria-expanded={open}
       >
-        <Palette size={19} />
+        <Palette size={compact ? 18 : 19} />
         {theme && (
           <span
-            className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full"
+            className={`absolute ${compact ? 'top-1 right-1' : 'top-1.5 right-1.5'} w-2 h-2 rounded-full`}
             style={{ backgroundColor: 'var(--ae-gold)', outline: '2px solid var(--ae-cream)' }}
           />
         )}
@@ -61,12 +61,12 @@ export default function ThemeSwitcher() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 6, scale: 0.97 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 top-full mt-2 w-64 rounded-2xl border shadow-xl overflow-hidden"
+            className="absolute right-0 top-full mt-2 w-64 max-w-[calc(100vw-32px)] rounded-2xl border shadow-xl overflow-hidden"
             style={{
               backgroundColor: 'var(--ae-cream)',
               borderColor: 'rgb(var(--ae-gold-rgb) /0.4)',
               boxShadow: '0 18px 45px rgb(var(--ae-navy-rgb) /0.25)',
-              zIndex: 60,
+              zIndex: 70,
             }}
           >
             <div

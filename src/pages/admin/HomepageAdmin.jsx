@@ -16,6 +16,7 @@ const SECTIONS = [
   ['why_choose_us', 'Why Choose Us'],
   ['featured_packages', 'Featured Packages'],
   ['testimonials', 'Testimonials'],
+  ['gallery', 'Gallery Teaser'],
   ['promotional_banners', 'Promotional Banners'],
 ]
 

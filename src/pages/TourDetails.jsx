@@ -366,14 +366,14 @@ export default function TourDetails() {
                 {testimonials.slice(0, 2).map((rev) => (
                   <div key={rev.id} className="p-4 rounded-2xl bg-gray-50 border border-gray-100 space-y-2">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-3 min-w-0">
                         <img
                           src={rev.avatar}
                           alt={rev.name}
-                          className="w-10 h-10 rounded-full object-cover border border-blue-400"
+                          className="w-10 h-10 rounded-full object-cover border border-blue-400 flex-shrink-0"
                         loading="lazy" decoding="async" />
-                        <div>
-                          <h4 className="font-bold text-sm text-slate-900">{rev.name}</h4>
+                        <div className="min-w-0 flex-1">
+                          <h4 className="font-bold text-sm text-slate-900 truncate">{rev.name}</h4>
                           <span className="text-[11px] text-gray-500">Verified Explorer</span>
                         </div>
                       </div>
