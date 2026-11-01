@@ -232,40 +232,40 @@ export default function TourApplicationForm({ courseName = '', traveler = null, 
     try {
       const bookingId = `APP-${Date.now()}`
       await api.post('/api/bookings', {
-          booking_id: bookingId,
-          tour_name: f.course || courseName || 'Tour Application',
-          number_of_travelers: 1,
-          booking_contact_name: f.name,
-          booking_contact_phone: f.contact,
-          travelers: [{
-            courseName: f.course || courseName,
-            fullName: f.name,
-            dob: f.dob,
-            age: f.age,
-            sex: f.sex,
-            bloodGroup: f.bloodGroup,
-            address: f.address,
-            contact: f.contact,
-            education: f.education,
-            school: f.school,
-            schoolAddress: f.schoolAddress,
-            schoolPhone: f.schoolPhone,
-            hobbies: f.hobbies,
-            photo: photo || null,
-            experienceYesNo: f.experience || 'No',
-            experienceDetails: f.details,
-            signature: sigApplicant || null,
-            guardianSignature: sigGuardian || null,
-            sigPlace: f.place,
-            sigDate: f.date,
-            riskParticipantName: f.riskName || f.name,
-            riskCourseName: f.riskCourse || f.course || courseName,
-            riskPlace: f.riskPlace || f.place,
-            riskDate: f.riskDate || f.date,
-            riskSignature: sigApplicant || null,
-            riskAccepted: true,
-            declarationAccepted: true,
-          }]
+        booking_id: bookingId,
+        tour_name: f.course || courseName || 'Tour Application',
+        number_of_travelers: 1,
+        booking_contact_name: f.name,
+        booking_contact_phone: f.contact,
+        travelers: [{
+          courseName: f.course || courseName,
+          fullName: f.name,
+          dob: f.dob,
+          age: f.age,
+          sex: f.sex,
+          bloodGroup: f.bloodGroup,
+          address: f.address,
+          contact: f.contact,
+          education: f.education,
+          school: f.school,
+          schoolAddress: f.schoolAddress,
+          schoolPhone: f.schoolPhone,
+          hobbies: f.hobbies,
+          photo: photo || null,
+          experienceYesNo: f.experience || 'No',
+          experienceDetails: f.details,
+          signature: sigApplicant || null,
+          guardianSignature: sigGuardian || null,
+          sigPlace: f.place,
+          sigDate: f.date,
+          riskParticipantName: f.riskName || f.name,
+          riskCourseName: f.riskCourse || f.course || courseName,
+          riskPlace: f.riskPlace || f.place,
+          riskDate: f.riskDate || f.date,
+          riskSignature: sigApplicant || null,
+          riskAccepted: true,
+          declarationAccepted: true,
+        }]
       })
     } catch (err) {
       console.error('Error submitting application form:', err)
@@ -321,12 +321,13 @@ export default function TourApplicationForm({ courseName = '', traveler = null, 
                 ALPINE EXPLORERS
               </h1>
               <p className="text-[13px] sm:text-sm mt-1 font-semibold" style={{ color: INK }}>
-                Amit Lakhani (Director) Cel. 94272 20979
+                Amit Lakhani (Director) Cel. 99798 83339
               </p>
               <p className="text-[12px] sm:text-[13px] mt-2 leading-relaxed" style={{ color: INK }}>
-                1, Shubh prabha Appt. 28 Karanpara, B/h. Bus station,<br />
-                Rajkot - 360 001. Phone : 0281-222 75 83,<br />
-                E-mail : <a href="mailto:alpine_explorers@yahoo.com" className="underline">alpine_explorers@yahoo.com</a>
+                B-309, The One World, Near Ayodhya Chowk, 150 Feet Ring Road,<br />
+                Rajkot - 360 006, Gujarat, India<br />
+                Phone: <a href="tel:+919979883339" className="hover:underline">+91 99798 83339</a><br />
+                E-mail: <a href="mailto:alpineexplorers.travel@gmail.com" className="underline">alpineexplorers.travel@gmail.com</a>
               </p>
             </div>
 
@@ -401,11 +402,11 @@ export default function TourApplicationForm({ courseName = '', traveler = null, 
               <Blank value={f.age} onChange={set('age')} className="w-12" />
               <span style={{ fontFamily: serif }}>SEX :</span>
               <label className="inline-flex items-center gap-1 text-[13px]">
-              <input type="radio" name={`sex-${travelerNumber}`} value="M" checked={f.sex === 'M'} onChange={set('sex')}
+                <input type="radio" name={`sex-${travelerNumber}`} value="M" checked={f.sex === 'M'} onChange={set('sex')}
                   className="accent-[#b3211f]" /> M
               </label>
               <label className="inline-flex items-center gap-1 text-[13px]">
-              <input type="radio" name={`sex-${travelerNumber}`} value="F" checked={f.sex === 'F'} onChange={set('sex')}
+                <input type="radio" name={`sex-${travelerNumber}`} value="F" checked={f.sex === 'F'} onChange={set('sex')}
                   className="accent-[#b3211f]" /> F
               </label>
             </div>

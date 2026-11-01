@@ -418,7 +418,7 @@ export default function Landing() {
           className="mb-4 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-900/10 border border-amber-900/20 text-amber-950 text-xs font-semibold uppercase tracking-[0.25em]"
         >
           <Compass size={14} className="text-amber-800 animate-spin" style={{ animationDuration: '14s' }} />
-          <span>Curated Expeditions • Est. 1924</span>
+          <span>Curated Expeditions • Est. 1998</span>
         </motion.div>
 
         {/* Main Bold Title: "Alpine Explorers" */}

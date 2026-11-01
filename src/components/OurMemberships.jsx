@@ -7,8 +7,8 @@ const memberships = [
   { logo: '/logos/lvb.png', alt: 'Local Vocal Business logo', short: 'LVB', description: 'Local Vocal Business' },
   { logo: '/logos/tosg.webp', alt: 'Tour Operators Sustainable Group logo', short: 'TOSG', description: 'Tour Operators Sustainable Group' },
   { logo: '/logos/uten.png', alt: 'United Travels Events & Networking LLP logo', short: 'UTEN', description: 'United Travels Events & Networking LLP' },
-  { logo: null, alt: null, short: 'GPCCS', description: 'Gujarat Peoples Credit Co-operative Society Ltd.', note: 'Board of Director' },
-  { logo: null, alt: null, short: 'JTA', description: 'Jain Tourism Association' },
+  { logo: '/logos/GPCCS.jpeg', alt: 'GPCCS logo', short: 'GPCCS', description: 'Gujarat Peoples Credit Co-operative Society Ltd.', note: 'Board of Director' },
+  { logo: null, alt: null, short: 'JTA', description: 'Jain Travel Association' },
 ]
 
 export default function OurMemberships() {
@@ -42,14 +42,22 @@ export default function OurMemberships() {
                         alt={membership.alt}
                         loading="lazy"
                         decoding="async"
-                        style={membership.short === 'BNI' ? { borderRadius: '10px' } : undefined}
+                        style={
+                          membership.short === 'BNI'
+                            ? { borderRadius: '10px' }
+                            : membership.short === 'GPCCS'
+                            ? { borderRadius: '6px' }
+                            : undefined
+                        }
                       />
                     ) : (
                       <span className="our-membership-text-logo">{membership.short}</span>
                     )}
                   </div>
                   <div className="our-membership-divider" />
-                  {membership.logo && <span className="our-membership-title">{membership.short}</span>}
+                  {membership.logo && membership.short !== 'GPCCS' && (
+                    <span className="our-membership-title">{membership.short}</span>
+                  )}
                   {membership.description && (
                     <span className={`our-membership-full${membership.short === 'GPCCS' ? ' our-membership-gpccs-description' : ''}`}>
                       {membership.description}

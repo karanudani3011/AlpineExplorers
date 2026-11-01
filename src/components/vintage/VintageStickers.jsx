@@ -17,7 +17,7 @@ export function SwissSummitStamp({ className = "w-28 h-28" }) {
         </textPath>
       </text>
       <text x="60" y="80" textAnchor="middle" fill="#8b2518" fontSize="10" fontWeight="bold" fontFamily="serif">
-        1924
+        1998
       </text>
       <text x="60" y="93" textAnchor="middle" fill="#8b2518" fontSize="6" fontWeight="bold" fontFamily="sans-serif" letterSpacing="1">
         • ELEV. 4,478M •
@@ -70,7 +70,7 @@ export function PassportVisaStamp({ className = "w-32 h-20" }) {
       </div>
       <div className="py-1">
         <span className="block text-xs font-bold font-serif">ZERMATT PASS</span>
-        <span className="text-[9px] text-emerald-700 font-semibold">VALIDATED: 1924-EXPEDITION</span>
+        <span className="text-[9px] text-emerald-700 font-semibold">VALIDATED: 1998-EXPEDITION</span>
       </div>
       <div className="text-[8px] text-emerald-800 uppercase tracking-widest text-right font-bold">
         APPROVED ✓

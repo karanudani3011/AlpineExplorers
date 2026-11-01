@@ -14,6 +14,8 @@ import { ArrowRight, ArrowUpRight, MapPin, Calendar, Clock, Compass, Award, Hear
 import { usePublicEvents, usePublicContent } from '../services/usePublic'
 import { getFeaturedImages } from '../services/galleryService'
 import { cloudinaryUrl, getVideoPosterUrl } from '../utils/cloudinary'
+import clientPhoto from '../assets/client.png'
+import aeLogo from '../assets/logos/alpine_logo.png'
 
 const NAVY = 'var(--ae-navy)'
 const NAVY_MID = 'var(--ae-navy-mid)'
@@ -188,13 +190,18 @@ export default function Home() {
         </motion.div>
 
         <motion.div style={{ y: heroTextY, opacity: heroOpacity }} className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col justify-center pt-8 pb-10 sm:pb-28">
-          {/* 1. Gold script subtitle */}
+          {/* 1. Red script subtitle */}
           <motion.span
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.7 }}
-            className="text-lg sm:text-2xl mb-2 font-medium"
-            style={{ ...font.script, color: GOLD2, textShadow: '0 2px 8px rgb(var(--ae-navy-rgb) /0.5)' }}
+            className="mb-2 font-medium italic"
+            style={{
+              ...font.script,
+              fontSize: 'clamp(1.5rem, 3vw, 2.5rem)',
+              color: '#D62828',
+              textShadow: '0 2px 10px rgba(0, 0, 0, 0.65), 0 1px 3px rgba(0, 0, 0, 0.85)',
+            }}
           >
             Alpine Explorers · Journeys beyond the postcard
           </motion.span>
@@ -316,6 +323,89 @@ export default function Home() {
             </div>
           </div>
         </motion.div>
+      </section>
+
+      {/* ===================================================================== */}
+      {/* SECTION 1.5 — FOUNDER & BRAND SHOWCASE                                */}
+      {/* ===================================================================== */}
+      <section className="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-center">
+          {/* LEFT: Client / Founder Photo with gold offset frame */}
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: '-50px' }}
+            transition={{ duration: 0.8, ease: 'easeOut' }}
+            className="flex flex-col items-center"
+          >
+            <div className="relative w-full max-w-[420px]">
+              {/* Thin gold border / frame offset behind the image */}
+              <div
+                className="absolute -inset-3 rounded-[20px] border-2 pointer-events-none -rotate-1 hidden sm:block"
+                style={{ borderColor: 'var(--ae-gold2, #C9A227)' }}
+              />
+              {/* Photo Container */}
+              <div
+                className="relative rounded-[16px] overflow-hidden"
+                style={{
+                  aspectRatio: '3 / 4',
+                  boxShadow: '0 20px 40px rgba(0, 0, 0, 0.15)',
+                  border: '1px solid rgba(201, 162, 39, 0.4)',
+                }}
+              >
+                <img
+                  src={clientPhoto}
+                  alt="Amit Lakhani - Founder, Alpine Explorers"
+                  loading="lazy"
+                  decoding="async"
+                  className="w-full h-full object-cover object-top"
+                />
+              </div>
+            </div>
+
+            {/* Caption Block */}
+            <div className="mt-5 text-center">
+              <h3
+                className="text-xl sm:text-2xl font-bold tracking-wide text-[color:var(--ae-navy)]"
+                style={font.vintage}
+              >
+                Amit Lakhani
+              </h3>
+              <p
+                className="text-xs sm:text-sm font-semibold tracking-widest uppercase mt-1"
+                style={{ ...font.body, color: GOLD }}
+              >
+                Founder, Alpine Explorers
+              </p>
+            </div>
+          </motion.div>
+
+          {/* RIGHT: Alpine Explorers Company Logo with soft drop shadow & subtle float */}
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: '-50px' }}
+            transition={{ duration: 0.8, ease: 'easeOut' }}
+            className="flex flex-col items-center justify-center"
+          >
+            <motion.div
+              animate={{ y: [0, -6, 0] }}
+              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+              className="w-full max-w-[320px] flex items-center justify-center p-4 transition-transform duration-300 hover:-translate-y-1.5"
+            >
+              <img
+                src={aeLogo}
+                alt="Alpine Explorers Logo"
+                loading="lazy"
+                decoding="async"
+                className="w-full h-auto object-contain"
+                style={{
+                  filter: 'drop-shadow(0 12px 24px rgba(0, 0, 0, 0.2))',
+                }}
+              />
+            </motion.div>
+          </motion.div>
+        </div>
       </section>
 
       {/* ===================================================================== */}
