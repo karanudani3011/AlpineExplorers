@@ -44,6 +44,14 @@ publicRouter.get('/blogs', (req, res) => {
   res.json({ blogs })
 })
 
+publicRouter.get('/blogs/:slug', (req, res) => {
+  const row = db.prepare(
+    "SELECT id, title, slug, category, author, cover_image, short_description, content, tags, publish_date, featured, created_at FROM blogs WHERE slug = ? OR id = ?"
+  ).get(req.params.slug, req.params.slug)
+  if (!row) return res.status(404).json({ error: 'Blog not found' })
+  res.json({ blog: decorateRow(row) })
+})
+
 publicRouter.get('/featured', (req, res) => {
   const items = db.prepare(
     "SELECT * FROM international_packages WHERE status='active' AND featured=1 ORDER BY id DESC LIMIT 6"

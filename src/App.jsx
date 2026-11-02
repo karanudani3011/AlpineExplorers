@@ -5,6 +5,7 @@ import { SupabaseAuthProvider } from './contexts/SupabaseAuthContext'
 
 // ── Eagerly loaded (needed immediately on the "/" landing route) ──
 import Landing from './pages/Landing'
+import WhatsAppFloat from './components/WhatsAppFloat'
 
 // ── Global modal (lazy — only shown when user triggers auth) ──
 const AuthModal = lazy(() => import('./components/auth/AuthModal'))
@@ -16,6 +17,7 @@ const Services = lazy(() => import('./pages/Services'))
 const ServicePage = lazy(() => import('./components/ServicePage'))
 const TourDetailsPage = lazy(() => import('./components/TourDetailsPage'))
 const Blog = lazy(() => import('./pages/Blog'))
+const BlogDetail = lazy(() => import('./pages/BlogDetail'))
 const UpcomingEvents = lazy(() => import('./pages/UpcomingEvents'))
 const Gallery = lazy(() => import('./pages/Gallery'))
 const TravelMood = lazy(() => import('./pages/TravelMood'))
@@ -203,6 +205,7 @@ function App() {
         <Router>
           <ScrollRestoration />
           <ApiWakeNotice />
+          <WhatsAppFloat />
           {/* AuthModal is global but only rendered when open (lazy to avoid upfront cost) */}
           <Suspense fallback={null}>
             <AuthModal />
@@ -231,6 +234,9 @@ function App() {
             } />
             <Route path="/blog" element={
               <Suspense fallback={<PageLoader />}><Blog /></Suspense>
+            } />
+            <Route path="/blog/:slug" element={
+              <Suspense fallback={<PageLoader />}><BlogDetail /></Suspense>
             } />
             <Route path="/gallery" element={
               <Suspense fallback={<PageLoader />}><Gallery /></Suspense>

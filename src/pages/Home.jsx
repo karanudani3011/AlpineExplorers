@@ -391,18 +391,45 @@ export default function Home() {
             <motion.div
               animate={{ y: [0, -6, 0] }}
               transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-              className="w-full max-w-[320px] flex items-center justify-center p-4 transition-transform duration-300 hover:-translate-y-1.5"
+              className="logo-wrap flex flex-col items-center justify-center transition-transform duration-300 hover:-translate-y-1.5"
             >
-              <img
-                src={aeLogo}
-                alt="Alpine Explorers Logo"
-                loading="lazy"
-                decoding="async"
-                className="w-full h-auto object-contain"
-                style={{
-                  filter: 'drop-shadow(0 12px 24px rgba(0, 0, 0, 0.2))',
-                }}
-              />
+              <div className="w-full max-w-[280px] sm:max-w-[320px] flex items-center justify-center p-2">
+                <img
+                  src={aeLogo}
+                  alt="Alpine Explorers Logo"
+                  loading="lazy"
+                  decoding="async"
+                  className="w-full h-auto object-contain"
+                  style={{
+                    filter: 'drop-shadow(0 12px 24px rgba(0, 0, 0, 0.2))',
+                  }}
+                />
+              </div>
+
+              {/* SINCE 1998 with thin gold lines on both sides */}
+              <div
+                className="since-text flex items-center justify-center gap-3 w-full"
+                style={{ marginTop: '16px' }}
+              >
+                <span
+                  className="w-6 sm:w-10 h-[1.5px] rounded-full"
+                  style={{ backgroundColor: 'var(--ae-gold2, #C9A227)' }}
+                />
+                <span
+                  className="uppercase font-semibold tracking-[0.2em] select-none text-[16px] sm:text-[18px] md:text-[20px]"
+                  style={{
+                    ...font.vintage,
+                    color: 'var(--ae-gold2, #C9A227)',
+                    textShadow: '0 1px 2px rgba(0, 0, 0, 0.08)',
+                  }}
+                >
+                  SINCE 1998
+                </span>
+                <span
+                  className="w-6 sm:w-10 h-[1.5px] rounded-full"
+                  style={{ backgroundColor: 'var(--ae-gold2, #C9A227)' }}
+                />
+              </div>
             </motion.div>
           </motion.div>
         </div>

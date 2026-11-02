@@ -252,16 +252,6 @@ export default function Navbar() {
                 />
               )}
             </button>
-
-            <a
-              href="https://wa.me/919979883339?text=Hello%20Alpine%20Explorers%2C%20I%20want%20to%20know%20more%20about%20your%20tours."
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Chat on WhatsApp"
-              className="whatsapp-header whatsapp-header-desktop"
-            >
-              <FaWhatsapp size={20} aria-hidden="true" />
-            </a>
           </div>
 
           {/* Mobile & Tablet Right Icons Group (< 1024px) */}
@@ -280,17 +270,6 @@ export default function Navbar() {
             <div className="hidden min-[480px]:block">
               <ThemeSwitcher compact={true} />
             </div>
-
-            {/* WhatsApp: always visible in mobile header */}
-            <a
-              href="https://wa.me/919979883339?text=Hello%20Alpine%20Explorers%2C%20I%20want%20to%20know%20more%20about%20your%20tours."
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Chat on WhatsApp"
-              className="whatsapp-header"
-            >
-              <FaWhatsapp size={18} aria-hidden="true" />
-            </a>
 
             {/* Hamburger button: ALWAYS visible on mobile/tablet, never clipped */}
             <button

@@ -73,21 +73,27 @@ export default function Blog() {
 
   const mappedBlogs = activeBlogsList.map((b) => ({
     id: b.id,
+    slug: b.slug,
     title: b.title,
     author: b.author || 'Alpine Explorers',
-    date: (b.publish_date || b.created_at || new Date().toISOString()).slice(0, 10),
+    date: (b.published_date || b.publish_date || b.created_at || new Date().toISOString()).slice(0, 10),
     category: b.category || 'Travel',
-    image: b.cover_image || 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=800&h=400&fit=crop',
+    image: b.featured_image || b.cover_image || 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=800&h=400&fit=crop',
     excerpt: b.short_description || '',
-    readTime: '5 min read',
+    readTime: b.reading_time || '6 min read',
     content: b.content || '',
+    tags: Array.isArray(b.tags) ? b.tags : [],
   }))
 
   const filteredBlogs = mappedBlogs.filter((blog) => {
     const categoryMatch = selectedCategory === 'All' || blog.category === selectedCategory
+    const searchLower = searchTerm.toLowerCase()
     const searchMatch =
-      blog.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (blog.excerpt || '').toLowerCase().includes(searchTerm.toLowerCase())
+      !searchTerm ||
+      blog.title.toLowerCase().includes(searchLower) ||
+      (blog.excerpt || '').toLowerCase().includes(searchLower) ||
+      (blog.category || '').toLowerCase().includes(searchLower) ||
+      blog.tags.some((t) => String(t).toLowerCase().includes(searchLower))
     return categoryMatch && searchMatch
   })
 

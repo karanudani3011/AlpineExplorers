@@ -14,6 +14,34 @@ function slugify(s) {
   return String(s || '').toLowerCase().trim().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '').replace(/-+/g, '-')
 }
 
+async function syncBlogToSupabase(row) {
+  if (!row) return
+  let tags = []
+  try {
+    tags = typeof row.tags === 'string' ? JSON.parse(row.tags) : (Array.isArray(row.tags) ? row.tags : [])
+  } catch {
+    tags = []
+  }
+  const payload = {
+    id: String(row.id),
+    slug: row.slug,
+    title: row.title,
+    short_description: row.short_description || '',
+    featured_image: row.cover_image || null,
+    category: row.category || 'Travel',
+    author: row.author || 'Alpine Explorers',
+    published_date: (row.publish_date || new Date().toISOString()).slice(0, 10),
+    reading_time: '6 min read',
+    rating: 4.9,
+    review_count: 25,
+    tags,
+    content: row.content || '',
+    status: row.status || 'published',
+    views: 350
+  }
+  return syncContentToSupabase('blog_posts', payload)
+}
+
 router.get('/', requirePermission('blog.view'), (req, res) => {
   const rows = db.prepare(`SELECT ${SELECT} FROM blogs ORDER BY id DESC`).all()
   res.json({ blogs: rows.map(decorateRow) })
@@ -38,8 +66,8 @@ router.post('/', requirePermission('blog.create'), async (req, res) => {
   logActivity({ user_name: req.user.full_name || req.user.username || req.user.email, action: 'Blog created', module: 'Blog', details: b.title })
   const row = db.prepare(`SELECT ${SELECT} FROM blogs WHERE id = ?`).get(info.lastInsertRowid)
   
-  // Sync to Supabase
-  syncContentToSupabase('blogs', row).catch(() => {})
+  // Sync to Supabase blog_posts
+  syncBlogToSupabase(row).catch(() => {})
 
   res.status(201).json(decorateRow(row))
 })
@@ -60,8 +88,8 @@ router.put('/:id', requirePermission('blog.edit'), async (req, res) => {
   logActivity({ user_name: req.user.full_name || req.user.username || req.user.email, action: 'Blog updated', module: 'Blog', details: b.title || existing.title })
   const row = db.prepare(`SELECT ${SELECT} FROM blogs WHERE id = ?`).get(req.params.id)
   
-  // Sync to Supabase
-  syncContentToSupabase('blogs', row).catch(() => {})
+  // Sync to Supabase blog_posts
+  syncBlogToSupabase(row).catch(() => {})
 
   res.json(decorateRow(row))
 })
@@ -74,7 +102,7 @@ router.patch('/:id/status', requirePermission('blog.publish'), async (req, res) 
   logActivity({ user_name: req.user.full_name || req.user.username || req.user.email, action: status === 'published' ? 'Blog published' : `Blog ${status}`, module: 'Blog', details: existing.title })
   
   const row = db.prepare(`SELECT ${SELECT} FROM blogs WHERE id = ?`).get(req.params.id)
-  syncContentToSupabase('blogs', row).catch(() => {})
+  syncBlogToSupabase(row).catch(() => {})
 
   res.json({ message: 'Status updated', status })
 })
@@ -82,7 +110,7 @@ router.patch('/:id/status', requirePermission('blog.publish'), async (req, res) 
 router.patch('/:id/featured', requirePermission('blog.edit'), async (req, res) => {
   db.prepare('UPDATE blogs SET featured=?, updated_at=datetime(\'now\') WHERE id=?').run(req.body.featured ? 1 : 0, req.params.id)
   const row = db.prepare(`SELECT ${SELECT} FROM blogs WHERE id = ?`).get(req.params.id)
-  syncContentToSupabase('blogs', row).catch(() => {})
+  syncBlogToSupabase(row).catch(() => {})
 
   res.json({ message: 'Updated' })
 })
@@ -93,8 +121,8 @@ router.delete('/:id', requirePermission('blog.delete'), async (req, res) => {
   db.prepare('DELETE FROM blogs WHERE id = ?').run(req.params.id)
   logActivity({ user_name: req.user.full_name || req.user.username || req.user.email, action: 'Blog deleted', module: 'Blog', details: existing.title })
   
-  // Delete from Supabase
-  deleteContentFromSupabase('blogs', req.params.id).catch(() => {})
+  // Delete from Supabase blog_posts
+  deleteContentFromSupabase('blog_posts', String(req.params.id)).catch(() => {})
 
   res.json({ message: 'Deleted' })
 })
